@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_screen_frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--SlidingTabsLayout for navigation between battles and rooms-->
+        <com.pokemonshowdown.SlidingTabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/color_primary"
+            android:visibility="gone" />
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0px"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/blurred_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/transparent_grey" />
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/battle_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        fab:fab_addButtonColorNormal="@color/dark_red"
+        fab:fab_addButtonColorPressed="@color/light_red"
+        fab:fab_addButtonStrokeVisible="true"
+        android:layout_marginRight="16dp"
+        fab:fab_labelStyle="@style/menu_labels_style">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_battle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_icon="@drawable/ic_add_battle_icon"
+            fab:fab_title="Add a battle" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/watch_battle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            fab:fab_title="Watch a battle" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/challenge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_title="Challenge" />
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+    <!--<com.github.clans.fab.FloatingActionMenu-->
+    <!--android:id="@+id/battle_fab"-->
+    <!--android:layout_width="48dp"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_alignParentBottom="true"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:layout_gravity="bottom|right"-->
+    <!--android:layout_margin="24dp"-->
+    <!--android:foregroundGravity="top"-->
+    <!--fab:menu_animationDelayPerItem="50"-->
+    <!--fab:menu_backgroundColor="@color/transparent_grey"-->
+    <!--fab:menu_buttonSpacing="0dp"-->
+    <!--fab:menu_colorNormal="@color/dark_red"-->
+    <!--fab:menu_colorPressed="@color/dark_red"-->
+    <!--fab:menu_colorRipple="@color/light_red"-->
+    <!--fab:menu_icon="@drawable/ic_add_battle_icon"-->
+    <!--fab:menu_labels_colorNormal="#333333"-->
+    <!--fab:menu_labels_colorPressed="#444444"-->
+    <!--fab:menu_labels_colorRipple="#66FFFFFF"-->
+    <!--fab:menu_labels_cornerRadius="3dp"-->
+    <!--fab:menu_labels_hideAnimation="@anim/fab_slide_out_to_right"-->
+    <!--fab:menu_labels_margin="0dp"-->
+    <!--fab:menu_labels_maxLines="-1"-->
+    <!--fab:menu_labels_padding="8dp"-->
+    <!--fab:menu_labels_paddingBottom="4dp"-->
+    <!--fab:menu_labels_paddingLeft="8dp"-->
+    <!--fab:menu_labels_paddingRight="8dp"-->
+    <!--fab:menu_labels_paddingTop="4dp"-->
+    <!--fab:menu_labels_position="left"-->
+    <!--fab:menu_labels_showAnimation="@anim/fab_slide_in_from_right"-->
+    <!--fab:menu_labels_showShadow="true"-->
+    <!--fab:menu_labels_singleLine="false"-->
+    <!--fab:menu_labels_textColor="#FFFFFF"-->
+    <!--fab:menu_labels_textSize="14sp"-->
+    <!--fab:menu_openDirection="up"-->
+    <!--fab:menu_showShadow="false">-->
+
+    <!--<com.github.clans.fab.FloatingActionButton-->
+    <!--android:id="@+id/material_design_floating_action_menu_item2"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--fab:fab_label="Menu Item 2"-->
+    <!--fab:fab_size="mini" />-->
+
+    <!--<com.github.clans.fab.FloatingActionButton-->
+    <!--android:id="@+id/material_design_floating_action_menu_item3"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--fab:fab_label="Menu Item 3"-->
+    <!--fab:fab_size="mini" />-->
+
+    <!--</com.github.clans.fab.FloatingActionMenu>-->
+
+</FrameLayout>
