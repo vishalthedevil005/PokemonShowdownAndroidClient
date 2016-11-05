@@ -1,13 +1,11 @@
 package com.pokemonshowdown.data;
 
 import android.content.Context;
-import android.util.Log;
+import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +17,6 @@ import java.util.List;
  */
 public class PokemonTeam implements Serializable {
     public static final String TAG = PokemonTeam.class.getName();
-    private static final String pokemonTeamStorageName = "pkmnStorage.dat";
     private static List<PokemonTeam> mPokemonTeamList;
     private String mTier = "";
     /**
@@ -44,66 +41,66 @@ public class PokemonTeam implements Serializable {
     }
 
     public static void loadPokemonTeams(Context appContext) {
-        FileInputStream fos;
-        try {
-            mPokemonTeamList = new ArrayList<>();
-            fos = appContext.openFileInput(pokemonTeamStorageName);
-            StringBuffer fileContent = new StringBuffer("");
-            byte[] buffer = new byte[1024];
-            int n;
-            while ((n = fos.read(buffer)) != -1) {
-                fileContent.append(new String(buffer, 0, n));
-            }
-            fos.close();
+        mPokemonTeamList = new ArrayList<>();
+        String fileContentString = PreferenceManager.getDefaultSharedPreferences(appContext).getString("teams", "null");
 
-            String fileContentString = fileContent.toString();
-            fileContentString = fileContentString.replace("\r\n", "\n");
-            String fileContentStringArray[] = fileContentString.split("\n");
+        // team builder first use
+        if (fileContentString.equals("null")) {
+            return;
+        }
+        fileContentString = fileContentString.replace("\r\n", "\n");
+        String fileContentStringArray[] = fileContentString.split("\n");
 
-            StringBuffer pokemonTeamBuffer = new StringBuffer("");
-            String currentNickname = null;
-            String currentTierId = "";
+        StringBuffer pokemonTeamBuffer = new StringBuffer("");
+        String currentNickname = null;
+        String currentTierId = "";
 
-            for (String s : fileContentStringArray) {
-                if (s.startsWith("===") && s.endsWith("===")) {
-                    if (pokemonTeamBuffer.length() > 0) {
-                        PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
-                        pt.setNickname(currentNickname);
-                        if (!currentTierId.isEmpty()) {
-                            BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
-                            if (currentFormat != null) {
-                                pt.setTier(currentFormat.getName());
-                            }
+        for (String s : fileContentStringArray) {
+            if (s.startsWith("===") && s.endsWith("===")) {
+                if (pokemonTeamBuffer.length() > 0) {
+                    PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
+                    pt.setNickname(currentNickname);
+                    if (!currentTierId.isEmpty()) {
+                        BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
+                        if (currentFormat != null) {
+                            pt.setTier(currentFormat.getName());
                         }
-                        mPokemonTeamList.add(pt);
                     }
-                    pokemonTeamBuffer.setLength(0);
-                    if (s.contains("[") && s.contains("]")) {
-                        currentTierId = s.substring(s.indexOf("[") + 1, s.indexOf("]"));
-                        currentNickname = s.substring(s.indexOf("]") + 1).replace("=", "").trim();
-                    } else {
-                        currentTierId = "";
-                        currentNickname = s.replace("=", "").trim();
+
+                    if (pt.getTier().isEmpty()) {
+                        pt.setTier(Tiering.TIER_ORDER.get(1));
                     }
+                    mPokemonTeamList.add(pt);
+                }
+                pokemonTeamBuffer.setLength(0);
+                if (s.contains("[") && s.contains("]")) {
+                    currentTierId = s.substring(s.indexOf("[") + 1, s.indexOf("]"));
+                    currentNickname = s.substring(s.indexOf("]") + 1).replace("=", "").trim();
                 } else {
-                    pokemonTeamBuffer.append(s).append("\n");
+                    currentTierId = "";
+                    currentNickname = s.replace("=", "").trim();
                 }
+            } else {
+                pokemonTeamBuffer.append(s).append("\n");
+            }
+        }
+
+        if (pokemonTeamBuffer.length() > 0 && currentNickname != null) {
+            PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
+            pt.setNickname(currentNickname);
+            if (!currentTierId.isEmpty()) {
+                BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
+                if (currentFormat != null) {
+                    pt.setTier(currentFormat.getName());
+                }
+            } else {
+                Toast.makeText(appContext, "yes", Toast.LENGTH_SHORT).show();
             }
 
-            if (pokemonTeamBuffer.length() > 0 && currentNickname != null) {
-                PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
-                pt.setNickname(currentNickname);
-                if (!currentTierId.isEmpty()) {
-                    BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
-                    if (currentFormat != null) {
-                        pt.setTier(currentFormat.getName());
-                    }
-                }
-                mPokemonTeamList.add(pt);
+            if (pt.getTier().isEmpty()) {
+                pt.setTier(Tiering.TIER_ORDER.get(1));
             }
-
-        } catch (IOException e) {
-            mPokemonTeamList = new ArrayList<>();
+            mPokemonTeamList.add(pt);
         }
     }
 
@@ -141,26 +138,23 @@ public class PokemonTeam implements Serializable {
         mPokemons.add(p);
     }
 
+    public void addPokemon(Pokemon p, int position) {
+        mPokemons.add(position, p);
+    }
+
     public static void savePokemonTeams(Context c) {
-        FileOutputStream fos = null;
-        try {
-            fos = c.openFileOutput(pokemonTeamStorageName, Context.MODE_PRIVATE);
-            StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
-            for (PokemonTeam pokemonTeam : mPokemonTeamList) {
-                sb.append("=== ");
-                if (!pokemonTeam.getTier().isEmpty()) {
-                    sb.append("[").append(MyApplication.toId(pokemonTeam.getTier())).append("] ");
-                }
-                sb.append(pokemonTeam.getNickname()).append(" ===\n");
-                sb.append(pokemonTeam.exportPokemonTeam(c));
+        for (PokemonTeam pokemonTeam : mPokemonTeamList) {
+            sb.append("=== ");
+            if (!pokemonTeam.getTier().isEmpty()) {
+                sb.append("[").append(MyApplication.toId(pokemonTeam.getTier())).append("] ");
             }
-
-            fos.write(sb.toString().getBytes());
-            fos.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
+            sb.append(pokemonTeam.getNickname()).append(" ===\n");
+            sb.append(pokemonTeam.exportPokemonTeam(c));
         }
+
+        PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).commit();
     }
 
     public String getTier() {
@@ -230,7 +224,6 @@ public class PokemonTeam implements Serializable {
         return (mPokemons.size() == 6);
     }
 
-    public void removePokemon(int index) {
-        mPokemons.remove(index);
+    public void removePokemon(int index) {mPokemons.remove(index);
     }
 }

@@ -1,5 +1,8 @@
 package com.pokemonshowdown.fragment;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -7,16 +10,14 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.ScaleAnimation;
 
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.github.clans.fab.FloatingActionMenu;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.SlidingTabLayout;
 import com.pokemonshowdown.adapter.ViewPagerAdapter;
+import com.pokemonshowdown.application.BroadcastSender;
 
 import java.util.ArrayList;
 
@@ -27,13 +28,10 @@ import java.util.ArrayList;
 public class MainScreenFragment extends Fragment implements View.OnClickListener {
 
     private View mView;
-    //private FloatingActionMenu battleButton;
     private SlidingTabLayout mTabLayout;
     private ViewPager mViewPager;
     private ViewPagerAdapter mAdapter;
-    private FloatingActionsMenu battleMenu;
-    private View bluredBackground;
-    private ArrayList<View> tabs = new ArrayList<>();
+    private FloatingActionMenu battleMenu;
     private boolean isFABVisible = true;
     public static TabsHolderAccessor TABS_HOLDER_ACCESSOR;
 
@@ -47,20 +45,13 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         mTabLayout = (SlidingTabLayout) mView.findViewById(R.id.tab_layout);
         mViewPager = (ViewPager) mView.findViewById(R.id.view_pager);
-        battleMenu = (FloatingActionsMenu) mView.findViewById(R.id.battle_menu);
-        bluredBackground = mView.findViewById(R.id.blurred_background);
+        battleMenu = (FloatingActionMenu) mView.findViewById(R.id.battle_menu);
         mViewPager.setOffscreenPageLimit(3);
-
-        // Can't assign alpha = 0 directly on XML, so...
-        Animation fix = new AlphaAnimation(1, 0);
-        fix.setFillAfter(true);
-        fix.setDuration(2);
-        bluredBackground.startAnimation(fix);
 
         mAdapter = new ViewPagerAdapter(getContext(), getFragmentManager());
         if (TabsHolder.getTabs().size() < 1) {
@@ -90,6 +81,7 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
             @Override
             public void onPageSelected(int position) {
                 animateFloatingButton(position);
+                ViewPagerAdapter.LAST_TAB = position;
             }
 
             @Override
@@ -97,49 +89,46 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
             }
         });
+        mViewPager.setCurrentItem(ViewPagerAdapter.LAST_TAB);
 
-        battleMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
+        battleMenu.setClosedOnTouchOutside(true);
+        battleMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
             @Override
-            public void onMenuExpanded() {
-                Animation fadeIn = new AlphaAnimation(0, 1);
-                fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
-                fadeIn.setDuration(200);
-                fadeIn.setFillAfter(true);
-                bluredBackground.startAnimation(fadeIn);
-            }
-
-            @Override
-            public void onMenuCollapsed() {
-                Animation fadeOut = new AlphaAnimation(1, 0);
-                fadeOut.setInterpolator(new AccelerateInterpolator()); //and this
-                fadeOut.setDuration(200);
-                fadeOut.setFillAfter(true);
-                bluredBackground.startAnimation(fadeOut);
+            public void onMenuToggle(boolean opened) {
+                //Toast.makeText(battleMenu.getContext(), "YES", Toast.LENGTH_SHORT).show();
             }
         });
 
         mView.findViewById(R.id.add_battle).setOnClickListener(this);
+        mView.findViewById(R.id.watch_battle).setOnClickListener(this);
         mView.findViewById(R.id.challenge).setOnClickListener(this);
-//        battleButton.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View view) {
-//                mTabLayout.setViewPager(mViewPager);
-//                mTabLayout.invalidate();
-//                return true;
-//            }
-//        });
     }
 
     @Override
     public void onClick(View view) {
+        //There is no point letting players get into lobbies without internet, so...
+        ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            BroadcastSender.get(getContext()).sendBroadcastFromMyApplication(
+                    BroadcastSender.EXTRA_NO_INTERNET_CONNECTION);
+            battleMenu.close(true);
+            return;
+        }
+
         switch (view.getId()) {
             case R.id.add_battle:
-                battleMenu.collapse();
+                battleMenu.close(true);
                 TabsHolder.addTab(BattleLobbyFragment.newInstance(getLayoutInflater(null), "normal"));
                 addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
                 break;
+            case R.id.watch_battle:
+                battleMenu.close(true);
+                TabsHolder.addTab(WatchBattleFragment.newInstance(getLayoutInflater(null)));
+                addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
+                break;
             case R.id.challenge:
-                battleMenu.collapse();
+                battleMenu.close(true);
                 TabsHolder.addTab(BattleLobbyFragment.newInstance(getLayoutInflater(null), "challenge"));
                 addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
                 break;
@@ -213,6 +202,23 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
     }
 
     //-----------------------------------------------------------------------------
+    // Here's what the app should do to change a view from the ViewPager.
+    public int changeView(View defunctPage, View newPage) {
+        int pageIndex = mAdapter.removeView(mViewPager, defunctPage);
+        pageIndex = mAdapter.addView(newPage, pageIndex);
+        mAdapter.notifyDataSetChanged();
+        // You might want to choose what page to display, if the current page was "defunctPage".
+        if (pageIndex == mAdapter.getCount())
+            pageIndex--;
+        mViewPager.setCurrentItem(pageIndex);
+        mTabLayout.setViewPager(mViewPager);
+        mTabLayout.invalidate();
+        animateFloatingButton(pageIndex);
+
+        return pageIndex;
+    }
+
+    //-----------------------------------------------------------------------------
     // Here's what the app should do to get the currently displayed page.
     public View getCurrentPage() {
         return mAdapter.getView(mViewPager.getCurrentItem());
@@ -232,6 +238,12 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         public static void addTab(View view) {
             if (!tabs.contains(view)) {
                 tabs.add(view);
+            }
+        }
+
+        public static void addTab(View view, int position) {
+            if (!tabs.contains(view)) {
+                tabs.add(position, view);
             }
         }
 
@@ -259,6 +271,14 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
             View lastCurrentPage = getCurrentPage();
             removeView(lastCurrentPage);
             TabsHolder.removeTab(lastCurrentPage);
+        }
+
+        public void changeTab(View newPage) {
+            View lastCurrentPage = getCurrentPage();
+            changeView(lastCurrentPage, newPage);
+            int pos = TabsHolder.getTabs().indexOf(lastCurrentPage);
+            TabsHolder.removeTab(lastCurrentPage);
+            TabsHolder.addTab(newPage, pos);
         }
     }
 }

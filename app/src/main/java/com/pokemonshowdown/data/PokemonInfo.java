@@ -77,7 +77,7 @@ public class PokemonInfo implements Serializable {
         if (gender == null) {
             gender = "";
         }
-        return Pokemon.getPokemonSprite(appContext, MyApplication.toId(mName), false, (gender.equals("F")), mShiny);
+        return Pokemon.getPokemonFrontSprite(appContext, MyApplication.toId(mName), false, (gender.equals("F")), mShiny);
     }
 
     public String getName() {

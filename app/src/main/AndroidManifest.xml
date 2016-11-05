@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -23,9 +24,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.ContainerActivity"></activity>
         <activity
-            android:name=".activity.ContainerActivity" >
-        </activity>
+            android:name=".activity.TeamBuilderActivity"
+            android:label="@string/title_activity_team_building"
+            android:parentActivityName=".activity.ContainerActivity"></activity>
+        <activity
+            android:name=".activity.TeamBuildingActivity"
+            android:label=""
+            android:parentActivityName=".activity.TeamBuilderActivity"></activity>
+        <activity
+            android:name=".activity.SearchableActivity"
+            android:label=""
+            android:parentActivityName=".activity.TeamBuildingActivity"></activity>
+        <activity
+            android:name=".activity.PokemonActivity"
+            android:label=""
+            android:parentActivityName=".activity.TeamBuildingActivity"></activity>
     </application>
 
 </manifest>

@@ -292,7 +292,7 @@
 //        @Override
 //        public View getView(int position, View convertView, ViewGroup parent) {
 //            if (convertView == null) {
-//                convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_ability_short, null);
+//                convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_ability_list_short, null);
 //            }
 //
 //            try {

@@ -21,6 +21,7 @@ public class ViewPagerAdapter extends PagerAdapter {
     private int count = 1;
     private Context context;
     private List<View> views;
+    public static int LAST_TAB = 0;
 //    private List<Fragment> fragments;
 //    private List<String> titles;
 
@@ -137,8 +138,10 @@ public class ViewPagerAdapter extends PagerAdapter {
     public CharSequence getPageTitle(int position) {
         if (views.get(position).findViewById(R.id.battles_display) != null) { // is fragment "Home"
             return "Home";
-        } else if (views.get(position).findViewById(R.id.room_title) != null) { // is fragment "BattleLobby"
+        } else if (views.get(position).findViewById(R.id.user_text) != null) { // is fragment "BattleLobby"
             return "Battle Lobby";
+        } else if (views.get(position).findViewById(R.id.battles_list_view) != null) { // is fragment "WatchBattle"
+            return "Watch Battle";
         }
         return "Stub!";
     }

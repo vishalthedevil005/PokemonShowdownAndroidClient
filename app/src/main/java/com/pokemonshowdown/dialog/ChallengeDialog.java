@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.pokemonshowdown.R;
-import com.pokemonshowdown.adapter.PokemonTeamListArrayAdapter;
+import com.pokemonshowdown.adapter.PokemonTeamSpinnerAdapter;
 import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.PokemonTeam;
@@ -34,9 +34,9 @@ public class ChallengeDialog extends DialogFragment {
     private String mFormatId;
     private boolean mChallenged;
     private BattleFieldData.Format mFormat;
-    private PokemonTeamListArrayAdapter mRandomTeamAdapter;
+    private PokemonTeamSpinnerAdapter mRandomTeamAdapter;
     private ArrayAdapter<String> mNoTeamsAdapter;
-    private PokemonTeamListArrayAdapter mPokemonTeamListArrayAdapter;
+    private PokemonTeamSpinnerAdapter mPokemonTeamListArrayAdapter;
     private boolean challengeAccepted;
 
     @Override

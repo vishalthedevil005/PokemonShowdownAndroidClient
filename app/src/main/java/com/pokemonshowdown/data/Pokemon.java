@@ -42,7 +42,8 @@ public class Pokemon implements Serializable {
 
     private int mHappiness;
     private int mIcon;
-    private int mSprite;
+    private int mFrontSprite;
+    private int mBackSprite;
     private String mName;
     private String mNickName;
     private int[] mStats;
@@ -77,7 +78,8 @@ public class Pokemon implements Serializable {
         try {
             mName = jsonObject.getString("species");
 
-            mSprite = getPokemonSprite(appContext, mName, false, false, false);
+            mFrontSprite = getPokemonFrontSprite(appContext, mName, false, false, false);
+            mBackSprite = getPokemonBackSprite(appContext, mName, false, false, false);
             mIcon = getPokemonIcon(appContext, mName);
 
             setNickName(mName);
@@ -140,10 +142,10 @@ public class Pokemon implements Serializable {
         }
     }
 
-    public static int getPokemonSprite(Context appContext, String name, boolean back, boolean female, boolean shiny) {
+    public static int getPokemonFrontSprite(Context appContext, String name, boolean back, boolean female, boolean shiny) {
         try {
             name = MyApplication.toId(name);
-            String prefix = (shiny) ? "sprshiny_" : "sprites_";
+            String prefix = (shiny) ? "sprshiny_front_" : "sprites_front_";
             int toReturn;
             if (female) {
                 String drawableName = prefix + name + "f";
@@ -157,6 +159,32 @@ public class Pokemon implements Serializable {
                 toReturn = appContext.getResources().getIdentifier(drawableName, "drawable", appContext.getPackageName());
             }
             //return (toReturn == 0) ? R.drawable.sprites_0 : toReturn;
+            return toReturn;
+        } catch (NullPointerException e) {
+            //return R.drawable.sprites_0;
+        }
+
+        return 0;
+    }
+
+    public static int getPokemonBackSprite(Context appContext, String name, boolean back, boolean female, boolean shiny) {
+        try {
+            name = MyApplication.toId(name);
+            String prefix = (shiny) ? "sprshiny_back_" : "sprites_back_";
+            int toReturn;
+            if (female) {
+                String drawableName = prefix + name + "f";
+                toReturn = appContext.getResources().getIdentifier(drawableName, "drawable", appContext.getPackageName());
+                if (toReturn == 0) {
+                    drawableName = prefix + name;
+                    toReturn = appContext.getResources().getIdentifier(drawableName, "drawable", appContext.getPackageName());
+                }
+            } else {
+                String drawableName = prefix + name;
+                toReturn = appContext.getResources().getIdentifier(drawableName, "drawable", appContext.getPackageName());
+            }
+            //return (toReturn == 0) ? R.drawable.sprites_0 : toReturn;
+            return toReturn;
         } catch (NullPointerException e) {
             //return R.drawable.sprites_0;
         }
@@ -179,12 +207,10 @@ public class Pokemon implements Serializable {
             }
             int toReturn = appContext.getResources()
                     .getIdentifier("smallicons_" + name, "drawable", appContext.getPackageName());
-            //return (toReturn == 0) ? R.drawable.smallicons_0 : toReturn;
+            return (toReturn == 0) ? R.drawable.smallicons_0 : toReturn;
         } catch (NullPointerException e) {
-            //return R.drawable.smallicons_0;
+            return R.drawable.smallicons_0;
         }
-
-        return 0;
     }
 
     public int[] calculateStats() {
@@ -549,7 +575,7 @@ public class Pokemon implements Serializable {
                 }
             } else if (currentString.contains("Shiny")) {
                 if (!p.isShiny()) {
-                    p.switchShiny(appContext);
+                    p.switchFrontShiny(appContext);
                 }
             }
         }
@@ -568,9 +594,14 @@ public class Pokemon implements Serializable {
         mShiny = shiny;
     }
 
-    public void switchShiny(Context c) {
+    public void switchFrontShiny(Context c) {
         setShiny(!isShiny());
-        setSprite(getPokemonSprite(c, mName, false, getGender().equals("F"), isShiny()));
+        setFrontSprite(getPokemonFrontSprite(c, mName, false, getGender().equals("F"), isShiny()));
+    }
+
+    public void switchBackShiny(Context c) {
+        setShiny(!isShiny());
+        setFrontSprite(getPokemonBackSprite(c, mName, false, getGender().equals("F"), isShiny()));
     }
 
     public String getGender() {
@@ -610,6 +641,26 @@ public class Pokemon implements Serializable {
         } catch (NullPointerException e) {
             return null;
         }
+        return null;
+    }
+
+    public static String[] getPokemonAbilities(Context appContext, String name) {
+        try {
+            JSONObject jsonObject = Pokedex.get(appContext).getPokemonJSONObject(name);
+            jsonObject = (JSONObject) jsonObject.get("abilities");
+            Iterator<String> keys = jsonObject.keys();
+            String[] abilities = new String[jsonObject.length()];
+            int i = 0;
+            while (keys.hasNext()) {
+                String key = keys.next();
+                abilities[i] = jsonObject.getString(key);
+                i++;
+            }
+            return abilities;
+        } catch (JSONException ex) {
+            Log.d(PTAG, ex.toString());
+        }
+
         return null;
     }
 
@@ -1098,12 +1149,20 @@ public class Pokemon implements Serializable {
         mIVs = IVs;
     }
 
-    public int getSprite() {
-        return mSprite;
+    public int getFrontSprite() {
+        return mFrontSprite;
     }
 
-    public void setSprite(int sprite) {
-        mSprite = sprite;
+    public void setFrontSprite(int sprite) {
+        mFrontSprite = sprite;
+    }
+
+    public int getBackSprite() {
+        return mBackSprite;
+    }
+
+    public void setBackSprite(int sprite) {
+        mBackSprite = sprite;
     }
 
     public int getIcon() {
@@ -1244,12 +1303,12 @@ public class Pokemon implements Serializable {
         switch (mGender) {
             case "M":
                 setGender("F");
-                setSprite(getPokemonSprite(c, mName, false, true, isShiny()));
+                setFrontSprite(getPokemonFrontSprite(c, mName, false, true, isShiny()));
                 setIcon(getPokemonIcon(c, mName));
                 return;
             case "F":
                 setGender("M");
-                setSprite(getPokemonSprite(c, mName, false, false, isShiny()));
+                setFrontSprite(getPokemonFrontSprite(c, mName, false, false, isShiny()));
                 setIcon(getPokemonIcon(c, mName));
         }
     }

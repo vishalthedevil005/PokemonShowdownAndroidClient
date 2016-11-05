@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.pokemonshowdown.R;
-import com.pokemonshowdown.adapter.PokemonTeamListArrayAdapter;
+import com.pokemonshowdown.adapter.PokemonTeamSpinnerAdapter;
 import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.Onboarding;
 import com.pokemonshowdown.data.PokemonTeam;
@@ -34,7 +34,7 @@ public class BattleLobbyFragment {
     private static View mView;
 
     public static View newInstance(LayoutInflater inflater, final String format) {
-        mView = inflater.inflate(R.layout.abc_123_uh, null);
+        mView = inflater.inflate(R.layout.fragment_battle_lobby, null);
 
         LinearLayout userLayout = (LinearLayout) mView.findViewById(R.id.user_layout);
         final EditText userText = (EditText) mView.findViewById(R.id.user_text);
@@ -75,12 +75,12 @@ public class BattleLobbyFragment {
             }
         }
 
-        ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mView.getContext(), R.layout.fragment_user_list, mFormatList);
-        formatsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mView.getContext(), R.layout.fragment_simple_list_row, mFormatList);
+
         formatsSpinner.setAdapter(formatsAdapter);
 
         //Create and set custom adapter to teams spinner
-        final PokemonTeamListArrayAdapter mRandomTeamAdapter = new PokemonTeamListArrayAdapter(mView.getContext(),
+        final PokemonTeamSpinnerAdapter mRandomTeamAdapter = new PokemonTeamSpinnerAdapter(mView.getContext(),
                 Arrays.asList(new PokemonTeam(ChallengeDialog.RANDOM_TEAM_NAME)));
         teamSpinner.setAdapter(mRandomTeamAdapter);
 
@@ -109,7 +109,7 @@ public class BattleLobbyFragment {
                         } else {
                             if (PokemonTeam.getPokemonTeamList() != null && PokemonTeam.getPokemonTeamList().size() > 0) {
                                 int currentSelectedTeam = teamSpinner.getSelectedItemPosition();
-                                teamSpinner.setAdapter(new PokemonTeamListArrayAdapter(mView.getContext(), PokemonTeam.getPokemonTeamList()));
+                                teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(mView.getContext(), PokemonTeam.getPokemonTeamList()));
                                 teamSpinner.setEnabled(true);
                                 int newSelectedTeam = -1;
                                 for (int i = 0; i < PokemonTeam.getPokemonTeamList().size(); i++) {

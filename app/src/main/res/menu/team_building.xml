@@ -1,0 +1,41 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.pokemonshowdown.app.com.pokemonshowdown.activity.TeamBuildingActivity">
+    <item
+        android:id="@+id/action_create_team"
+        android:icon="@drawable/ic_action_new"
+        android:title="@string/create_team"
+        app:showAsAction="ifRoom" />
+
+    <!-- More -->
+    <item
+        android:id="@+id/a_More"
+        android:icon="@drawable/ic_action_overflow"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/action_import_team"
+                android:icon="@drawable/ic_action_import_export"
+                android:title="@string/import_team"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_export_team"
+                android:icon="@drawable/ic_action_import_export"
+                android:title="@string/export_team"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_share_team"
+                android:icon="@drawable/ic_action_share"
+                android:title="@string/share_team"
+                app:showAsAction="never" />
+
+        </menu>
+    </item>
+
+
+</menu>

@@ -1,4 +1,7 @@
 package com.pokemonshowdown.fragment;
+
+import android.support.v4.app.Fragment;
+
 //
 //import android.animation.Animator;
 //import android.animation.AnimatorSet;
@@ -49,50 +52,50 @@ package com.pokemonshowdown.fragment;
 //import java.util.Arrays;
 //import java.util.Random;
 //
-public class BattleFragment /*extends Fragment*/ {
-//    public final static String BTAG = BattleFragment.class.getName();
-//    public final static String ROOM_ID = "Room Id";
-//    public final static int ANIMATION_SHORT = 500;
-//    public final static int ANIMATION_LONG = 1000;
+public class BattleFragment extends Fragment {
+    public final static String BTAG = BattleFragment.class.getName();
+    public final static String ROOM_ID = "Room Id";
+    public final static int ANIMATION_SHORT = 500;
+    public final static int ANIMATION_LONG = 1000;
 //    public final static int[] BACKGROUND_LIBRARY = {R.drawable.bg, R.drawable.bg_beach, R.drawable.bg_beachshore,
 //            R.drawable.bg_city, R.drawable.bg_desert, R.drawable.bg_earthycave, R.drawable.bg_forest,
 //            R.drawable.bg_icecave, R.drawable.bg_meadow, R.drawable.bg_river, R.drawable.bg_route};
-//    public final static String[] STATS = {"atk", "def", "spa", "spd", "spe", "accuracy", "evasion"};
-//    public final static String[] STTUS = {"psn", "tox", "frz", "par", "slp", "brn"};
-//    public final static String[][] TEAMMATES = {{"p1a", "p1b", "p1c"}, {"p2a", "p2b", "p2c"}};
-//    public final static String[] MORPHS = {"Arceus", "Gourgeist", "Genesect", "Pumpkaboo", "Wormadam"};
+    public final static String[] STATS = {"atk", "def", "spa", "spd", "spe", "accuracy", "evasion"};
+    public final static String[] STTUS = {"psn", "tox", "frz", "par", "slp", "brn"};
+    public final static String[][] TEAMMATES = {{"p1a", "p1b", "p1c"}, {"p2a", "p2b", "p2c"}};
+    public final static String[] MORPHS = {"Arceus", "Gourgeist", "Genesect", "Pumpkaboo", "Wormadam"};
 //    private ArrayDeque<AnimatorSet> mAnimatorSetQueue;
 //    private Animator mCurrentBattleAnimation;
-//    private String mRoomId;
-//    /**
-//     * 0 if it's a simple watch battle
-//     * 1 if player is p1
-//     * -1 if player is p2
-//     */
-//    private int mBattling;
-//
-//    /**
-//     * false if battle not over
-//     */
-//    private boolean mBattleEnd;
-//    private boolean mTimer;
-//    private String mPlayer1;
-//    private String mPlayer2;
+    private String mRoomId;
+    /**
+     * 0 if it's a simple watch battle
+     * 1 if player is p1
+     * -1 if player is p2
+     */
+    private int mBattling;
+
+    /**
+     * false if battle not over
+     */
+    private boolean mBattleEnd;
+    private boolean mTimer;
+    private String mPlayer1;
+    private String mPlayer2;
 //    private ArrayList<PokemonInfo> mPlayer1Team = new ArrayList<>();
 //    private ArrayList<PokemonInfo> mPlayer2Team = new ArrayList<>();
-//    private String mCurrentWeather;
-//    private boolean mWeatherExist;
-//    private int mRqid;
-//    private boolean mTeamPreview;
-//    private boolean mForceSwitch;
-//    private boolean mBatonPass;
-//    private boolean mWaiting;
-//    private int mCurrentActivePokemon = 0;
-//    private int mTotalActivePokemon = 0;
+    private String mCurrentWeather;
+    private boolean mWeatherExist;
+    private int mRqid;
+    private boolean mTeamPreview;
+    private boolean mForceSwitch;
+    private boolean mBatonPass;
+    private boolean mWaiting;
+    private int mCurrentActivePokemon = 0;
+    private int mTotalActivePokemon = 0;
 //    private StringBuilder mChooseCommand = new StringBuilder();
 //    private JSONObject mRequestJson;
 //    private JSONObject mUndoMessage;
-//    private int mTeamSize;
+    private int mTeamSize;
 //
     public BattleFragment() {
 //

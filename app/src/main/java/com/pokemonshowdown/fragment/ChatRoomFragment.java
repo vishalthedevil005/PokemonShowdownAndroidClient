@@ -3,9 +3,11 @@ package com.pokemonshowdown.fragment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.text.Html;
 import android.text.Spannable;
@@ -43,14 +45,11 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
     public final static String USER_PRIORITY = "~#@%+ ";
     private final static String ROOM_ID = "Room Id";
     private String mRoomId;
+    private boolean isFABVisible = true;
 
     private ArrayList<String> mUserListData;
     private UserAdapter mUserAdapter;
     private LayoutInflater mLayoutInflater;
-
-    public ChatRoomFragment() {
-        // Required empty public constructor
-    }
 
     public static ChatRoomFragment newInstance(String roomId) {
         ChatRoomFragment fragment = new ChatRoomFragment();
@@ -61,9 +60,7 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mLayoutInflater = inflater;
         return inflater.inflate(R.layout.fragment_chat_room, container, false);
     }
@@ -93,6 +90,7 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
                                         fragment.show(fm, OnboardingDialog.OTAG);
                                         return;
                                     }
+
                                     ChallengeDialog cd = ChallengeDialog.newInstance(userName, null);
                                     cd.show(ChatRoomFragment.this.getActivity().getSupportFragmentManager(), userName);
                                 }
@@ -103,6 +101,24 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
                 builder.show();
             }
         });
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            final FloatingActionButton usersFab = (FloatingActionButton) view.findViewById(R.id.users_button);
+            usersFab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (listView.getVisibility() == View.VISIBLE) {
+                        listView.setVisibility(View.GONE);
+
+                        usersFab.animate().translationX(0f).start();
+                    } else {
+                        listView.setVisibility(View.VISIBLE);
+
+                        usersFab.animate().translationX(520f).start();
+                    }
+                }
+            });
+        }
 
         if (getArguments() != null) {
             mRoomId = getArguments().getString(ROOM_ID);

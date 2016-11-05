@@ -3,6 +3,7 @@ package com.pokemonshowdown.data;
 import android.content.Context;
 import android.text.Spannable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;

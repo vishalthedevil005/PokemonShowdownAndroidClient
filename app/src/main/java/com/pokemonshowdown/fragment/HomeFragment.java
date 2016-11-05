@@ -1,5 +1,6 @@
 package com.pokemonshowdown.fragment;
 
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -28,6 +29,15 @@ public class HomeFragment {
         if (onboarding.getUsername() != null && !onboarding.getUsername().isEmpty()) {
             loggedDisplay.setText("Logged as \"" + onboarding.getUsername() + "\"");
         }
+
+//        final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) mView.findViewById(R.id.main_screen_refresh);
+//        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+//            @Override
+//            public void onRefresh() {
+//                //refresh users/battles counter and re-check internet connection
+//                refreshLayout.setRefreshing(false);
+//            }
+//        });
 
         new Thread() {
             @Override

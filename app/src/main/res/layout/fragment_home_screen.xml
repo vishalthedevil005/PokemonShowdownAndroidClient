@@ -6,7 +6,7 @@
     android:animateLayoutChanges="true"
     android:orientation="vertical">
 
-    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
@@ -73,6 +73,7 @@
                         android:layout_marginLeft="5dp"
                         android:layout_toRightOf="@id/battles_display"
                         android:src="@drawable/smallicons_meloettapirouette" />
+
 
                     <TextView
                         android:layout_width="120dp"

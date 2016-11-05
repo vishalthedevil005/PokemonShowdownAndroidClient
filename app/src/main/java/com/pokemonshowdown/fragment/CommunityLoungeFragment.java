@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -17,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.Set;
 
 
-public class CommunityLoungeFragment extends Fragment {
-
+public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
     public final static String CTAG = CommunityLoungeFragment.class.getName();
     private CommunityLoungePagerAdapter mCommunityLoungePagerAdapter;
     private ViewPager mViewPager;
+
     private ArrayList<String> mRoomList;
 
     @Override
@@ -56,59 +56,37 @@ public class CommunityLoungeFragment extends Fragment {
         v.setFocusableInTouchMode(true);
         mCommunityLoungePagerAdapter = new CommunityLoungePagerAdapter(getChildFragmentManager());
         mViewPager = (ViewPager) v.findViewById(R.id.community_pager);
-//        mViewPager.setOnPageChangeListener(
-//                new ViewPager.SimpleOnPageChangeListener() {
-//                    @Override
-//                    public void onPageSelected(int position) {
-//                        getActivity().getActionBar().setSelectedNavigationItem(position);
-//                    }
-//                });
         mViewPager.setAdapter(mCommunityLoungePagerAdapter);
         return v;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-//        final ActionBar actionBar = getActivity().getActionBar();
-
-//        // Specify that tabs should be displayed in the action bar.
-//        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-//
-//        // Create a tab listener that is called when the user changes tabs.
-//        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-//            @Override
-//            public void onTabSelected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//                mViewPager.setCurrentItem(tab.getPosition());
-//            }
-//
-//            @Override
-//            public void onTabUnselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//
-//            }
-//
-//            @Override
-//            public void onTabReselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//
-//            }
-//        };
-//
-//        for (String room : mRoomList) {
-//            actionBar.addTab(
-//                    actionBar.newTab()
-//                            .setText(room)
-//                            .setTabListener(tabListener)
-//            );
-//        }
-
+    public void onDetach() {
+        super.onDetach();
+        CommunityLoungeData.get(getActivity()).leaveAllRooms();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-//        getActivity().getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-//        getActivity().getActionBar().removeAllTabs();
-        CommunityLoungeData.get(getActivity()).leaveAllRooms();
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        MenuItem addRoom = menu.findItem(R.id.community_lounge);
+        addRoom.setVisible(true);
+        addRoom.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                generateRoomCategoryList();
+                return true;
+            }
+        });
+        MenuItem cancel = menu.findItem(R.id.cancel);
+        cancel.setVisible(true);
+        cancel.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                removeCurrentRoom();
+                return true;
+            }
+        });
     }
 
     private void generateRoomCategoryList() {
@@ -156,24 +134,27 @@ public class CommunityLoungeFragment extends Fragment {
                             dialog.dismiss();
                         }
                     }
-                }).show();
+                })
+                .show();
     }
 
     private void removeCurrentRoom() {
-//        ActionBar actionBar = getActivity().getActionBar();
-//        ActionBar.Tab tab = actionBar.getSelectedTab();
-//        String roomId = mRoomList.get(tab.getPosition());
-//        if (roomId.equals("lobby")) {
-//            return;
-//        }
-//        ChatRoomFragment fragment = (ChatRoomFragment) getChildFragmentManager().findFragmentByTag("android:switcher:" + mViewPager.getId() + ":" + tab.getPosition());
-//        if (fragment != null) {
-//            getChildFragmentManager().beginTransaction().remove(fragment).commit();
-//        }
-//        CommunityLoungeData.get(getActivity()).leaveRoom(roomId);
-//        mRoomList.remove(tab.getPosition());
-//        mCommunityLoungePagerAdapter.notifyDataSetChanged();
-//        mViewPager.setAdapter(mCommunityLoungePagerAdapter);
+        int position = mViewPager.getCurrentItem();
+        String roomId = mRoomList.get(position);
+        if (roomId.equals("lobby")) {
+            new AlertDialog.Builder(getContext()).setMessage("You can't leave the \"Lobby\" room bro.")
+                    .setPositiveButton("Ok", null)
+                    .show();
+            return;
+        }
+        ChatRoomFragment fragment = (ChatRoomFragment) getChildFragmentManager().findFragmentByTag("android:switcher:" + mViewPager.getId() + ":" + position);
+        if (fragment != null) {
+            getChildFragmentManager().beginTransaction().remove(fragment).commit();
+        }
+        CommunityLoungeData.get(getActivity()).leaveRoom(roomId);
+        mRoomList.remove(position);
+        mCommunityLoungePagerAdapter.notifyDataSetChanged();
+        mViewPager.setAdapter(mCommunityLoungePagerAdapter);
 //        actionBar.removeTab(tab);
     }
 
@@ -203,37 +184,12 @@ public class CommunityLoungeFragment extends Fragment {
 
     private void processNewRoomRequest(String room) {
         String roomId = MyApplication.toId(room);
-//        ActionBar actionBar = getActivity().getActionBar();
-//        if (mRoomList.contains(roomId)) {
-//            actionBar.setSelectedNavigationItem(mRoomList.indexOf(roomId));
-//        } else {
-        CommunityLoungeData.get(getActivity().getApplicationContext()).joinRoom(roomId);
-        mCommunityLoungePagerAdapter.notifyDataSetChanged();
-        Log.e(CTAG, "processNewRomRequest();");
-//            ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-//                @Override
-//                public void onTabSelected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//                    mViewPager.setCurrentItem(tab.getPosition());
-//                }
-//
-//                @Override
-//                public void onTabUnselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//
-//                }
-//
-//                @Override
-//                public void onTabReselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-//
-//                }
-//            };
-//
-//            actionBar.addTab(
-//                    actionBar.newTab()
-//                            .setText(roomId)
-//                            .setTabListener(tabListener)
-//            );
-//            actionBar.setSelectedNavigationItem(mRoomList.indexOf(roomId));
-//        }
+        if (mRoomList.contains(roomId)) {
+            mViewPager.setCurrentItem(mRoomList.indexOf(roomId));
+        } else {
+            CommunityLoungeData.get(getActivity().getApplicationContext()).joinRoom(roomId);
+            mCommunityLoungePagerAdapter.notifyDataSetChanged();
+        }
     }
 
     public void processServerMessage(String roomId, String message) {

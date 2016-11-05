@@ -19,17 +19,20 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.pokemonshowdown.R;
 import com.pokemonshowdown.DownloadUpdateTask;
 import com.pokemonshowdown.ExportReplayTask;
+import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.BroadcastListener;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.CommunityLoungeData;
 import com.pokemonshowdown.data.Onboarding;
+import com.pokemonshowdown.dialog.OnboardingDialog;
 import com.pokemonshowdown.fragment.CommunityLoungeFragment;
 import com.pokemonshowdown.fragment.HomeFragment;
 import com.pokemonshowdown.fragment.MainScreenFragment;
 import com.pokemonshowdown.fragment.PlaceHolderFragment;
+import com.pokemonshowdown.fragment.WatchBattleFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -155,7 +158,10 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
     }
 
@@ -163,6 +169,8 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.battle_field, menu);
+        menu.findItem(R.id.community_lounge).setVisible(false);
+        menu.findItem(R.id.cancel).setVisible(false);
         return true;
     }
 
@@ -180,10 +188,10 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-//        switch (item.getItemId()) {
-//            case R.id.team_building:
-//                startActivity(new Intent(this, TeamBuildingActivity.class));
-//                return true;
+        switch (item.getItemId()) {
+            case R.id.team_building:
+                startActivity(new Intent(this, TeamBuilderActivity.class));
+                return true;
 //            case R.id.menu_pokedex:
 //                startActivity(new Intent(this, PokedexActivity.class));
 //                return true;
@@ -254,7 +262,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //                return true;
 //            default:
 //                return super.onOptionsItemSelected(item);
-//        }
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -342,10 +350,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //                }
                 return;
             case BroadcastSender.EXTRA_WATCH_BATTLE_LIST_READY:
-//                battleFieldFragment = (BattleFieldFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 0");
-//                if (battleFieldFragment != null) {
-//                    battleFieldFragment.generateAvailableWatchBattleDialog();
-//                }
+                WatchBattleFragment.fireBattlesListViewUpdate();
                 return;
             case BroadcastSender.EXTRA_NEW_BATTLE_ROOM:
 //                String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
@@ -366,16 +371,16 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //                }
                 return;
             case BroadcastSender.EXTRA_SERVER_MESSAGE:
-//                String serverMessage = intent.getExtras().getString(BroadcastSender.EXTRA_SERVER_MESSAGE);
-//                int channel = Integer.parseInt(intent.getExtras().getString(BroadcastSender.EXTRA_CHANNEL));
-//                roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
-//                processMessage(channel, roomId, serverMessage);
-//                return;
+                String serverMessage = intent.getExtras().getString(BroadcastSender.EXTRA_SERVER_MESSAGE);
+                int channel = Integer.parseInt(intent.getExtras().getString(BroadcastSender.EXTRA_CHANNEL));
+                String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
+                processMessage(channel, roomId, serverMessage);
+                return;
             case BroadcastSender.EXTRA_REQUIRE_SIGN_IN:
-//                FragmentManager fm = getSupportFragmentManager();
-//                OnboardingDialog dialog = new OnboardingDialog();
-//                dialog.show(fm, OnboardingDialog.OTAG);
-//                return;
+                FragmentManager fm = getSupportFragmentManager();
+                OnboardingDialog dialog = new OnboardingDialog();
+                dialog.show(fm, OnboardingDialog.OTAG);
+                return;
             case BroadcastSender.EXTRA_ERROR_MESSAGE:
                 final String errorMessage = intent.getExtras().getString(BroadcastSender.EXTRA_ERROR_MESSAGE);
                 runOnUiThread(new Runnable() {
@@ -505,6 +510,38 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 final String replayData = intent.getExtras().getString(BroadcastSender.EXTRA_REPLAY_DATA);
                 new ExportReplayTask(this).execute(replayData);
                 break;
+        }
+    }
+
+    /**
+     * Channel list:
+     * -1: global or lobby
+     * 0: battle
+     * 1: chatroom
+     */
+    public void processMessage(int channel, String roomId, String message) {
+        // Break down message to see which channel it has to go through
+        if (channel == 1) {
+            CommunityLoungeData.RoomData roomData = CommunityLoungeData.get(getApplicationContext()).getRoomInstance(roomId);
+            if (roomData != null && roomData.isMessageListener()) {
+                roomData.addServerMessageOnHold(message);
+            } else {
+                CommunityLoungeFragment fragment = (CommunityLoungeFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 1");
+                if (fragment != null) {
+                    fragment.processServerMessage(roomId, message);
+                }
+            }
+        } else { // channel == 0
+            Toast.makeText(this, "fix message handling on ContainerActivity", Toast.LENGTH_SHORT).show();
+//            BattleFieldData.RoomData roomData = BattleFieldData.get(this).getAnimationInstance(roomId);
+//            if (roomData != null && roomData.isMessageListener()) {
+//                roomData.addServerMessageOnHold(message);
+//            } else {
+//                BattleFieldFragment fragment = (BattleFieldFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 0");
+//                if (fragment != null) {
+//                    fragment.processServerMessage(roomId, message);
+//                }
+//            }
         }
     }
 
