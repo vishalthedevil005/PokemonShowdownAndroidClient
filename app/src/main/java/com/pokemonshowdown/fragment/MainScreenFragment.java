@@ -1,25 +1,33 @@
 package com.pokemonshowdown.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.SlidingTabLayout;
-import com.pokemonshowdown.adapter.ViewPagerAdapter;
+import com.pokemonshowdown.adapter.FragmentViewPagerAdapter;
 import com.pokemonshowdown.application.BroadcastSender;
+import com.pokemonshowdown.application.MyApplication;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by McBeengs on 20/10/2016.
@@ -27,40 +35,36 @@ import java.util.ArrayList;
 
 public class MainScreenFragment extends Fragment implements View.OnClickListener {
 
-    private View mView;
     private SlidingTabLayout mTabLayout;
     private ViewPager mViewPager;
-    private ViewPagerAdapter mAdapter;
+    private FragmentViewPagerAdapter mAdapter;
     private FloatingActionMenu battleMenu;
     private boolean isFABVisible = true;
     public static TabsHolderAccessor TABS_HOLDER_ACCESSOR;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setRetainInstance(true);
         TABS_HOLDER_ACCESSOR = new TabsHolderAccessor();
-        View v = inflater.inflate(R.layout.fragment_main_screen, container, false);
-        mView = v;
-        return v;
+        mAdapter = new FragmentViewPagerAdapter(getContext(), getFragmentManager());
+        return inflater.inflate(R.layout.fragment_main_screen, container, false);
     }
 
     @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
+    public void onViewCreated(View mView, @Nullable Bundle savedInstanceState) {
         mTabLayout = (SlidingTabLayout) mView.findViewById(R.id.tab_layout);
         mViewPager = (ViewPager) mView.findViewById(R.id.view_pager);
         battleMenu = (FloatingActionMenu) mView.findViewById(R.id.battle_menu);
         mViewPager.setOffscreenPageLimit(3);
 
-        mAdapter = new ViewPagerAdapter(getContext(), getFragmentManager());
+
         if (TabsHolder.getTabs().size() < 1) {
-            TabsHolder.addTab(HomeFragment.newInstance(getLayoutInflater(null)));
+            TabsHolder.addTab(HomeFragment.class.getName(), null);
         }
 
-        for (View v : TabsHolder.getTabs()) {
-            addView(v);
+        for (int i = 0; i < TabsHolder.getTabs().size(); i++) {
+            addFragment(TabsHolder.getTabs().get(i), TabsHolder.getArgs().get(i));
         }
+
         mViewPager.setAdapter(mAdapter);
 
         mTabLayout.setDistributeEvenly(true);
@@ -81,7 +85,7 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
             @Override
             public void onPageSelected(int position) {
                 animateFloatingButton(position);
-                ViewPagerAdapter.LAST_TAB = position;
+                FragmentViewPagerAdapter.LAST_TAB = position;
             }
 
             @Override
@@ -89,7 +93,7 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
             }
         });
-        mViewPager.setCurrentItem(ViewPagerAdapter.LAST_TAB);
+        mViewPager.setCurrentItem(FragmentViewPagerAdapter.LAST_TAB);
 
         battleMenu.setClosedOnTouchOutside(true);
         battleMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
@@ -119,18 +123,25 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         switch (view.getId()) {
             case R.id.add_battle:
                 battleMenu.close(true);
-                TabsHolder.addTab(BattleLobbyFragment.newInstance(getLayoutInflater(null), "normal"));
-                addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
+                Bundle args = new Bundle();
+                args.putString("format", "normal");
+                TabsHolder.addTab(BattleLobbyFragment.class.getName(), args);
+                addFragment(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1),
+                        TabsHolder.getArgs().get(TabsHolder.getArgsCount() - 1));
                 break;
             case R.id.watch_battle:
                 battleMenu.close(true);
-                TabsHolder.addTab(WatchBattleFragment.newInstance(getLayoutInflater(null)));
-                addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
+                TabsHolder.addTab(WatchBattleFragment.class.getName(), null);
+                addFragment(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1),
+                        TabsHolder.getArgs().get(TabsHolder.getArgsCount() - 1));
                 break;
             case R.id.challenge:
                 battleMenu.close(true);
-                TabsHolder.addTab(BattleLobbyFragment.newInstance(getLayoutInflater(null), "challenge"));
-                addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
+                args = new Bundle();
+                args.putString("format", "challenge");
+                TabsHolder.addTab(BattleLobbyFragment.class.getName(), args);
+                addFragment(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1),
+                        TabsHolder.getArgs().get(TabsHolder.getArgsCount() - 1));
                 break;
         }
     }
@@ -165,27 +176,24 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    //-----------------------------------------------------------------------------
-    // Here's what the app should do to add a view to the ViewPager.
-    public void addView(View newPage) {
-        int pageIndex = mAdapter.addView(newPage);
+    public void addFragment(String newFragmentClass, Bundle args) {
+        int pageIndex = mAdapter.addFragment(newFragmentClass, args);
         mAdapter.notifyDataSetChanged();
         // You might want to make "newPage" the currently displayed page:
         mViewPager.setCurrentItem(pageIndex, true);
 
         //We need check if the home panel is already inserted before setting the mTabLayout visible
-        if (newPage.findViewById(R.id.meloetta_icon) == null && mTabLayout.getVisibility() == View.GONE) {
+//        Activity activity = Fragment.instantiate(getContext(), TabsHolder.getTabs().get(pageIndex - 1)).getActivity().find
+//        if (activity.findViewById(R.id.meloetta_icon) == null && mTabLayout.getVisibility() == View.GONE) {
             mTabLayout.setVisibility(View.VISIBLE);
-        }
+//        }
 
         mTabLayout.setViewPager(mViewPager);
         mTabLayout.invalidate();
     }
 
-    //-----------------------------------------------------------------------------
-    // Here's what the app should do to remove a view from the ViewPager.
-    public int removeView(View defunctPage) {
-        int pageIndex = mAdapter.removeView(mViewPager, defunctPage);
+    public int removeFragment(int defunctFragmentPosition) {
+        int pageIndex = mAdapter.removeFragment(mViewPager, defunctFragmentPosition);
         mAdapter.notifyDataSetChanged();
         // You might want to choose what page to display, if the current page was "defunctPage".
         if (pageIndex == mAdapter.getCount())
@@ -201,11 +209,9 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         return pageIndex;
     }
 
-    //-----------------------------------------------------------------------------
-    // Here's what the app should do to change a view from the ViewPager.
-    public int changeView(View defunctPage, View newPage) {
-        int pageIndex = mAdapter.removeView(mViewPager, defunctPage);
-        pageIndex = mAdapter.addView(newPage, pageIndex);
+    public int changeFragment(int defunctFragmentPosition, String newFragmentClass, Bundle args) {
+        int pageIndex = mAdapter.removeFragment(mViewPager, defunctFragmentPosition);
+        pageIndex = mAdapter.addFragment(newFragmentClass, args, pageIndex);
         mAdapter.notifyDataSetChanged();
         // You might want to choose what page to display, if the current page was "defunctPage".
         if (pageIndex == mAdapter.getCount())
@@ -220,65 +226,88 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
     //-----------------------------------------------------------------------------
     // Here's what the app should do to get the currently displayed page.
-    public View getCurrentPage() {
-        return mAdapter.getView(mViewPager.getCurrentItem());
+    public String getCurrentPageClass() {
+        return mAdapter.getItemClass(mViewPager.getCurrentItem());
     }
 
-    //-----------------------------------------------------------------------------
-    // Here's what the app should do to set the currently displayed page.  "pageToShow" must
-    // currently be in the adapter, or this will crash.
-    public void setCurrentPage(View pageToShow) {
-        mViewPager.setCurrentItem(mAdapter.getItemPosition(pageToShow), true);
-    }
 
     private static class TabsHolder {
 
-        private static ArrayList<View> tabs = new ArrayList<>();
+        private static ArrayList<String> tabs = new ArrayList<>();
+        private static ArrayList<Bundle> args = new ArrayList<>();
 
-        public static void addTab(View view) {
-            if (!tabs.contains(view)) {
-                tabs.add(view);
+        public static void addTab(String fragment, Bundle bundle) {
+            if (!tabs.contains(fragment)) {
+                tabs.add(fragment);
+                args.add(bundle);
             }
         }
 
-        public static void addTab(View view, int position) {
-            if (!tabs.contains(view)) {
-                tabs.add(position, view);
+        public static void addTab(String fragment, Bundle bundle, int position) {
+            if (!tabs.contains(fragment)) {
+                tabs.add(position, fragment);
+                args.add(position, bundle);
             }
         }
 
-        public static void removeTab(View view) {
-            tabs.remove(view);
+        public static void removeTab(int fragment) {
+            Toast.makeText(MyApplication.getMyApplication(), "remove " + fragment, Toast.LENGTH_SHORT).show();
+            tabs.remove(fragment);
         }
 
-        public static ArrayList<View> getTabs() {
+        public static ArrayList<String> getTabs() {
             return tabs;
+        }
+
+        public static ArrayList<Bundle> getArgs() {
+            return args;
         }
 
         public static int getTabsCount() {
             return tabs.size();
         }
+
+        public static int getArgsCount() { return args.size(); }
     }
 
     public class TabsHolderAccessor {
 
-        public void addTab(View view) {
-            TabsHolder.addTab(view);
-            addView(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1));
+        public void addTab(String fragmentClass, Bundle args) {
+            TabsHolder.addTab(fragmentClass, args);
+            addFragment(TabsHolder.getTabs().get(TabsHolder.getTabsCount() - 1),
+                    TabsHolder.getArgs().get(TabsHolder.getArgsCount() - 1));
         }
 
         public void removeTab() {
-            View lastCurrentPage = getCurrentPage();
-            removeView(lastCurrentPage);
-            TabsHolder.removeTab(lastCurrentPage);
+            String lastCurrentPage = getCurrentPageClass();
+            int c = 0;
+            for (String s : TabsHolder.getTabs()) {
+                if (s.equals(lastCurrentPage)) {
+                    break;
+                }
+                c++;
+            }
+            removeFragment(c);
+            TabsHolder.removeTab(c);
         }
 
-        public void changeTab(View newPage) {
-            View lastCurrentPage = getCurrentPage();
-            changeView(lastCurrentPage, newPage);
+        public void changeTab(String newPageClass, Bundle args) {
+            String lastCurrentPage = getCurrentPageClass();
+            int c = 0;
+            for (String s : TabsHolder.getTabs()) {
+                if (s.equals(lastCurrentPage)) {
+                    break;
+                }
+                c++;
+            }
+            changeFragment(c, newPageClass, args);
             int pos = TabsHolder.getTabs().indexOf(lastCurrentPage);
-            TabsHolder.removeTab(lastCurrentPage);
-            TabsHolder.addTab(newPage, pos);
+            TabsHolder.removeTab(pos);
+            TabsHolder.addTab(newPageClass, args, pos);
+        }
+
+        public int getTabIndex() {
+            return mViewPager.getCurrentItem();
         }
     }
 }

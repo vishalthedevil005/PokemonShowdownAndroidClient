@@ -1,10 +1,13 @@
 package com.pokemonshowdown.fragment;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.pokemonshowdown.R;
@@ -15,15 +18,23 @@ import com.pokemonshowdown.data.Onboarding;
  * Created by McBeengs on 22/10/2016.
  */
 
-public class HomeFragment {
+public class HomeFragment extends BaseFragment {
 
-    private static View mView;
     private static TextView loggedDisplay;
     public static final UsernameLogged USERNAME_LOGGED = new UsernameLogged();
 
-    public static View newInstance(LayoutInflater inflater) {
-        mView = inflater.inflate(R.layout.fragment_home_screen, null);
+    public static HomeFragment newInstance() {
+        return new HomeFragment();
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_home_screen, container, false);
+    }
+
+    @Override
+    public void onViewCreated(final View mView, @Nullable Bundle savedInstanceState) {
         loggedDisplay = (TextView) mView.findViewById(R.id.logged_display);
         Onboarding onboarding = Onboarding.get(mView.getContext());
         if (onboarding.getUsername() != null && !onboarding.getUsername().isEmpty()) {
@@ -92,8 +103,6 @@ public class HomeFragment {
                 }
             }
         });
-
-        return mView;
     }
 
     public static class UsernameLogged {

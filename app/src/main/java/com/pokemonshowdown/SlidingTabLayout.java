@@ -30,7 +30,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.pokemonshowdown.adapter.ViewPagerAdapter;
+import com.pokemonshowdown.adapter.FragmentViewPagerAdapter;
 
 /**
  * To be used with ViewPager to provide a tab indicator component which give constant feedback as to
@@ -184,7 +184,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     }
 
     private void populateTabStrip() {
-        final ViewPagerAdapter adapter = (ViewPagerAdapter) mViewPager.getAdapter();
+        final FragmentViewPagerAdapter adapter = (FragmentViewPagerAdapter) mViewPager.getAdapter();
         final OnClickListener tabClickListener = new TabClickListener();
 
         if (adapter == null) {

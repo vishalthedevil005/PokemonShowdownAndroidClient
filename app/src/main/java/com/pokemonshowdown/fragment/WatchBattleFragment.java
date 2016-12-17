@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -30,17 +33,27 @@ import java.util.Set;
  * Created by McBeengs on 23/10/2016.
  */
 
-public class WatchBattleFragment {
+public class WatchBattleFragment extends BaseFragment {
 
     private static View mView;
     private static ProgressDialog mWaitingDialog;
     private static ListView mListView;
-    private volatile static String selectedKey;
-    private volatile static String selectedValue;
+    private static String selectedKey;
+    private static String selectedValue;
 
-    public static View newInstance(final LayoutInflater inflater) {
-        mView = inflater.inflate(R.layout.fragment_watch_battle_lobby, null);
+    public static WatchBattleFragment newInstance() {
+        return new WatchBattleFragment();
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_watch_battle_lobby, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        mView = view;
         TextView roomTitle = (TextView) mView.findViewById(R.id.room_title);
         TextView forgetButton = (TextView) mView.findViewById(R.id.forget_button);
         final Spinner formatsSpinner = (Spinner) mView.findViewById(R.id.formats_spinner);
@@ -116,11 +129,9 @@ public class WatchBattleFragment {
                 }
 
                 Toast.makeText(mView.getContext(), "Key: " + selectedKey + " | Value: " + selectedValue, Toast.LENGTH_SHORT).show();
-                MainScreenFragment.TABS_HOLDER_ACCESSOR.changeTab(BattleFieldFragment.newInstance(inflater));
+                //MainScreenFragment.TABS_HOLDER_ACCESSOR.changeTab(BattleFieldFragment.newInstance(inflater));
             }
         });
-
-        return mView;
     }
 
     public static void fireBattlesListViewUpdate() {
@@ -155,7 +166,7 @@ public class WatchBattleFragment {
 //                })
 //                .show();
 
-        mListView.setAdapter(new ArrayAdapter<String>(mListView.getContext(), R.layout.fragment_simple_list_row,value));
+        mListView.setAdapter(new ArrayAdapter<String>(mListView.getContext(), R.layout.fragment_simple_list_row, value));
         mListView.setItemChecked(0, true);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

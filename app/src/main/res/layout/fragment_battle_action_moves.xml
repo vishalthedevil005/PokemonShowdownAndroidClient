@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow android:weightSum="2">
+
+            <RelativeLayout
+                android:id="@+id/active_move1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/active_move1_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/active_move1_pp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true" />
+
+                <ImageView
+                    android:id="@+id/active_move1_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/active_move1_name"
+                    android:layout_alignTop="@id/active_move1_name"
+                    android:layout_toLeftOf="@id/active_move1_pp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/move_type"
+                    android:paddingRight="16dp"
+                    android:scaleType="center" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/active_move2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/active_move2_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/active_move2_pp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true" />
+
+                <ImageView
+                    android:id="@+id/active_move2_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/active_move2_name"
+                    android:layout_alignTop="@id/active_move2_name"
+                    android:layout_toLeftOf="@id/active_move2_pp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/move_type"
+                    android:paddingRight="16dp"
+                    android:scaleType="center" />
+
+            </RelativeLayout>
+
+        </TableRow>
+
+        <TableRow android:weightSum="2">
+
+            <RelativeLayout
+                android:id="@+id/active_move3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/active_move3_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/active_move3_pp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true" />
+
+                <ImageView
+                    android:id="@+id/active_move3_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/active_move3_name"
+                    android:layout_alignTop="@id/active_move3_name"
+                    android:layout_toLeftOf="@id/active_move3_pp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/move_type"
+                    android:paddingRight="16dp"
+                    android:scaleType="center" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/active_move4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingBottom="8dp"
+                android:paddingTop="8dp">
+
+                <TextView
+                    android:id="@+id/active_move4_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/active_move4_pp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true" />
+
+                <ImageView
+                    android:id="@+id/active_move4_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/active_move4_name"
+                    android:layout_alignTop="@id/active_move4_name"
+                    android:layout_toLeftOf="@id/active_move4_pp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/move_type"
+                    android:paddingRight="16dp"
+                    android:scaleType="center" />
+
+            </RelativeLayout>
+
+        </TableRow>
+
+    </TableLayout>
+
+    <CheckBox
+        android:id="@+id/mega_evolution_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/mega_evolution"
+        android:visibility="gone" />
+
+</LinearLayout>

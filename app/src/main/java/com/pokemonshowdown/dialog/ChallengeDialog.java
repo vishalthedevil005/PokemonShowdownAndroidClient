@@ -15,6 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.pokemonshowdown.R;
+import com.pokemonshowdown.adapter.PokemonTeamListArrayAdapter;
 import com.pokemonshowdown.adapter.PokemonTeamSpinnerAdapter;
 import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.BattleFieldData;
@@ -43,7 +44,7 @@ public class ChallengeDialog extends DialogFragment {
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
 
-        if(!challengeAccepted && mChallenged) {
+        if (!challengeAccepted && mChallenged) {
             //dialog has been cancelled, we reject
             MyApplication.getMyApplication().sendClientMessage("|/reject " + mChallengerName);
         }
@@ -176,12 +177,13 @@ public class ChallengeDialog extends DialogFragment {
             //PokemonTeamListArrayAdapter randomTeamAdapter = new PokemonTeamListArrayAdapter(getActivity(), Arrays.asList(new PokemonTeam(RANDOM_TEAM_NAME)));
             //teamSpinner.setAdapter(randomTeamAdapter);
         } else {
+            PokemonTeam.loadPokemonTeams(getContext());
             if (PokemonTeam.getPokemonTeamList().isEmpty()) {
                 ArrayAdapter noTeamsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.empty_team_list_filler));
                 teamSpinner.setAdapter(noTeamsAdapter);
             } else {
-                //PokemonTeamListArrayAdapter pokemonTeamListArrayAdapter = new PokemonTeamListArrayAdapter(getActivity(), PokemonTeam.getPokemonTeamList());
-                //teamSpinner.setAdapter(pokemonTeamListArrayAdapter);
+                PokemonTeamListArrayAdapter pokemonTeamListArrayAdapter = new PokemonTeamListArrayAdapter(getActivity(), PokemonTeam.getPokemonTeamList());
+                teamSpinner.setAdapter(pokemonTeamListArrayAdapter);
             }
         }
 

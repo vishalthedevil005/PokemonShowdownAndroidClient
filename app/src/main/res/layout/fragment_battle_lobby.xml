@@ -107,7 +107,6 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="50dp"
                 android:backgroundTint="@color/light_blue"
-                android:enabled="false"
                 android:text="Find a Trainer!" />
         </LinearLayout>
     </ScrollView>

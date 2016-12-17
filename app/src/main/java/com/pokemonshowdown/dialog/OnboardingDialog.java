@@ -23,7 +23,7 @@ public class OnboardingDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        View view = inflater.inflate(R.layout.dialog_onboarding, container);
+        View view = inflater.inflate(R.layout.dialog_onboarding, container, false);
 
         final EditText username = (EditText) view.findViewById(R.id.loginUsername);
 

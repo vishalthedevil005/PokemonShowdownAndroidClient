@@ -1,12 +1,15 @@
 package com.pokemonshowdown.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -14,8 +17,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,9 +32,13 @@ import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.BroadcastListener;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.CommunityLoungeData;
 import com.pokemonshowdown.data.Onboarding;
+import com.pokemonshowdown.dialog.ChallengeDialog;
 import com.pokemonshowdown.dialog.OnboardingDialog;
+import com.pokemonshowdown.fragment.BattleFragment;
+import com.pokemonshowdown.fragment.BattleLobbyFragment;
 import com.pokemonshowdown.fragment.CommunityLoungeFragment;
 import com.pokemonshowdown.fragment.HomeFragment;
 import com.pokemonshowdown.fragment.MainScreenFragment;
@@ -37,6 +48,11 @@ import com.pokemonshowdown.fragment.WatchBattleFragment;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by McBeengs on 19/10/2016.
@@ -49,8 +65,10 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     public final static int REQUEST_CODE_BUG_REPORT = 200;
     public final static String BATTLE_FIELD_FRAGMENT_TAG = "Battle Field Drawer 0";
     public final static String DRAWER_POSITION = "Drawer Position";
+    public static String lastRoomIdCreated = "";
     private static final String CHALLENGE_DIALOG_TAG = "CHALLENGE_DIALOG_TAG";
     private int mPosition;
+    private int numOfRooms = 0;
     private DrawerLayout mDrawerLayout;
     private AlertDialog mDialog;
     private CharSequence mDrawerTitle;
@@ -195,37 +213,38 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //            case R.id.menu_pokedex:
 //                startActivity(new Intent(this, PokedexActivity.class));
 //                return true;
-//            case R.id.menu_dmg_calc:
-//                startActivity(new Intent(this, DmgCalcActivity.class));
-//                return true;
-//            case R.id.menu_login:
-//                Onboarding onboarding = Onboarding.get(getApplicationContext());
-//                if (onboarding.getKeyId() == null || onboarding.getChallenge() == null) {
-//                    MyApplication.getMyApplication().getWebSocketClient();
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            if (mDialog != null && mDialog.isShowing()) {
-//                                mDialog.dismiss();
-//                            }
-//                            mDialog = new AlertDialog.Builder(BattleFieldActivity.this)
-//                                    .setMessage(R.string.weak_connection)
-//                                    .create();
-//                            mDialog.show();
-//                        }
-//                    });
-//                    return true;
-//                }
-//                if (onboarding.isSignedIn()) {
+            case R.id.menu_dmg_calc:
+                startActivity(new Intent(this, DmgCalcActivity.class));
+                return true;
+            case R.id.menu_login:
+                Onboarding onboarding = Onboarding.get(getApplicationContext());
+                if (onboarding.getKeyId() == null || onboarding.getChallenge() == null) {
+                    MyApplication.getMyApplication().getWebSocketClient();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mDialog != null && mDialog.isShowing()) {
+                                mDialog.dismiss();
+                            }
+                            mDialog = new AlertDialog.Builder(ContainerActivity.this)
+                                    .setMessage(R.string.weak_connection)
+                                    .create();
+                            mDialog.show();
+                        }
+                    });
+                    return true;
+                }
+                if (onboarding.isSignedIn()) {
+                    Toast.makeText(this, "Make custom user dialog on ContainerActivity line 226", Toast.LENGTH_SHORT).show();
 //                    FragmentManager fm = getSupportFragmentManager();
 //                    UserDialog userDialog = new UserDialog();
 //                    userDialog.show(fm, UserDialog.UTAG);
-//                    return true;
-//                }
-//                FragmentManager fm = getSupportFragmentManager();
-//                OnboardingDialog fragment = new OnboardingDialog();
-//                fragment.show(fm, OnboardingDialog.OTAG);
-//                return true;
+                    return true;
+                }
+                FragmentManager fm = getSupportFragmentManager();
+                OnboardingDialog fragment = new OnboardingDialog();
+                fragment.show(fm, OnboardingDialog.OTAG);
+                return true;
 //            case R.id.menu_settings:
 //                new SettingsDialog().show(getSupportFragmentManager(), SettingsDialog.STAG);
 //                return true;
@@ -353,27 +372,30 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 WatchBattleFragment.fireBattlesListViewUpdate();
                 return;
             case BroadcastSender.EXTRA_NEW_BATTLE_ROOM:
-//                String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
-//                BattleFieldFragment fragment = (BattleFieldFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 0");
-//                if (fragment != null) {
-//                    fragment.processNewRoomRequest(roomId);
-//                } else {
-//                    fragment = BattleFieldFragment.newInstance(roomId);
-//                    FragmentManager fm = getSupportFragmentManager();
-//                    fm.beginTransaction()
-//                            .replace(R.id.fragmentContainer, fragment, "Battle Field Drawer " + Integer.toString(0))
-//                            .commit();
-//
-//                    mDrawerList.setItemChecked(0, true);
-//                    setTitle(mLeftDrawerTitles[0]);
-//                    mDrawerLayout.closeDrawer(mDrawerList);
-//
-//                }
+                String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
+                lastRoomIdCreated = roomId;
+                numOfRooms++;
+
+                // We need to check what tab the battle is going to occur. A challenge, for instance, will be hold on the
+                // last available tab index (tabCount + 1), but a battle (or spectator, who knows) coming from the lobby screen
+                // will be played on the tab index that requested it (E.g.: Tab 2 of 3, so index = 1), overriding the View prior
+                // to that. Also to avoid ID conflicts, we need override the static id on each new instance.
+
+                BattleFieldData.get(MyApplication.getMyApplication()).joinRoom(roomId, false);
+                Bundle args = new Bundle();
+                args.putString(BattleFragment.ROOM_ID, roomId);
+
+                if (BattleLobbyFragment.requestingRoomIndex > 0) {
+                    MainScreenFragment.TABS_HOLDER_ACCESSOR.changeTab(BattleFragment.class.getName(), args);
+                } else {
+                    MainScreenFragment.TABS_HOLDER_ACCESSOR.addTab(BattleFragment.class.getName(), args);
+                }
+
                 return;
             case BroadcastSender.EXTRA_SERVER_MESSAGE:
                 String serverMessage = intent.getExtras().getString(BroadcastSender.EXTRA_SERVER_MESSAGE);
                 int channel = Integer.parseInt(intent.getExtras().getString(BroadcastSender.EXTRA_CHANNEL));
-                String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
+                roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
                 processMessage(channel, roomId, serverMessage);
                 return;
             case BroadcastSender.EXTRA_REQUIRE_SIGN_IN:
@@ -398,56 +420,56 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 return;
 
             case BroadcastSender.EXTRA_UPDATE_CHALLENGE:
-//                Fragment challengeDialogExistingFragment = getSupportFragmentManager().findFragmentByTag(CHALLENGE_DIALOG_TAG);
-//                if (challengeDialogExistingFragment != null) {
-//                    //already a challenge dialog showing
-//                    break;
-//                }
-//                String updateChallengeStatus = intent.getExtras().getString(BroadcastSender.EXTRA_UPDATE_CHALLENGE);
-//                try {
-//                    JSONObject updateChallengeJSon = new JSONObject(updateChallengeStatus);
-//                    //seems like we can receive multiple challenges, but only send one
-//                    JSONObject from = (JSONObject) updateChallengeJSon.get("challengesFrom");
-//                    Iterator<?> fromKeys = from.keys();
-//                    while (fromKeys.hasNext()) {
-//                        String userName = (String) fromKeys.next();
-//                        String format = from.getString(userName);
-//                        Log.d(BTAG, "Challenge from " + userName + ", format:" + format);
-//                        ChallengeDialog cd = ChallengeDialog.newInstance(userName, format);
-//                        cd.show(getSupportFragmentManager(), CHALLENGE_DIALOG_TAG);
-//                        // we pop challenges 1 by 1
-//                        break;
-//                    }
-//
-//                    if (updateChallengeJSon.getString("challengeTo").equals("null")) {
-//                        if (mDialog != null && mDialog.isShowing()) {
-//                            mDialog.dismiss();
-//                        }
-//                    } else {
-//                        JSONObject to = (JSONObject) updateChallengeJSon.get("challengeTo");
-//                        //"challengeTo":{"to":"tetonator","format":"randombattle"}
-//                        final String userName = to.getString("to");
-//                        String format = to.getString("format");
-//                        Log.d(BTAG, "Challenge to " + userName + ", format:" + format);
-//
-//                        if (mDialog != null && mDialog.isShowing()) {
-//                            mDialog.dismiss();
-//                        }
-//                        mDialog = new AlertDialog.Builder(BattleFieldActivity.this)
-//                                .setMessage(String.format(getResources().getString(R.string.waiting_challenge_dialog), userName, format))
-//                                .create();
-//                        mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-//                            @Override
-//                            public void onCancel(DialogInterface dialogInterface) {
-//                                MyApplication.getMyApplication().sendClientMessage("|/cancelchallenge " + userName);
-//                            }
-//                        });
-//                        mDialog.setCancelable(true);
-//                        mDialog.show();
-//                    }
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
+                Fragment challengeDialogExistingFragment = getSupportFragmentManager().findFragmentByTag(CHALLENGE_DIALOG_TAG);
+                if (challengeDialogExistingFragment != null) {
+                    //already a challenge dialog showing
+                    break;
+                }
+                String updateChallengeStatus = intent.getExtras().getString(BroadcastSender.EXTRA_UPDATE_CHALLENGE);
+                try {
+                    JSONObject updateChallengeJSon = new JSONObject(updateChallengeStatus);
+                    //seems like we can receive multiple challenges, but only send one
+                    JSONObject from = (JSONObject) updateChallengeJSon.get("challengesFrom");
+                    Iterator<?> fromKeys = from.keys();
+                    while (fromKeys.hasNext()) {
+                        String userName = (String) fromKeys.next();
+                        String format = from.getString(userName);
+                        Log.d(BTAG, "Challenge from " + userName + ", format:" + format);
+                        ChallengeDialog cd = ChallengeDialog.newInstance(userName, format);
+                        cd.show(getSupportFragmentManager(), CHALLENGE_DIALOG_TAG);
+                        // we pop challenges 1 by 1
+                        break;
+                    }
+
+                    if (updateChallengeJSon.getString("challengeTo").equals("null")) {
+                        if (mDialog != null && mDialog.isShowing()) {
+                            mDialog.dismiss();
+                        }
+                    } else {
+                        JSONObject to = (JSONObject) updateChallengeJSon.get("challengeTo");
+                        //"challengeTo":{"to":"tetonator","format":"randombattle"}
+                        final String userName = to.getString("to");
+                        String format = to.getString("format");
+                        Log.d(BTAG, "Challenge to " + userName + ", format:" + format);
+
+                        if (mDialog != null && mDialog.isShowing()) {
+                            mDialog.dismiss();
+                        }
+                        mDialog = new AlertDialog.Builder(ContainerActivity.this)
+                                .setMessage(String.format(getResources().getString(R.string.waiting_challenge_dialog), userName, format))
+                                .create();
+                        mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                MyApplication.getMyApplication().sendClientMessage("|/cancelchallenge " + userName);
+                            }
+                        });
+                        mDialog.setCancelable(true);
+                        mDialog.show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case BroadcastSender.EXTRA_UNKNOWN_ERROR:
@@ -532,16 +554,12 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 }
             }
         } else { // channel == 0
-            Toast.makeText(this, "fix message handling on ContainerActivity", Toast.LENGTH_SHORT).show();
-//            BattleFieldData.RoomData roomData = BattleFieldData.get(this).getAnimationInstance(roomId);
-//            if (roomData != null && roomData.isMessageListener()) {
-//                roomData.addServerMessageOnHold(message);
-//            } else {
-//                BattleFieldFragment fragment = (BattleFieldFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 0");
-//                if (fragment != null) {
-//                    fragment.processServerMessage(roomId, message);
-//                }
-//            }
+            BattleFieldData.RoomData roomData = BattleFieldData.get(this).getAnimationInstance(roomId);
+            if (roomData != null && roomData.isMessageListener()) {
+                roomData.addServerMessageOnHold(message);
+            } else {
+                BattleFragment.RECEIVER.processServerMessage(roomId, message);
+            }
         }
     }
 
@@ -570,5 +588,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         fm.beginTransaction()
                 .replace(R.id.fragment_container, fragment, "Battle Field Drawer " + Integer.toString(mPosition))
                 .commit();
+    }
+
+    public void showDialogFromHere(DialogFragment fragment, String tag) {
+        fragment.show(getSupportFragmentManager(), tag);
     }
 }

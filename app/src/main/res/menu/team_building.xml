@@ -6,7 +6,7 @@
         android:id="@+id/action_create_team"
         android:icon="@drawable/ic_action_new"
         android:title="@string/create_team"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <!-- More -->
     <item
@@ -36,6 +36,4 @@
 
         </menu>
     </item>
-
-
 </menu>

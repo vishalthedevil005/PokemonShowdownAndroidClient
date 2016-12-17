@@ -295,10 +295,6 @@ public class SearchableActivity extends BaseActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null || convertView.findViewById(R.id.text) != null) {
-                convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short, null);
-            }
-
             String pokemonName = getItem(position);
 
             for (String s : Tiering.TIER_ORDER) {
@@ -311,6 +307,19 @@ public class SearchableActivity extends BaseActivity {
                     return convertView;
                 }
             }
+
+            //if (convertView == null || convertView.findViewById(R.id.text) != null) {
+                if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_vertical, null);
+                } else {
+                    String[] abilities = Pokemon.getPokemonAbilities(getApplicationContext(), getItem(position));
+                    if (abilities.length > 1) {
+                        convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal, null);
+                    } else {
+                        convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal_single, null);
+                    }
+                }
+            //}
 
             ImageView icon = (ImageView) convertView.findViewById(R.id.pokemon_icon);
             icon.setImageResource(Pokemon.getPokemonIcon(getApplicationContext(), pokemonName));
@@ -327,30 +336,26 @@ public class SearchableActivity extends BaseActivity {
             }
 
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                TextView ability1 = (TextView) convertView.findViewById(R.id.ability_1);
-                TextView ability2 = (TextView) convertView.findViewById(R.id.ability_2);
-                TextView ability3 = (TextView) convertView.findViewById(R.id.ability_3);
-
                 String[] abilities = Pokemon.getPokemonAbilities(getApplicationContext(), pokemonName);
 
-                if (abilities.length == 1) {
-                    ability1.setVisibility(View.GONE);
-                    ability2.setVisibility(View.GONE);
-                    ability3.setVisibility(View.VISIBLE);
-                    ability3.setText(abilities[0]);
-                } else if (abilities.length == 2) {
-                    ability1.setVisibility(View.VISIBLE);
-                    ability2.setVisibility(View.VISIBLE);
-                    ability3.setVisibility(View.GONE);
-                    ability1.setText(abilities[0]);
-                    ability2.setText(abilities[1]);
+                if (abilities.length > 1) {
+                    Log.e(STAG, pokemonName);
+                    TextView ability1 = (TextView) convertView.findViewById(R.id.ability_1);
+                    TextView ability2 = (TextView) convertView.findViewById(R.id.ability_2);
+                    TextView ability3 = (TextView) convertView.findViewById(R.id.ability_3);
+
+                    if (abilities.length == 2) {
+                        ability1.setText(abilities[0]);
+                        ability2.setText(abilities[1]);
+                        ability3.setText("");
+                    } else if (abilities.length == 3) {
+                        ability1.setText(abilities[0]);
+                        ability2.setText(abilities[1]);
+                        ability3.setText(abilities[2]);
+                    }
                 } else {
-                    ability1.setVisibility(View.VISIBLE);
-                    ability2.setVisibility(View.VISIBLE);
-                    ability3.setVisibility(View.VISIBLE);
+                    TextView ability1 = (TextView) convertView.findViewById(R.id.ability_1);
                     ability1.setText(abilities[0]);
-                    ability2.setText(abilities[1]);
-                    ability3.setText(abilities[2]);
                 }
             }
 
@@ -497,9 +502,10 @@ public class SearchableActivity extends BaseActivity {
             try {
                 String itemTag = getItem(position);
                 JSONObject itemJson = ItemDex.get(getApplicationContext()).getItemJsonObject(itemTag);
+                ImageView icon = (ImageView) convertView.findViewById(R.id.short_item_icon);
+                icon.setImageResource(ItemDex.getItemIcon(getApplicationContext(), itemTag));
                 TextView textView = (TextView) convertView.findViewById(R.id.short_item_name);
                 textView.setText(itemJson.getString("name"));
-                textView.setCompoundDrawablesWithIntrinsicBounds(ItemDex.getItemIcon(getApplicationContext(), itemTag), 0, 0, 0);
                 ((TextView) convertView.findViewById(R.id.short_item_description)).setText(itemJson.getString("desc"));
             } catch (JSONException e) {
                 Log.d(STAG, e.toString());
