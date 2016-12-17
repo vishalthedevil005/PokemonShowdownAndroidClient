@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.PokemonActivity;
+import com.pokemonshowdown.activity.TeamBuilderActivity;
 import com.pokemonshowdown.activity.TeamBuildingActivity;
 import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.MoveDex;
@@ -55,6 +58,17 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
         holder.pokemonIcon.setImageResource(poke.getFrontSprite());
         holder.pokemonName.setText(poke.getNickName());
         holder.ability.setText(poke.getAbility());
+
+        if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            holder.level.setText("" + poke.getLevel());
+            if (poke.getGender().equals("M")) {
+                holder.gender.setText("Male");
+            } else if (poke.getGender().equals("F")) {
+                holder.gender.setText("Female");
+            } else {
+                holder.gender.setText("Genderless");
+            }
+        }
 
         String itemString = poke.getItem();
         JSONObject itemJSon = ItemDex.get(mContext).getItemJsonObject(itemString);
@@ -152,6 +166,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
                             @Override
                             public void onClick(DialogInterface dialogInterface, int uh) {
                                 Toast.makeText(mContext, "\"" + holder.pokemonName.getText() + "\" removed", Toast.LENGTH_SHORT).show();
+                                TeamBuildingActivity.fireAddButtonVisibility();
                                 TeamBuildingActivity.fireTeamSaving(position);
                             }
                         })
@@ -174,6 +189,8 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
         public AutofitTextView pokemonName;
         public AutofitTextView ability;
         public ImageView itemIcon;
+        public AutofitTextView level;
+        public AutofitTextView gender;
         public AutofitTextView itemName;
         public AutofitTextView move1;
         public AutofitTextView move2;
@@ -193,6 +210,11 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
             move2 = (AutofitTextView) itemView.findViewById(R.id.move_2);
             move3 = (AutofitTextView) itemView.findViewById(R.id.move_3);
             move4 = (AutofitTextView) itemView.findViewById(R.id.move_4);
+
+            if (mView.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                level = (AutofitTextView) itemView.findViewById(R.id.level);
+                gender = (AutofitTextView) itemView.findViewById(R.id.gender);
+            }
         }
     }
 }

@@ -72,7 +72,7 @@
                         android:layout_height="60dp"
                         android:layout_marginLeft="5dp"
                         android:layout_toRightOf="@id/battles_display"
-                        android:src="@drawable/smallicons_meloettapirouette" />
+                        android:src="@drawable/smallicons_meloetta" />
 
 
                     <TextView

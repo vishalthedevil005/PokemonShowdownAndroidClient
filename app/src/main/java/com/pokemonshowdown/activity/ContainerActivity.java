@@ -195,9 +195,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //            case R.id.menu_pokedex:
 //                startActivity(new Intent(this, PokedexActivity.class));
 //                return true;
-//            case R.id.menu_dmg_calc:
-//                startActivity(new Intent(this, DmgCalcActivity.class));
-//                return true;
+            case R.id.menu_dmg_calc:
+                startActivity(new Intent(this, DmgCalcActivity.class));
+                return true;
 //            case R.id.menu_login:
 //                Onboarding onboarding = Onboarding.get(getApplicationContext());
 //                if (onboarding.getKeyId() == null || onboarding.getChallenge() == null) {

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="horizontal"
-              android:padding="8dp"
-              android:weightSum="12">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:weightSum="12">
 
-    <TextView
+    <me.grantland.widget.AutofitTextView
         android:id="@+id/short_move_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="6"
         android:gravity="center_vertical"
-        android:textSize="20sp"/>
+        android:lines="1"
+        android:textSize="20sp" />
 
     <ImageView
         android:id="@+id/type"
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_weight="1"
-        android:contentDescription="@string/move_type"/>
+        android:contentDescription="@string/move_type" />
 
     <ImageView
         android:id="@+id/category"
@@ -29,12 +29,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_weight="1"
-        android:contentDescription="@string/move_category"/>
+        android:contentDescription="@string/move_category" />
 
     <View
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"/>
+        android:layout_weight="1" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -48,14 +48,14 @@
             android:layout_gravity="center"
             android:text="@string/move_power"
             android:textSize="12sp"
-            android:textStyle="italic"/>
+            android:textStyle="italic" />
 
         <TextView
             android:id="@+id/move_power"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textSize="12sp"/>
+            android:textSize="12sp" />
 
     </LinearLayout>
 
@@ -71,14 +71,14 @@
             android:layout_gravity="center"
             android:text="@string/move_acc"
             android:textSize="12sp"
-            android:textStyle="italic"/>
+            android:textStyle="italic" />
 
         <TextView
             android:id="@+id/move_acc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textSize="12sp"/>
+            android:textSize="12sp" />
 
     </LinearLayout>
 
@@ -94,14 +94,14 @@
             android:layout_gravity="center"
             android:text="@string/move_pp"
             android:textSize="12sp"
-            android:textStyle="italic"/>
+            android:textStyle="italic" />
 
         <TextView
             android:id="@+id/move_pp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textSize="12sp"/>
+            android:textSize="12sp" />
 
     </LinearLayout>
 

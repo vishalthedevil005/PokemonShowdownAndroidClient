@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.InputType;
@@ -64,7 +66,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         POKEMON_STATS = new SetPokemonStats();
-        setContentView(R.layout.abc_123_temp);
+        setContentView(R.layout.activity_pokemon);
         setupToolbar();
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -100,6 +102,24 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
         happyLabel.setText("" + mPokemon.getHappiness());
         happySeek.setOnSeekBarChangeListener(this);
 
+        ImageView iconMale = (ImageView) findViewById(R.id.gender_male);
+        ImageView iconFemale = (ImageView) findViewById(R.id.gender_female);
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+
+        if (mPokemon.getGender().equals("M")) {
+            iconFemale.setColorFilter(filter);
+        } else if (mPokemon.getGender().equals("F")) {
+            iconMale.setColorFilter(filter);
+        } else {
+            iconMale.setColorFilter(filter);
+            iconFemale.setColorFilter(filter);
+        }
+
+        iconMale.setOnClickListener(this);
+        iconFemale.setOnClickListener(this);
+
         itemLabel = (AutofitTextView) findViewById(R.id.item_label);
         itemLabel.setText(mPokemon.getItem().isEmpty() ? "No item" : mPokemon.getItem());
         if (!mPokemon.getItem().isEmpty()) {
@@ -107,7 +127,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
             try {
                 mPokemon.setItem(itemJson.getString("name"));
                 itemLabel.setText(itemJson.getString("name"));
-                itemLabel.setCompoundDrawablesWithIntrinsicBounds(ItemDex.getItemIcon(getApplicationContext(), mPokemon.getItem().toLowerCase().trim()), 0, 0, 0);
+                ((ImageView) findViewById(R.id.item_icon)).setImageResource(ItemDex.getItemIcon(getApplicationContext(), mPokemon.getItem().toLowerCase().trim()));
             } catch (JSONException ex) {
                 ex.printStackTrace();
             }
@@ -163,156 +183,8 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
         hpsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                switch (i) {
-                    case 1:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 2:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 3:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 4:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 5:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(30);
-                        break;
-
-                    case 6:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(30);
-                        break;
-
-                    case 7:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(30);
-                        break;
-
-                    case 8:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 9:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 10:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 11:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 12:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 13:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(30);
-                        break;
-
-                    case 14:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(30);
-                        break;
-
-                    case 15:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(30);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    case 16:
-                        mPokemon.setAtkIV(30);
-                        mPokemon.setDefIV(30);
-                        mPokemon.setSpAtkIV(30);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-
-                    default:
-                        mPokemon.setAtkIV(31);
-                        mPokemon.setDefIV(31);
-                        mPokemon.setSpAtkIV(31);
-                        mPokemon.setSpDefIV(31);
-                        mPokemon.setSpdIV(31);
-                        break;
-                }
-
-                hpIvs.setText("" + mPokemon.getHPIV());
-                atkIvs.setText("" + mPokemon.getAtkIV());
-                defIvs.setText("" + mPokemon.getDefIV());
-                spAtkIvs.setText("" + mPokemon.getSpAtkIV());
-                spDefIvs.setText("" + mPokemon.getSpDefIV());
-                speIvs.setText("" + mPokemon.getSpdIV());
-                hpIvs.invalidate();
-                atkIvs.invalidate();
-                defIvs.invalidate();
-                spAtkIvs.invalidate();
-                spDefIvs.invalidate();
-                speIvs.invalidate();
+                setIVs(i);
+                setupStatsBars();
             }
 
             @Override
@@ -388,108 +260,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
             ex.printStackTrace();
         }
 
-        LinearLayout.LayoutParams hpP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        hpP.weight = (float) mPokemon.getBaseHP() + (mPokemon.getHPEV() / 4);
-        hpP.gravity = Gravity.CENTER;
-        hpP.leftMargin = dipToPixels(5);
-        hpP.rightMargin = dipToPixels(5);
-
-        TextView hpLabel = (TextView) findViewById(R.id.base_hp);
-        hpLabel.setText("" + mPokemon.getBaseHP());
-        hpBar = findViewById(R.id.hp_bar);
-        hpBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseHP()));
-        hpBar.setLayoutParams(hpP);
-        hpBar.setOnClickListener(this);
-        hpIvs = (AutofitTextView) findViewById(R.id.hp_ivs_label);
-        hpIvs.setText("" + mPokemon.getHPIV());
-        hpIvs.setOnClickListener(this);
-        hpStats = (AutofitTextView) findViewById(R.id.hp_stats);
-        hpStats.setText("" + mPokemon.getHP());
-
-        LinearLayout.LayoutParams atkP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        atkP.weight = (float) mPokemon.getBaseAtk() + (mPokemon.getAtkEV() / 4);
-        atkP.gravity = Gravity.CENTER;
-        atkP.leftMargin = dipToPixels(5);
-        atkP.rightMargin = dipToPixels(5);
-        TextView atkLabel = (TextView) findViewById(R.id.base_atk);
-        atkLabel.setText("" + mPokemon.getBaseAtk());
-        atkBar = findViewById(R.id.atk_bar);
-        atkBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseAtk()));
-        atkBar.setLayoutParams(atkP);
-        atkBar.setOnClickListener(this);
-        atkIvs = (AutofitTextView) findViewById(R.id.atk_ivs_label);
-        atkIvs.setText("" + mPokemon.getAtkIV());
-        atkIvs.setOnClickListener(this);
-        atkStats = (AutofitTextView) findViewById(R.id.atk_stats);
-        atkStats.setText("" + mPokemon.getAtk());
-
-        LinearLayout.LayoutParams defP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        defP.weight = (float) mPokemon.getBaseDef() + (mPokemon.getDefEV() / 4);
-        defP.gravity = Gravity.CENTER;
-        defP.leftMargin = dipToPixels(5);
-        defP.rightMargin = dipToPixels(5);
-        TextView defLabel = (TextView) findViewById(R.id.base_def);
-        defLabel.setText("" + mPokemon.getBaseDef());
-        defBar = findViewById(R.id.def_bar);
-        defBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseDef()));
-        defBar.setLayoutParams(defP);
-        defBar.setOnClickListener(this);
-        defIvs = (AutofitTextView) findViewById(R.id.def_ivs_label);
-        defIvs.setText("" + mPokemon.getDefIV());
-        defIvs.setOnClickListener(this);
-        defStats = (AutofitTextView) findViewById(R.id.def_stats);
-        defStats.setText("" + mPokemon.getDef());
-
-        LinearLayout.LayoutParams spAtkP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        spAtkP.weight = (float) mPokemon.getBaseSpAtk() + (mPokemon.getSpAtkEV() / 4);
-        spAtkP.gravity = Gravity.CENTER;
-        spAtkP.leftMargin = dipToPixels(5);
-        spAtkP.rightMargin = dipToPixels(5);
-        TextView spAtkLabel = (TextView) findViewById(R.id.base_sp_atk);
-        spAtkLabel.setText("" + mPokemon.getBaseSpAtk());
-        spAtkBar = findViewById(R.id.sp_atk_bar);
-        spAtkBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpAtk()));
-        spAtkBar.setLayoutParams(spAtkP);
-        spAtkBar.setOnClickListener(this);
-        spAtkIvs = (AutofitTextView) findViewById(R.id.sp_atk_ivs_label);
-        spAtkIvs.setText("" + mPokemon.getSpAtkIV());
-        spAtkIvs.setOnClickListener(this);
-        spAtkStats = (AutofitTextView) findViewById(R.id.sp_atk_stats);
-        spAtkStats.setText("" + mPokemon.getSpAtk());
-
-        LinearLayout.LayoutParams spDefP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        spDefP.weight = (float) mPokemon.getBaseSpDef() + (mPokemon.getSpDefEV() / 4);
-        spDefP.gravity = Gravity.CENTER;
-        spDefP.leftMargin = dipToPixels(5);
-        spDefP.rightMargin = dipToPixels(5);
-        TextView spDefLabel = (TextView) findViewById(R.id.base_sp_def);
-        spDefLabel.setText("" + mPokemon.getBaseSpDef());
-        spDefBar = findViewById(R.id.sp_def_bar);
-        spDefBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpDef()));
-        spDefBar.setLayoutParams(spDefP);
-        spDefBar.setOnClickListener(this);
-        spDefIvs = (AutofitTextView) findViewById(R.id.sp_def_ivs_label);
-        spDefIvs.setText("" + mPokemon.getSpDefIV());
-        spDefIvs.setOnClickListener(this);
-        spDefStats = (AutofitTextView) findViewById(R.id.sp_def_stats);
-        spDefStats.setText("" + mPokemon.getSpDef());
-
-        LinearLayout.LayoutParams speP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
-        speP.weight = (float) mPokemon.getBaseSpd() + (mPokemon.getSpd() / 4);
-        speP.gravity = Gravity.CENTER;
-        speP.leftMargin = dipToPixels(5);
-        speP.rightMargin = dipToPixels(5);
-        TextView speLabel = (TextView) findViewById(R.id.base_spe);
-        speLabel.setText("" + mPokemon.getBaseSpd());
-        speBar = findViewById(R.id.spe_bar);
-        speBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpd()));
-        speBar.setLayoutParams(speP);
-        speBar.setOnClickListener(this);
-        speIvs = (AutofitTextView) findViewById(R.id.spe_ivs_label);
-        speIvs.setText("" + mPokemon.getSpdIV());
-        speIvs.setOnClickListener(this);
-        speStats = (AutofitTextView) findViewById(R.id.spe_stats);
-        speStats.setText("" + mPokemon.getSpd());
+        setupStatsBars();
     }
 
     @Override
@@ -499,6 +270,14 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 String item = data.getExtras().getString("Search");
                 mPokemon.setItem(item);
 
+                JSONObject itemJson = ItemDex.get(getApplicationContext()).getItemJsonObject(mPokemon.getItem().toLowerCase().trim());
+                try {
+                    mPokemon.setItem(itemJson.getString("name"));
+                    itemLabel.setText(itemJson.getString("name"));
+                    ((ImageView) findViewById(R.id.item_icon)).setImageResource(ItemDex.getItemIcon(getApplicationContext(), mPokemon.getItem().toLowerCase().trim()));
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                }
             } else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_ITEM) {
                 String item = data.getExtras().getString("Search");
                 JSONObject itemJson = ItemDex.get(getApplicationContext()).getItemJsonObject(item);
@@ -558,9 +337,13 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
                 if ("frustration".equals(move)) {
                     mPokemon.setHappiness(0);
+                    SeekBar happySeek = (SeekBar) findViewById(R.id.poke_happy_seek);
+                    happySeek.setProgress(0);
                     Toast.makeText(getContext(), getText(R.string.happiness_min), Toast.LENGTH_SHORT).show();
                 } else if ("return".equals(move)) {
                     mPokemon.setHappiness(255);
+                    SeekBar happySeek = (SeekBar) findViewById(R.id.poke_happy_seek);
+                    happySeek.setProgress(255);
                     Toast.makeText(getContext(), getText(R.string.happiness_max), Toast.LENGTH_SHORT).show();
                 } else if ("gyroball".equals(move) || "trickroom".equals(move)) {
                     boolean hasHP = false;
@@ -577,6 +360,8 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                         mPokemon.setSpdIV(0);
                     }
 
+                    speIvs.setText("" + mPokemon.getSpdIV());
+                    setupStatsBars();
                     Toast.makeText(getContext(), getText(R.string.speediv_modified), Toast.LENGTH_SHORT).show();
                 } else if (move != null && move.contains("hiddenpower")) {
                     if (move.length() > "hiddenpower".length()) {
@@ -588,13 +373,21 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                             }
                         }
                         String hpType = move.substring("hiddenpower".length());
-                        switch (hpType) {
-
+                        final String[] hps = new String[]{"Nothing", "HP Bug", "HP Dark", "HP Dragon", "HP Electric", "HP Fighting", "HP Fire", "HP Flying",
+                                "HP Ghost", "HP Grass", "HP Ground", "HP Ice", "HP Poison", "HP Psychic", "HP Rock", "HP Steel", "HP Water"};
+                        int i = 0;
+                        for (String s : hps) {
+                            if (s.toLowerCase().contains(hpType)) {
+                                setIVs(i);
+                                break;
+                            }
+                            i++;
                         }
                         if (needsLowSpeed) {
                             mPokemon.setSpdIV(mPokemon.getSpdIV() % 4);
                         }
                         Toast.makeText(getContext(), getText(R.string.ivs_modified), Toast.LENGTH_SHORT).show();
+
                     }
                 }
             }
@@ -636,8 +429,10 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                         .show();
                 break;
             case R.id.gender_male:
+                setGender("M");
                 break;
             case R.id.gender_female:
+                setGender("F");
                 break;
             case R.id.item_label:
                 Intent intent = new Intent(getApplicationContext(), SearchableActivity.class);
@@ -690,6 +485,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                                 nature.setText(newNature);
                                 mPokemon.setNature(newNature);
                                 mPokemon.setStats(mPokemon.calculateStats());
+                                setupStatsBars();
                                 dialog.dismiss();
                             }
                         })
@@ -737,6 +533,8 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 label = (TextView) findViewById(R.id.poke_level_label);
                 label.setText("" + i);
                 mPokemon.setLevel(i);
+
+                setupStatsBars();
                 break;
             case R.id.poke_happy_seek:
                 if (i == 0)
@@ -758,8 +556,336 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
     }
 
+    private void setIVs(int i) {
+        switch (i) {
+            case 1:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 2:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 3:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 4:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 5:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(30);
+                break;
+
+            case 6:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(30);
+                break;
+
+            case 7:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(30);
+                break;
+
+            case 8:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 9:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 10:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 11:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 12:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 13:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(30);
+                break;
+
+            case 14:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(30);
+                break;
+
+            case 15:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(30);
+                mPokemon.setSpdIV(31);
+                break;
+
+            case 16:
+                mPokemon.setAtkIV(30);
+                mPokemon.setDefIV(30);
+                mPokemon.setSpAtkIV(30);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+
+            default:
+                mPokemon.setAtkIV(31);
+                mPokemon.setDefIV(31);
+                mPokemon.setSpAtkIV(31);
+                mPokemon.setSpDefIV(31);
+                mPokemon.setSpdIV(31);
+                break;
+        }
+
+        hpIvs.setText("" + mPokemon.getHPIV());
+        atkIvs.setText("" + mPokemon.getAtkIV());
+        defIvs.setText("" + mPokemon.getDefIV());
+        spAtkIvs.setText("" + mPokemon.getSpAtkIV());
+        spDefIvs.setText("" + mPokemon.getSpDefIV());
+        speIvs.setText("" + mPokemon.getSpdIV());
+    }
+
+    private void setGender(String gender) {
+        ImageView iconMale = (ImageView) findViewById(R.id.gender_male);
+        ImageView iconFemale = (ImageView) findViewById(R.id.gender_female);
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0);
+        ColorMatrixColorFilter darkFilter = new ColorMatrixColorFilter(matrix);
+        matrix.setSaturation(1);
+        ColorMatrixColorFilter lightFilter = new ColorMatrixColorFilter(matrix);
+
+        String[] maleOnly = new String[]{"Nidoran♂", "Nidorino", "Nidoking", "Volbeat", "Latios", "Gallade", "Mothim", "Tyrouge",
+                "Hitmonlee", "Hitmonchan", "Hitmontop", "Tauros", "Throh", "Sawk", "Rufflet", "Braviary", "Tornadus", "Thundurus",
+                "Landorus"};
+
+        String[] femaleOnly = new String[]{"Nidoran♀", "Nidorina", "Nidoqueen", "Illumise", "Latias", "Gardevoir", "Froslass", "Wormadan",
+                "Vespiqueen", "Salazzle", "Happiny", "Chansey", "Blissey", "Kangaskhan", "Smoochum", "Jynx", "Miltank", "Cresselia",
+                "Petilill", "Lilligant", "Vullaby", "Mandibuzz", "Flabébé", "Floette", "Florges", "Bounsweet", "Steenee", "Tsarenna"};
+
+        String[] genderless = new String[]{"Arceus", "Articuno", "Azelf", "Baltoy", "Beldum", "Bronzong", "Bronsor", "Buzzwole",
+                "Carbink", "Celebi", "Celesteela", "Claydol", "Cobalion", "Cosmoem", "Cosmog", "Cryogonal", "Darkrai", "Deoxys", "Dhelmise",
+                "Dialga", "Diancie", "Ditto", "Electrode", "Entei", "Genesect", "Giratina", "Gollet", "Golurk", "Groundon", "Guzzlord", "Ho-Oh",
+                "Hoppa", "Jirachi", "Kartana", "Keldeo", "Klang", "Kling", "Kling", "Klinglang", "Kyogre", "Kyurem", "Lugia", "Lunala", "Luatone",
+                "Magearna", "Magnemite", "Magneton", "Magnezone", "Manaphy", "Marshadow", "Meloetta", "Mesprit", "Metagross", "Metang", "Mew",
+                "Mewtwo", "Minior", "Moltres", "Necrozma", "Nihilego", "Palkia", "Pheromosa", "Phione", "Porygon", "Raikou", "Rayquaza",
+                "Regice", "Regigigas", "Regirock", "Registeel", "Reshiram", "Rotom", "Shaymin", "Shedinja", "Silvally", "Solgaleo",
+                "Solrock", "Starmie", "Stayru", "Suicune", "Tapu Bulu", "Tapu Lele", "Tapu Fini", "Tapu Koko", "Terrakion", "Type: Null",
+                "Unown", "Uxie", "Victini", "Virizion", "Volcanion", "Voltorb", "Xerneas", "Xurkitree", "Yveltal", "Zapdos", "Zekrom", "Zygarde"};
+
+        for (String s : genderless) {
+            if (mPokemon.getName().contains(s)) {
+                Toast.makeText(this, "\"" + mPokemon.getName() + "\" is genderless", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        //Meowstic is the only exception
+        if (mPokemon.getName().equals("Meowstic")) {
+            Toast.makeText(this, "This Meowstic can only be male", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (mPokemon.getName().equals("Meowstic-F")) {
+            Toast.makeText(this, "This Meowstic can only be female", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (gender.equals("M")) {
+            for (String s : femaleOnly) {
+                if (mPokemon.getName().contains(s)) {
+                    Toast.makeText(this, "\"" + mPokemon.getName() + "\" cannot be male", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            mPokemon.setGender(gender);
+            iconMale.setColorFilter(lightFilter);
+            iconFemale.setColorFilter(darkFilter);
+            Toast.makeText(this, "Gender set as \"Male\"", Toast.LENGTH_SHORT).show();
+        } else if (gender.equals("F")) {
+            for (String s : maleOnly) {
+                if (mPokemon.getName().contains(s)) {
+                    Toast.makeText(this, "\"" + mPokemon.getName() + "\" cannot be female", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            mPokemon.setGender(gender);
+            iconMale.setColorFilter(darkFilter);
+            iconFemale.setColorFilter(lightFilter);
+            Toast.makeText(this, "Gender set as \"Female\"", Toast.LENGTH_SHORT).show();
+        } else {
+            iconMale.setColorFilter(darkFilter);
+            iconFemale.setColorFilter(darkFilter);
+        }
+    }
+
+    private void setupStatsBars() {
+        LinearLayout.LayoutParams hpP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        if (mPokemon.getName().equals("Shedinja")) {
+            hpP.weight = (float) 4;
+        } else {
+            hpP.weight = (float) mPokemon.getBaseHP() + (mPokemon.getHPEV() / 4);
+        }
+        hpP.gravity = Gravity.CENTER;
+        hpP.leftMargin = dipToPixels(5);
+        hpP.rightMargin = dipToPixels(5);
+
+        TextView hpLabel = (TextView) findViewById(R.id.base_hp);
+        hpLabel.setText("" + mPokemon.getBaseHP());
+        hpBar = findViewById(R.id.hp_bar);
+        hpBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseHP() + (mPokemon.getHPEV() / 4)));
+        hpBar.setLayoutParams(hpP);
+        hpBar.setOnClickListener(this);
+        hpIvs = (AutofitTextView) findViewById(R.id.hp_ivs_label);
+        hpIvs.setText("" + mPokemon.getHPIV());
+        hpIvs.setOnClickListener(this);
+        hpStats = (AutofitTextView) findViewById(R.id.hp_stats);
+        hpStats.setText("" + mPokemon.calculateHP());
+
+        LinearLayout.LayoutParams atkP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        atkP.weight = (float) mPokemon.getBaseAtk() + (mPokemon.getAtkEV() / 4);
+        atkP.gravity = Gravity.CENTER;
+        atkP.leftMargin = dipToPixels(5);
+        atkP.rightMargin = dipToPixels(5);
+        TextView atkLabel = (TextView) findViewById(R.id.base_atk);
+        atkLabel.setText("" + mPokemon.getBaseAtk());
+        atkBar = findViewById(R.id.atk_bar);
+        atkBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseAtk() + (mPokemon.getAtkEV() / 4)));
+        atkBar.setLayoutParams(atkP);
+        atkBar.setOnClickListener(this);
+        atkIvs = (AutofitTextView) findViewById(R.id.atk_ivs_label);
+        atkIvs.setText("" + mPokemon.getAtkIV());
+        atkIvs.setOnClickListener(this);
+        atkStats = (AutofitTextView) findViewById(R.id.atk_stats);
+        atkStats.setText("" + mPokemon.calculateAtk());
+
+        LinearLayout.LayoutParams defP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        defP.weight = (float) mPokemon.getBaseDef() + (mPokemon.getDefEV() / 4);
+        defP.gravity = Gravity.CENTER;
+        defP.leftMargin = dipToPixels(5);
+        defP.rightMargin = dipToPixels(5);
+        TextView defLabel = (TextView) findViewById(R.id.base_def);
+        defLabel.setText("" + mPokemon.getBaseDef());
+        defBar = findViewById(R.id.def_bar);
+        defBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseDef() + (mPokemon.getDefEV() / 4)));
+        defBar.setLayoutParams(defP);
+        defBar.setOnClickListener(this);
+        defIvs = (AutofitTextView) findViewById(R.id.def_ivs_label);
+        defIvs.setText("" + mPokemon.getDefIV());
+        defIvs.setOnClickListener(this);
+        defStats = (AutofitTextView) findViewById(R.id.def_stats);
+        defStats.setText("" + mPokemon.calculateDef());
+
+        LinearLayout.LayoutParams spAtkP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        spAtkP.weight = (float) mPokemon.getBaseSpAtk() + (mPokemon.getSpAtkEV() / 4);
+        spAtkP.gravity = Gravity.CENTER;
+        spAtkP.leftMargin = dipToPixels(5);
+        spAtkP.rightMargin = dipToPixels(5);
+        TextView spAtkLabel = (TextView) findViewById(R.id.base_sp_atk);
+        spAtkLabel.setText("" + mPokemon.getBaseSpAtk());
+        spAtkBar = findViewById(R.id.sp_atk_bar);
+        spAtkBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpAtk() + (mPokemon.getSpAtkEV() / 4)));
+        spAtkBar.setLayoutParams(spAtkP);
+        spAtkBar.setOnClickListener(this);
+        spAtkIvs = (AutofitTextView) findViewById(R.id.sp_atk_ivs_label);
+        spAtkIvs.setText("" + mPokemon.getSpAtkIV());
+        spAtkIvs.setOnClickListener(this);
+        spAtkStats = (AutofitTextView) findViewById(R.id.sp_atk_stats);
+        spAtkStats.setText("" + mPokemon.calculateSpAtk());
+
+        LinearLayout.LayoutParams spDefP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        spDefP.weight = (float) mPokemon.getBaseSpDef() + (mPokemon.getSpDefEV() / 4);
+        spDefP.gravity = Gravity.CENTER;
+        spDefP.leftMargin = dipToPixels(5);
+        spDefP.rightMargin = dipToPixels(5);
+        TextView spDefLabel = (TextView) findViewById(R.id.base_sp_def);
+        spDefLabel.setText("" + mPokemon.getBaseSpDef());
+        spDefBar = findViewById(R.id.sp_def_bar);
+        spDefBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpDef() + (mPokemon.getSpDefEV() / 4)));
+        spDefBar.setLayoutParams(spDefP);
+        spDefBar.setOnClickListener(this);
+        spDefIvs = (AutofitTextView) findViewById(R.id.sp_def_ivs_label);
+        spDefIvs.setText("" + mPokemon.getSpDefIV());
+        spDefIvs.setOnClickListener(this);
+        spDefStats = (AutofitTextView) findViewById(R.id.sp_def_stats);
+        spDefStats.setText("" + mPokemon.calculateSpDef());
+
+        LinearLayout.LayoutParams speP = new LinearLayout.LayoutParams(0, dipToPixels(15), 0);
+        speP.weight = (float) mPokemon.getBaseSpd() + (mPokemon.getSpdEV() / 4);
+        speP.gravity = Gravity.CENTER;
+        speP.leftMargin = dipToPixels(5);
+        speP.rightMargin = dipToPixels(5);
+        TextView speLabel = (TextView) findViewById(R.id.base_spe);
+        speLabel.setText("" + mPokemon.getBaseSpd());
+        speBar = findViewById(R.id.spe_bar);
+        speBar.setBackgroundColor(getEVBarColor(mPokemon.getBaseSpd() + (mPokemon.getSpdEV() / 4)));
+        speBar.setLayoutParams(speP);
+        speBar.setOnClickListener(this);
+        speIvs = (AutofitTextView) findViewById(R.id.spe_ivs_label);
+        speIvs.setText("" + mPokemon.getSpdIV());
+        speIvs.setOnClickListener(this);
+        speStats = (AutofitTextView) findViewById(R.id.spe_stats);
+        speStats.setText("" + mPokemon.calculateSpd());
+    }
+
     private void showEVsDialog() {
         Bundle bundle = new Bundle();
+        bundle.putString(StatsDialog.ARGUMENT_POKEMON, mPokemon.getName());
         bundle.putIntArray(StatsDialog.ARGUMENT_STATS, mPokemon.getStats());
         bundle.putIntArray(StatsDialog.ARGUMENT_BASE_STATS, mPokemon.getBaseStats());
         bundle.putIntArray(StatsDialog.ARGUMENT_EV, mPokemon.getEVs());
@@ -884,6 +1010,10 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
         public void setPokemonEVs(int[] evs) {
             mPokemon.setEVs(evs);
             TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
+        }
+
+        public void setupBars() {
+            setupStatsBars();
         }
     }
 }

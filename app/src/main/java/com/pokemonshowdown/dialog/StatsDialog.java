@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.PokemonActivity;
+import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.InputFilterMinMax;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.fragment.PokemonFragment;
@@ -42,6 +43,7 @@ import java.util.List;
 public class StatsDialog extends DialogFragment {
     public static final String STAG = "STATS_DIALOG";
 
+    public final static String ARGUMENT_POKEMON = "Pokemon";
     public final static String ARGUMENT_STAGES = "Stages";
     public final static String ARGUMENT_SHOW_STAGES = "ShowStages";
     public final static String ARGUMENT_STATS = "Stats";
@@ -52,6 +54,7 @@ public class StatsDialog extends DialogFragment {
     public final static String ARGUMENT_NATURE_MULTIPLIER = "NatureMultiplier";
     public static final int maxEV = 508;
     private final static List<String> SPINNER_STAGES = Arrays.asList(new String[]{"-6", "-5", "-4", "-3", "-2", "-1", "0", "+1", "+2", "+3", "+4", "+5", "+6"});
+    private String mPokemonName;
     private int[] mStats;
     private int[] mBaseStats;
     private int[] mEVs;
@@ -64,6 +67,7 @@ public class StatsDialog extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPokemonName = getArguments().getString(ARGUMENT_POKEMON);
         mStats = getArguments().getIntArray(ARGUMENT_STATS);
         mBaseStats = getArguments().getIntArray(ARGUMENT_BASE_STATS);
         mEVs = getArguments().getIntArray(ARGUMENT_EV);
@@ -275,6 +279,7 @@ public class StatsDialog extends DialogFragment {
             public void onClick(View v) {
                 PokemonActivity.POKEMON_STATS.setPokemonStats(mStats);
                 PokemonActivity.POKEMON_STATS.setPokemonEVs(mEVs);
+                PokemonActivity.POKEMON_STATS.setupBars();
                 Toast.makeText(getContext(), "EV's saved", Toast.LENGTH_SHORT).show();
                 getDialog().dismiss();
             }
@@ -343,9 +348,15 @@ public class StatsDialog extends DialogFragment {
     private void setStats(int HP, int Atk, int Def, int SpAtk, int SpDef, int Spd) {
         TextView textView;
         if (HP != -1) {
-            mStats[0] = HP;
-            textView = (TextView) getView().findViewById(R.id.final_HP);
-            textView.setText(Integer.toString(HP), TextView.BufferType.EDITABLE);
+            if (mPokemonName.equals("Shedinja")) {
+                mStats[0] = 1;
+                textView = (TextView) getView().findViewById(R.id.final_HP);
+                textView.setText("1", TextView.BufferType.EDITABLE);
+            } else {
+                mStats[0] = HP;
+                textView = (TextView) getView().findViewById(R.id.final_HP);
+                textView.setText(Integer.toString(HP), TextView.BufferType.EDITABLE);
+            }
         }
         if (Atk != -1) {
             mStats[1] = Atk;

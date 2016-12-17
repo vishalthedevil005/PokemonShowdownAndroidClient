@@ -22,12 +22,11 @@ import com.google.gson.Gson;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.TeamBuilderActivity;
 import com.pokemonshowdown.activity.TeamBuildingActivity;
-import com.pokemonshowdown.data.BattleFieldData;
+import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.data.PokemonTeam;
 import com.pokemonshowdown.data.Tiering;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -82,11 +81,7 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
             }
         }
 
-        if (p.getTier().isEmpty()) {
-            holder.tierLabel.setText("N/A");
-        } else {
-            holder.tierLabel.setText(p.getTier());
-        }
+        holder.tierLabel.setText(p.getTier());
 
         for (int i = 0; i < 6 - p.getPokemons().size(); i++) {
             ImageView image = new ImageView(mContext);
@@ -94,6 +89,24 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
             image.setImageDrawable(d);
             holder.pokemonsList.addView(image);
         }
+
+        holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                new AlertDialog.Builder(mContext).setTitle("Delete Pokémon")
+                        .setMessage("Are you sure you want to delete \"" + holder.teamNickname.getText() + "\"?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int uh) {
+                                Toast.makeText(mContext, "\"" + holder.teamNickname.getText() + "\" removed", Toast.LENGTH_SHORT).show();
+                                TeamBuilderActivity.deleteTeam(p);
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+                return false;
+            }
+        });
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,9 +138,6 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
             }
         });
 
-        //get current playable tiers
-        final List<String> mFormatList = Tiering.TIER_ORDER;
-
         holder.tierLabel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -135,16 +145,19 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
                 int dp = 15;
                 int pixels = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, mContext.getResources().getDisplayMetrics());
                 spinner.setPadding(pixels, pixels, pixels, pixels);
-                ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mContext, R.layout.fragment_user_list, mFormatList);
+                ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mContext, R.layout.fragment_user_list, Tiering.PLAYABLE_TIERS);
                 formatsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(formatsAdapter);
-                new AlertDialog.Builder(mContext).setTitle("Change name")
+
+                new AlertDialog.Builder(mContext).setTitle("Set tier")
                         .setView(spinner)
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 PokemonTeam temp = p;
-                                p.setTier(spinner.getSelectedItem().toString());
+                                p.setTier(MyApplication.toId((String) spinner.getSelectedItem()));
+                                p.setTier((String) spinner.getSelectedItem());
+                                holder.tierLabel.setText((String) spinner.getSelectedItem());
                                 int pos = TeamBuilderActivity.deleteTeam(temp);
                                 TeamBuilderActivity.saveTeam(p, pos);
                                 Toast.makeText(mContext, "Tier updated", Toast.LENGTH_SHORT).show();

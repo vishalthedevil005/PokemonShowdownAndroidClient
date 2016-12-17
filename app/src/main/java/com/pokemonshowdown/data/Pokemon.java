@@ -194,19 +194,22 @@ public class Pokemon implements Serializable {
 
     public static int getPokemonIcon(Context appContext, String name) {
         try {
-            name = MyApplication.toId(name);
-            if (name.length() >= 6) {
-                String surfix = name.substring(name.length() - 6);
-                if (surfix.contains("mega") && !name.equals("yanmega")) {
-                    name = name.substring(0, name.lastIndexOf("mega"));
-                } else {
-                    if (surfix.contains("primal")) {
-                        name = name.substring(0, name.lastIndexOf("primal"));
-                    }
-                }
-            }
+            name = getPokemonName(appContext, name);
+            name = name.toLowerCase().replace("-", "_").trim();
+//            if (name.length() >= 6) {
+//                String surfix = name.substring(name.length() - 6);
+//                if (surfix.contains("mega") && !name.equals("yanmega")) {
+//                    name = name.substring(0, name.lastIndexOf("mega"));
+//                } else {
+//                    if (surfix.contains("primal")) {
+//                        name = name.substring(0, name.lastIndexOf("primal"));
+//                    }
+//                }
+//            }
+
             int toReturn = appContext.getResources()
-                    .getIdentifier("smallicons_" + name, "drawable", appContext.getPackageName());
+                    .getIdentifier(("smallicons_" + name).replace(" ", "_").replace(".", "").replace(":", "").replace("'", "_")
+                            .replace("%", ""), "drawable", appContext.getPackageName());
             return (toReturn == 0) ? R.drawable.smallicons_0 : toReturn;
         } catch (NullPointerException e) {
             return R.drawable.smallicons_0;
@@ -225,6 +228,9 @@ public class Pokemon implements Serializable {
     }
 
     public int calculateHP() {
+        if (mName.equals("Shedinja")) {
+            return 1;
+        }
         return ((getHPIV() + 2 * getBaseHP() + getHPEV() / 4 + 100) * getLevel() / 100 + 10);
     }
 
@@ -264,6 +270,10 @@ public class Pokemon implements Serializable {
         mEVs[0] = HP;
     }
 
+    public void setBaseHP(int i) {
+        mBaseStats[0] = i;
+    }
+
     public int getLevel() {
         return mLevel;
     }
@@ -284,6 +294,10 @@ public class Pokemon implements Serializable {
         mEVs[1] = Atk;
     }
 
+    public void setBaseAtk(int i) {
+        mBaseStats[1] = i;
+    }
+
     public int getDefIV() {
         return mIVs[2];
     }
@@ -298,6 +312,10 @@ public class Pokemon implements Serializable {
 
     public void setDefEV(int Def) {
         mEVs[2] = Def;
+    }
+
+    public void setBaseDef(int i) {
+        mBaseStats[2] = i;
     }
 
     public int getSpAtkIV() {
@@ -316,6 +334,10 @@ public class Pokemon implements Serializable {
         mEVs[3] = SpAtk;
     }
 
+    public void setBaseSpAtk(int i) {
+        mBaseStats[3] = i;
+    }
+
     public int getSpDefIV() {
         return mIVs[4];
     }
@@ -332,6 +354,10 @@ public class Pokemon implements Serializable {
         mEVs[4] = SpDef;
     }
 
+    public void setBaseSpDef(int i) {
+        mBaseStats[4] = i;
+    }
+
     public int getSpdIV() {
         return mIVs[5];
     }
@@ -346,6 +372,10 @@ public class Pokemon implements Serializable {
 
     public void setSpdEV(int Spd) {
         mEVs[5] = Spd;
+    }
+
+    public void setBaseSpd(int i) {
+        mBaseStats[5] = i;
     }
 
     public void setSpdIV(int Spd) {

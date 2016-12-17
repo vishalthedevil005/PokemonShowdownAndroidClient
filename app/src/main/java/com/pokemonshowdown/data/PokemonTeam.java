@@ -2,6 +2,7 @@ package com.pokemonshowdown.data;
 
 import android.content.Context;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
@@ -43,6 +44,7 @@ public class PokemonTeam implements Serializable {
     public static void loadPokemonTeams(Context appContext) {
         mPokemonTeamList = new ArrayList<>();
         String fileContentString = PreferenceManager.getDefaultSharedPreferences(appContext).getString("teams", "null");
+        Log.d(TAG, fileContentString);
 
         // team builder first use
         if (fileContentString.equals("null")) {
@@ -61,14 +63,12 @@ public class PokemonTeam implements Serializable {
                     PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
                     pt.setNickname(currentNickname);
                     if (!currentTierId.isEmpty()) {
-                        BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
-                        if (currentFormat != null) {
-                            pt.setTier(currentFormat.getName());
+                        for (String tier : Tiering.PLAYABLE_TIERS) {
+                            if (MyApplication.toId(tier).equals(currentTierId)) {
+                                pt.setTier(tier);
+                                break;
+                            }
                         }
-                    }
-
-                    if (pt.getTier().isEmpty()) {
-                        pt.setTier(Tiering.TIER_ORDER.get(1));
                     }
                     mPokemonTeamList.add(pt);
                 }
@@ -89,17 +89,14 @@ public class PokemonTeam implements Serializable {
             PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
             pt.setNickname(currentNickname);
             if (!currentTierId.isEmpty()) {
-                BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
-                if (currentFormat != null) {
-                    pt.setTier(currentFormat.getName());
+                for (String tier : Tiering.PLAYABLE_TIERS) {
+                    if (MyApplication.toId(tier).equals(currentTierId)) {
+                        pt.setTier(tier);
+                        break;
+                    }
                 }
-            } else {
-                Toast.makeText(appContext, "yes", Toast.LENGTH_SHORT).show();
             }
 
-            if (pt.getTier().isEmpty()) {
-                pt.setTier(Tiering.TIER_ORDER.get(1));
-            }
             mPokemonTeamList.add(pt);
         }
     }
@@ -130,7 +127,7 @@ public class PokemonTeam implements Serializable {
                 pt.addPokemon(p);
             }
         }
-
+        pt.setTier(Tiering.TIER_ORDER.get(0));
         return pt;
     }
 
@@ -154,7 +151,7 @@ public class PokemonTeam implements Serializable {
             sb.append(pokemonTeam.exportPokemonTeam(c));
         }
 
-        PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).commit();
+        PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).apply();
     }
 
     public String getTier() {
@@ -224,6 +221,7 @@ public class PokemonTeam implements Serializable {
         return (mPokemons.size() == 6);
     }
 
-    public void removePokemon(int index) {mPokemons.remove(index);
+    public void removePokemon(int index) {
+        mPokemons.remove(index);
     }
 }
