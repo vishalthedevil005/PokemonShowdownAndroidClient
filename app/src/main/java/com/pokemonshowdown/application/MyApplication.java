@@ -2,12 +2,16 @@ package com.pokemonshowdown.application;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.pokemonshowdown.R;
+import com.pokemonshowdown.data.AudioManager;
 import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.Onboarding;
 
@@ -55,8 +59,8 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
         sMyApplication = this;
+        Fresco.initialize(this);
 
         mRoomCategoryList = getRoomCategoryList();
     }
@@ -79,7 +83,6 @@ public class MyApplication extends Application {
 
     public WebSocketClient openNewConnection() {
         if (getServerAddress() == null) {
-            Log.d(MTAG, "Setver address is null");
             return null;
         }
 
@@ -303,7 +306,6 @@ public class MyApplication extends Application {
                     BroadcastSender.get(this).sendBroadcastFromMyApplication(
                             BroadcastSender.EXTRA_UPDATE_CHALLENGE, challengesStatus);
                     break;
-
                 case "deinit":
                     channel = -1;
                     Log.d(MTAG, message);

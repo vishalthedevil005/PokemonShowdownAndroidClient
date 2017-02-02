@@ -19,7 +19,7 @@ public class BaseActivity extends AppCompatActivity {
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setTitle("");
-            getSupportActionBar().setIcon(R.drawable.ic_action_person);
+            getSupportActionBar().setIcon(R.drawable.ic_logo);
         }
     }
 

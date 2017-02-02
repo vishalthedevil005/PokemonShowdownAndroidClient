@@ -869,7 +869,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
         });
 
         final TextView ability = (TextView) mView.findViewById(R.id.ability);
-        ability.setText(attacker.getAbility());
+        ability.setText(attacker.getAbility(getContext()));
         ability.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1175,26 +1175,26 @@ public class DmgCalcFieldXYFragment extends Fragment {
             JSONObject move = MoveDex.get(getContext()).getMoveJsonObject(attacker.getMove(moveIndex).toLowerCase());
             Log.d(DTAG, move.toString());
             //TODO add special (offensive) effects abilities if necessary
-            if (attacker.getAbility().equals("Mold Breaker") || attacker.getAbility().equals("Teravolt") || attacker.getAbility().equals("Turboblaze")
-                    || (move.getString("category").equals("Physical") && (attacker.getAbility().equals("Pure Power") || attacker.getAbility().equals("Huge Power")))
-                    || attacker.getAbility().equals("Pure Power") || (Integer.parseInt(move.getString("basePower")) <= 60 && attacker.getAbility().equals("Technician"))
-                    || (move.getString("category").equals("Physical") && attacker.getAbility().equals("Tough Claws")) || attacker.getAbility().contains("Pixilate")
-                    || attacker.getAbility().contains("Refrigerate") || attacker.getAbility().contains("Aerilate") || attacker.getAbility().contains("Analytic")
-                    || (move.toString().contains("recoil") && attacker.getAbility().contains("Reckless")) || (attacker.getAbility().contains("Aura Break") &&
-                    defender.getAbility().equals("Fairy Aura") || defender.getAbility().equals("Dark Aura")) || attacker.getAbility().contains("Stance Change")
-                    || attacker.getAbility().equals("Parental Bond") || (!move.toString().substring(move.toString().indexOf("secondary") + 19).contains("false")
-                    && attacker.getAbility().equals("Sheer Force") || ((attacker.getType().length == 1 && move.getString("type").equals(attacker.getType()[0]))
+            if (attacker.getAbility(getContext()).equals("Mold Breaker") || attacker.getAbility(getContext()).equals("Teravolt") || attacker.getAbility(getContext()).equals("Turboblaze")
+                    || (move.getString("category").equals("Physical") && (attacker.getAbility(getContext()).equals("Pure Power") || attacker.getAbility(getContext()).equals("Huge Power")))
+                    || attacker.getAbility(getContext()).equals("Pure Power") || (Integer.parseInt(move.getString("basePower")) <= 60 && attacker.getAbility(getContext()).equals("Technician"))
+                    || (move.getString("category").equals("Physical") && attacker.getAbility(getContext()).equals("Tough Claws")) || attacker.getAbility(getContext()).contains("Pixilate")
+                    || attacker.getAbility(getContext()).contains("Refrigerate") || attacker.getAbility(getContext()).contains("Aerilate") || attacker.getAbility(getContext()).contains("Analytic")
+                    || (move.toString().contains("recoil") && attacker.getAbility(getContext()).contains("Reckless")) || (attacker.getAbility(getContext()).contains("Aura Break") &&
+                    defender.getAbility(getContext()).equals("Fairy Aura") || defender.getAbility(getContext()).equals("Dark Aura")) || attacker.getAbility(getContext()).contains("Stance Change")
+                    || attacker.getAbility(getContext()).equals("Parental Bond") || (!move.toString().substring(move.toString().indexOf("secondary") + 19).contains("false")
+                    && attacker.getAbility(getContext()).equals("Sheer Force") || ((attacker.getType().length == 1 && move.getString("type").equals(attacker.getType()[0]))
                     || (attacker.getType().length == 2 && (attacker.getType()[0].equals(move.getString("type")) || attacker.getType()[1].equals(move.getString("type"))))
-                    && attacker.getAbility().equals("Adaptability")) || (move.getString("type").equals("fairy") && attacker.getAbility().equals("Fairy Aura")
-                    || defender.getAbility().equals("Fairy Aura")) || (move.getString("type").equals("dark") && attacker.getAbility().equals("Dark Aura")
-                    || defender.getAbility().equals("Dark Aura")) || (mActiveWeather == Weather.SAND && attacker.getAbility().equals("Sand Force"))
-                    || (move.getString("name").contains("Aura") || move.getString("name").contains("Pulse") && attacker.getAbility().contains("Mega Launcher"))
-                    || /*( guts condition) ||*/ (move.getString("name").contains("punch") && attacker.getAbility().contains("Iron Fist"))
-                    || (mActiveWeather == Weather.SUN && attacker.getAbility().equals("Solar Power")) || (move.getString("name").contains("Bite") || move.getString("name")
-                    .contains("Fang") || move.getString("name").contains("Crunch") && attacker.getAbility().equals("Strong Jaw")) || attacker.getAbility().equals("Tinted Lens")
-                    || (attacker.getHP() < (attacker.getHP() / 2) && attacker.getAbility().equals("Defeatist")))
+                    && attacker.getAbility(getContext()).equals("Adaptability")) || (move.getString("type").equals("fairy") && attacker.getAbility(getContext()).equals("Fairy Aura")
+                    || defender.getAbility(getContext()).equals("Fairy Aura")) || (move.getString("type").equals("dark") && attacker.getAbility(getContext()).equals("Dark Aura")
+                    || defender.getAbility(getContext()).equals("Dark Aura")) || (mActiveWeather == Weather.SAND && attacker.getAbility(getContext()).equals("Sand Force"))
+                    || (move.getString("name").contains("Aura") || move.getString("name").contains("Pulse") && attacker.getAbility(getContext()).contains("Mega Launcher"))
+                    || /*( guts condition) ||*/ (move.getString("name").contains("punch") && attacker.getAbility(getContext()).contains("Iron Fist"))
+                    || (mActiveWeather == Weather.SUN && attacker.getAbility(getContext()).equals("Solar Power")) || (move.getString("name").contains("Bite") || move.getString("name")
+                    .contains("Fang") || move.getString("name").contains("Crunch") && attacker.getAbility(getContext()).equals("Strong Jaw")) || attacker.getAbility(getContext()).equals("Tinted Lens")
+                    || (attacker.getHP() < (attacker.getHP() / 2) && attacker.getAbility(getContext()).equals("Defeatist")))
                     ) {
-                damageText = damageText.replace("&ability", attacker.getAbility());
+                damageText = damageText.replace("&ability", attacker.getAbility(getContext()));
             } else {
                 damageText = damageText.replace("&ability", "");
             }
@@ -1209,17 +1209,17 @@ public class DmgCalcFieldXYFragment extends Fragment {
             }
             damageText = damageText.replace("&attackName", MoveDex.get(getContext()).getMoveJsonObject(attacker.getMove(moveIndex)).getString("name"));
 
-            if ((defender.getAbility().equals("Desolate Land") && move.getString("type").equals("Water")) || (defender.getAbility().equals("Primordial Sea") &&
-                    move.getString("type").equals("Fire")) || (defender.getHP() < defenderHP) && defender.getAbility().equals("Multiscale") || (mActiveWeather != Weather.NO_WEATHER)
-                    && defender.getAbility().equals("Air Lock") || defender.getAbility().equals("Thick Fat") || (move.getString("type").equals("Grass") && defender.getAbility()
-                    .equals("Sap Sipper")) || defender.getAbility().equals("Poison Heal") || defender.getAbility().equals("Magic Guard") || defender.getAbility().equals("Iron Barbs")
-                    || defender.getAbility().equals("Rough Skin") || (move.getString("type").equals("Ground") && defender.getAbility().equals("Levitate"))
-                    || (move.getString("type").equals("Water") && defender.getAbility().equals("Water Absorb")) | (move.getString("type").equals("Electric") && defender.getAbility().equals("Volt Absorb"))
-                    || (move.getString("type").equals("Fire") && defender.getAbility().equals("Flash Fire")) || (move.getString("name").contains("Ball") || move.getString("name")
-                    .contains("Bullet") && defender.getAbility().equals("Bulletproof")) || (mActiveWeather != Weather.NO_WEATHER && defender.getAbility().equals("Overcoat"))
-                    || (move.getString("type").equals("Water") || (move.getString("type").equals("Fire") && defender.getAbility().equals("Dry Skin")))
-                    || defender.getAbility().equals("Solid Rock") || defender.getAbility().equals("Fur Coat")) {
-                damageText = damageText.replace("&DefAbility", " " + defender.getAbility());
+            if ((defender.getAbility(getContext()).equals("Desolate Land") && move.getString("type").equals("Water")) || (defender.getAbility(getContext()).equals("Primordial Sea") &&
+                    move.getString("type").equals("Fire")) || (defender.getHP() < defenderHP) && defender.getAbility(getContext()).equals("Multiscale") || (mActiveWeather != Weather.NO_WEATHER)
+                    && defender.getAbility(getContext()).equals("Air Lock") || defender.getAbility(getContext()).equals("Thick Fat") || (move.getString("type").equals("Grass") && defender.getAbility(getContext())
+                    .equals("Sap Sipper")) || defender.getAbility(getContext()).equals("Poison Heal") || defender.getAbility(getContext()).equals("Magic Guard") || defender.getAbility(getContext()).equals("Iron Barbs")
+                    || defender.getAbility(getContext()).equals("Rough Skin") || (move.getString("type").equals("Ground") && defender.getAbility(getContext()).equals("Levitate"))
+                    || (move.getString("type").equals("Water") && defender.getAbility(getContext()).equals("Water Absorb")) | (move.getString("type").equals("Electric") && defender.getAbility(getContext()).equals("Volt Absorb"))
+                    || (move.getString("type").equals("Fire") && defender.getAbility(getContext()).equals("Flash Fire")) || (move.getString("name").contains("Ball") || move.getString("name")
+                    .contains("Bullet") && defender.getAbility(getContext()).equals("Bulletproof")) || (mActiveWeather != Weather.NO_WEATHER && defender.getAbility(getContext()).equals("Overcoat"))
+                    || (move.getString("type").equals("Water") || (move.getString("type").equals("Fire") && defender.getAbility(getContext()).equals("Dry Skin")))
+                    || defender.getAbility(getContext()).equals("Solid Rock") || defender.getAbility(getContext()).equals("Fur Coat")) {
+                damageText = damageText.replace("&DefAbility", " " + defender.getAbility(getContext()));
             } else {
                 damageText = damageText.replace("&DefAbility", "");
             }
@@ -1292,7 +1292,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
             damageText = damageText.replace("&percentage", percentage);
             damageText = damageText.replace("&message", message);
         } catch (Exception ex) {
-            Log.e(DTAG, ex.getMessage());
+            Log.e(DTAG, "" + ex.getMessage());
         }
         ((TextView) mView.findViewById(R.id.dmgcalc_damage_label)).setText(damageText);
     }
@@ -1304,11 +1304,11 @@ public class DmgCalcFieldXYFragment extends Fragment {
         int calculatedHP = defender.getHP();
         List<String> typing = Arrays.asList(getRealTyping(defender));
 
-        if (mStealthRocksActive && !defender.getAbility().equals("Magic Guard")) {
+        if (mStealthRocksActive && !defender.getAbility(getContext()).equals("Magic Guard")) {
             calculatedHP -= baseHP * (0.125 * calculateWeaknessModifier(attacker, "stealthrock", "Rock"));
         }
 
-        if (mSpikesCount > 0 && !defender.getAbility().equals("Magic Guard") && !typing.contains("Flying") && !(defender.getAbility().equals("Levitate") && !isMoldBreakerActive(attacker))) {
+        if (mSpikesCount > 0 && !defender.getAbility(getContext()).equals("Magic Guard") && !typing.contains("Flying") && !(defender.getAbility(getContext()).equals("Levitate") && !isMoldBreakerActive(attacker))) {
             calculatedHP -= baseHP * (mSpikesCount == 1 ? 1.0 / 8 : mSpikesCount == 2 ? 1.0 / 6 : 1.0 / 4);
         }
 
@@ -1323,7 +1323,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
         Pokemon pokemon = attacker ? getAttacker() : getDefender();
         int baseHP = pokemon.calculateHP();
         int damagePerRound = 0;
-        String defenderAbility = pokemon.getAbility();
+        String defenderAbility = pokemon.getAbility(getContext());
         List<String> defenderTypes = Arrays.asList(getRealTyping(getDefender()));
 
         // Weather damage
@@ -1357,7 +1357,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
             damagePerRound -= (baseHP / 16);
         }
 
-        if (getDefender().getItem().equals("stickybarb") && !getDefender().getAbility().equals("Magic Guard")) {
+        if (getDefender().getItem().equals("stickybarb") && !getDefender().getAbility(getContext()).equals("Magic Guard")) {
             damagePerRound += baseHP * (0.125);
         }
 
@@ -1428,7 +1428,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
     }
 
     private String modifyAttackType(String move, String type) {
-        String attackerAbility = getAttacker().getAbility();
+        String attackerAbility = getAttacker().getAbility(getContext());
         if ("naturalgift".equals(move)) {
             JSONObject itemObject = ItemDex.get(getContext()).getItemJsonObject(getAttacker().getItem());
             JSONObject naturalGiftObject = itemObject == null ? null : itemObject.optJSONObject("naturalGift");
@@ -1477,19 +1477,19 @@ public class DmgCalcFieldXYFragment extends Fragment {
 
     private double getAttackMultiplier(Pokemon pokemon) {
         double baseMultiplier = 1.0;
-        if (pokemon.getAbility().equals("Huge Power") || pokemon.getAbility().equals("Pure Power")) {
+        if (pokemon.getAbility(getContext()).equals("Huge Power") || pokemon.getAbility(getContext()).equals("Pure Power")) {
             baseMultiplier *= 2.0;
         }
 
-        if (pokemon.getAbility().equals("Hustle")) {
+        if (pokemon.getAbility(getContext()).equals("Hustle")) {
             baseMultiplier *= 1.5;
         }
 
-        if (pokemon.getAbility().equals("Flower Gift") && mActiveWeather == Weather.SUN) {
+        if (pokemon.getAbility(getContext()).equals("Flower Gift") && mActiveWeather == Weather.SUN) {
             baseMultiplier *= 1.5;
         }
 
-        if ("Defeatist".equals(pokemon.getAbility())) {
+        if ("Defeatist".equals(pokemon.getAbility(getContext()))) {
             baseMultiplier *= 0.5;
         }
 
@@ -1511,11 +1511,11 @@ public class DmgCalcFieldXYFragment extends Fragment {
     private double getSpecialAttackMultiplier(Pokemon pokemon) {
         double baseMultiplier = 1.0;
 
-        if (mActiveWeather == Weather.SUN && pokemon.getAbility().equals("Solar Power")) {
+        if (mActiveWeather == Weather.SUN && pokemon.getAbility(getContext()).equals("Solar Power")) {
             baseMultiplier *= 1.5;
         }
 
-        if ("Defeatist".equals(pokemon.getAbility())) {
+        if ("Defeatist".equals(pokemon.getAbility(getContext()))) {
             baseMultiplier *= 0.5;
         }
 
@@ -1551,7 +1551,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
     private double getSpecialDefenseMultiplier(Pokemon pokemon) {
         double baseMultiplier = 1.0;
 
-        if (pokemon.getAbility().equals("Flower Gift") && mActiveWeather == Weather.SUN) {
+        if (pokemon.getAbility(getContext()).equals("Flower Gift") && mActiveWeather == Weather.SUN) {
             baseMultiplier *= 1.5;
         }
 
@@ -1598,8 +1598,8 @@ public class DmgCalcFieldXYFragment extends Fragment {
         Pokemon attacker = bol ? getAttacker() : getDefender();
         Pokemon defender = bol ? getDefender() : getAttacker();
         List<String> attackerTyping = Arrays.asList(getTypingAfterAbilities(bol, type));
-        String attackerAbility = attacker.getAbility();
-        String defenderAbility = defender.getAbility();
+        String attackerAbility = attacker.getAbility(getContext());
+        String defenderAbility = defender.getAbility(getContext());
 
         if (defenderAbility.equals("Wonder Guard") && calculateWeaknessModifier(bol, move, type) > 1.0 && !isMoldBreakerActive(bol)) {
             modifiers.add(0.0);
@@ -1717,13 +1717,13 @@ public class DmgCalcFieldXYFragment extends Fragment {
 
     private boolean isMoldBreakerActive(boolean bol) {
         Pokemon attacker = bol ? getAttacker() : getDefender();
-        return attacker.getAbility().equals("Mold Breaker") || attacker.getAbility().equals("Teravolt") || attacker.getAbility().equals("Turboblaze");
+        return attacker.getAbility(getContext()).equals("Mold Breaker") || attacker.getAbility(getContext()).equals("Teravolt") || attacker.getAbility(getContext()).equals("Turboblaze");
     }
 
     private double calculateCritMultiplier(boolean bol, String move, boolean crit) {
         Pokemon attacker = bol ? getAttacker() : getDefender();
         Pokemon defender = bol ? getDefender() : getAttacker();
-        double baseMultiplier = attacker.getAbility().equals("Sniper") ? 2.25 : 1.5;
+        double baseMultiplier = attacker.getAbility(getContext()).equals("Sniper") ? 2.25 : 1.5;
         double modifier = crit ? baseMultiplier : 1.0;
 
         switch (move) {
@@ -1732,7 +1732,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
                 modifier = baseMultiplier;
         }
 
-        switch (defender.getAbility()) {
+        switch (defender.getAbility(getContext())) {
             case "Battle Armor":
             case "Shell Armor":
                 modifier = isMoldBreakerActive(bol) ? baseMultiplier : 1.0;
@@ -1747,7 +1747,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
 
     private String[] getRealTyping(Pokemon pokemon) {
         String[] typing = pokemon.getType();
-        if ("Forecast".equals(pokemon.getAbility())) {
+        if ("Forecast".equals(pokemon.getAbility(getContext()))) {
             switch (mActiveWeather) {
                 case RAIN:
                     typing = new String[]{"Water"};
@@ -1759,7 +1759,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
                     typing = new String[]{"Ice"};
                     break;
             }
-        } else if ("Multitype".equals(pokemon.getAbility()) && pokemon.getName().contains("Arceus")) {
+        } else if ("Multitype".equals(pokemon.getAbility(getContext())) && pokemon.getName().contains("Arceus")) {
             JSONObject itemObject = ItemDex.get(getContext()).getItemJsonObject(getAttacker().getItem());
             typing = itemObject == null ? new String[]{"Normal"} : new String[]{itemObject.optString("onPlate", "Normal")};
         }
@@ -1772,8 +1772,8 @@ public class DmgCalcFieldXYFragment extends Fragment {
         Pokemon defender = bol ? getDefender() : getAttacker();
 
         String[] defenderTyping = getRealTyping(defender);
-        String attackerAbility = attacker.getAbility();
-        String defenderAbility = attacker.getAbility();
+        String attackerAbility = attacker.getAbility(getContext());
+        String defenderAbility = attacker.getAbility(getContext());
 
         for (String defType : defenderTyping) {
             if (mEffectivenessImmune.get(defType) != null && mEffectivenessImmune.get(defType).contains(type)) {
@@ -1935,7 +1935,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
                 break;
         }
 
-        if (attacker.getAbility().equals("Technician") && bp <= 60) {
+        if (attacker.getAbility(getContext()).equals("Technician") && bp <= 60) {
             bp *= 1.5;
         }
 
@@ -2020,9 +2020,9 @@ public class DmgCalcFieldXYFragment extends Fragment {
             normalWeight *= 0.5;
         }
 
-        if ("Light Metal".equals(pokemon.getAbility())) {
+        if ("Light Metal".equals(pokemon.getAbility(getContext()))) {
             normalWeight *= 0.5;
-        } else if ("Heavy Metal".equals(pokemon.getAbility())) {
+        } else if ("Heavy Metal".equals(pokemon.getAbility(getContext()))) {
             normalWeight *= 2.0;
         }
 
@@ -2159,7 +2159,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
 
     private String[] getTypingAfterAbilities(boolean bol, String moveType) {
         Pokemon attacker = bol ? getAttacker() : getDefender();
-        return attacker.getAbility().equals("Protean") ? new String[]{moveType} : getRealTyping(getAttacker());
+        return attacker.getAbility(getContext()).equals("Protean") ? new String[]{moveType} : getRealTyping(getAttacker());
     }
 
     public enum FieldConditions {

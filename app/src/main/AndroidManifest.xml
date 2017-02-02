@@ -27,24 +27,30 @@
         <activity
             android:name=".activity.DmgCalcActivity"
             android:label="Damage Calculator"
-            android:parentActivityName=".activity.ContainerActivity"></activity>
+            android:parentActivityName=".activity.ContainerActivity" />
         <activity android:name=".activity.ContainerActivity"></activity>
         <activity
             android:name=".activity.TeamBuilderActivity"
+            android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_team_building"
-            android:parentActivityName=".activity.ContainerActivity"></activity>
+            android:parentActivityName=".activity.ContainerActivity" />
         <activity
             android:name=".activity.TeamBuildingActivity"
+            android:configChanges="orientation|screenSize"
             android:label=""
-            android:parentActivityName=".activity.TeamBuilderActivity"></activity>
+            android:parentActivityName=".activity.TeamBuilderActivity" />
         <activity
             android:name=".activity.SearchableActivity"
             android:label=""
-            android:parentActivityName=".activity.TeamBuildingActivity"></activity>
+            android:parentActivityName=".activity.TeamBuildingActivity" />
         <activity
             android:name=".activity.PokemonActivity"
             android:label=""
-            android:parentActivityName=".activity.TeamBuildingActivity"></activity>
+            android:parentActivityName=".activity.TeamBuildingActivity" />
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label=""
+            android:parentActivityName=".activity.ContainerActivity" />
     </application>
 
 </manifest>

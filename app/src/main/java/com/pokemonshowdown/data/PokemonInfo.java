@@ -1,12 +1,16 @@
 package com.pokemonshowdown.data;
 
 import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class PokemonInfo implements Serializable {
     public final static String STATUS_BURN = "brn";
@@ -34,7 +38,6 @@ public class PokemonInfo implements Serializable {
     private String mAbility;
     private String mNature;
     private String mItem;
-    private boolean mCanMegaEvo;
 
     public PokemonInfo(Context activityContext, String pkm) {
         setName(pkm);
@@ -57,27 +60,27 @@ public class PokemonInfo implements Serializable {
         mAbility = mAbility.substring(0, mAbility.length() - 1);
         setNature(null);
         setItem(null);
-        setCanMegaEvo(false);
     }
 
     public void setAbility(String ability) {
         mAbility = MyApplication.toId(ability);
     }
 
-    public void setCanMegaEvo(boolean canMegaEvo) {
-        mCanMegaEvo = canMegaEvo;
-    }
-
     public int getIcon(Context appContext) {
         return Pokemon.getPokemonIcon(appContext, MyApplication.toId(mName));
     }
 
-    public int getSprite(Context appContext) {
+    public int getSprite(Context appContext, boolean back) {
         String gender = mGender;
         if (gender == null) {
             gender = "";
         }
-        return Pokemon.getPokemonFrontSprite(appContext, MyApplication.toId(mName), false, (gender.equals("F")), mShiny);
+
+        if (!back) {
+            return Pokemon.getPokemonFrontSprite(appContext, MyApplication.toId(mName), false, (gender.equals("F")), mShiny);
+        } else {
+            return Pokemon.getPokemonBackSprite(appContext, MyApplication.toId(mName), false, (gender.equals("F")), mShiny);
+        }
     }
 
     public String getName() {
@@ -209,6 +212,34 @@ public class PokemonInfo implements Serializable {
     }
 
     public boolean canMegaEvo() {
-        return mCanMegaEvo;
+        String[] allPossibleMegas = new String[]{"Venusaur", "Charizard", "Blastoise", "Alakazam", "Gengar", "Kangaskhan",
+                "Pinsir", "Gyarados", "Mewtwo", "Ampharos", "Scizor", "Heracross", "Houndoom", "Tyranitar", "Blaziken", "Gardevoir",
+                "Mawile", "Aggron", "Medicham", "Manectric", "Banette", "Absol", "Garchomp", "Lucario", "Abomasnow", "Beedrill",
+                "Pidgeot", "Slowbro", "Steelix", "Sceptile", "Swampert", "Sableye", "Sharpedo", "Camerupt", "Altaria", "Glalie",
+                "Salamence", "Latias", "Latios", "Metagross", "Lopunny", "Gallade", "Audino", "Diancie"};
+
+        // Since all rules are meant to be broken, Rayquaza doesn't follow the normal rules of mega-evo.
+        if (getName().contains("Rayquaza")) {
+            Iterator it = getMoves().entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                Log.d("ray moves", pair.getKey() + " = " + pair.getValue());
+                it.remove();
+            }
+        }
+
+        for (String s : allPossibleMegas) {
+            String item = getItemName(MyApplication.getMyApplication());
+            if (item != null && getName().contains(s) && item.contains(s.substring(0, 5))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean canZMove() {
+
+        return true;
     }
 }

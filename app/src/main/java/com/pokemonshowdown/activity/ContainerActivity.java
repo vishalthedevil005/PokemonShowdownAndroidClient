@@ -245,9 +245,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 OnboardingDialog fragment = new OnboardingDialog();
                 fragment.show(fm, OnboardingDialog.OTAG);
                 return true;
-//            case R.id.menu_settings:
-//                new SettingsDialog().show(getSupportFragmentManager(), SettingsDialog.STAG);
-//                return true;
+            case R.id.menu_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
 //            case R.id.menu_bug_report:
 //                if (MyApplication.getMyApplication().getCaughtExceptions().size() > 0) {
 //                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
@@ -405,12 +405,36 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 return;
             case BroadcastSender.EXTRA_ERROR_MESSAGE:
                 final String errorMessage = intent.getExtras().getString(BroadcastSender.EXTRA_ERROR_MESSAGE);
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (mDialog != null && mDialog.isShowing()) {
                             mDialog.dismiss();
                         }
+
+                        // Account for incompatible teams message. Just gives it a better treatment.
+                        if (errorMessage.contains("can't learn") || errorMessage.contains("has no moves") || errorMessage.contains("is unreleased")
+                                || errorMessage.contains("is banned") || errorMessage.contains("does not exist") || errorMessage.contains("is only obtainable")) {
+                            String message = "The following errors were found on the selected team. If you want to use it anyway, please " +
+                                    "go to the team builder section and fix them.\n\n";
+
+                            String error = errorMessage.substring(1, errorMessage.length()).replace("||-", "nextError");
+                            for (String s : error.split("nextError")) {
+                                if (!s.isEmpty()) {
+                                    message += "* " + s + "\n\n";
+                                }
+                            }
+
+                            mDialog = new AlertDialog.Builder(ContainerActivity.this)
+                                    .setTitle("Team authentication error")
+                                    .setMessage(message)
+                                    .create();
+                            mDialog.show();
+
+                            return;
+                        }
+
                         mDialog = new AlertDialog.Builder(ContainerActivity.this)
                                 .setMessage(errorMessage)
                                 .create();
@@ -566,31 +590,30 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     private void selectItem(int position) {
         // update the main content by replacing fragments
         mPosition = position;
-        Fragment fragment;
-        switch (position) {
-            case 0:
-                //fragment = BattleFieldFragment.newInstance(null);
-                fragment = new MainScreenFragment();
-                break;
-            case 1:
-                //fragment = CommunityLoungeFragment.newInstance();
-                fragment = new CommunityLoungeFragment();
-                break;
-            case 3:
-                //fragment = CreditsFragment.newInstance();
-                fragment = new PlaceHolderFragment();
-                break;
-            default:
-                fragment = new PlaceHolderFragment();
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(String.valueOf(position));
+        if (fragment == null) {;
+            switch (position) {
+                case 0:
+                    //fragment = BattleFieldFragment.newInstance(null);
+                    fragment = new MainScreenFragment();
+                    break;
+                case 1:
+                    //fragment = CommunityLoungeFragment.newInstance();
+                    fragment = new CommunityLoungeFragment();
+                    break;
+                case 3:
+                    //fragment = CreditsFragment.newInstance();
+                    fragment = new PlaceHolderFragment();
+                    break;
+                default:
+                    fragment = new PlaceHolderFragment();
+            }
         }
 
-        FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction()
-                .replace(R.id.fragment_container, fragment, "Battle Field Drawer " + Integer.toString(mPosition))
-                .commit();
-    }
-
-    public void showDialogFromHere(DialogFragment fragment, String tag) {
-        fragment.show(getSupportFragmentManager(), tag);
+        if (fragment != null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment,
+                    String.valueOf(position)).commitAllowingStateLoss();
+        }
     }
 }

@@ -36,15 +36,9 @@ public class PokemonTeam implements Serializable {
         this.mNickname = nickname;
     }
 
-
-    public static List<PokemonTeam> getPokemonTeamList() {
-        return mPokemonTeamList;
-    }
-
     public static void loadPokemonTeams(Context appContext) {
         mPokemonTeamList = new ArrayList<>();
         String fileContentString = PreferenceManager.getDefaultSharedPreferences(appContext).getString("teams", "null");
-        Log.d(TAG, fileContentString);
 
         // team builder first use
         if (fileContentString.equals("null")) {
@@ -58,45 +52,46 @@ public class PokemonTeam implements Serializable {
         String currentTierId = "";
 
         for (String s : fileContentStringArray) {
+            // Every line starting with === is a new team
             if (s.startsWith("===") && s.endsWith("===")) {
+                // If other team was already been buffered, we save it
                 if (pokemonTeamBuffer.length() > 0) {
                     PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
                     pt.setNickname(currentNickname);
                     if (!currentTierId.isEmpty()) {
-                        for (String tier : Tiering.PLAYABLE_TIERS) {
-                            if (MyApplication.toId(tier).equals(currentTierId)) {
-                                pt.setTier(tier);
-                                break;
-                            }
+                        BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
+                        if (currentFormat != null) {
+                            pt.setTier(currentFormat.getName());
                         }
                     }
                     mPokemonTeamList.add(pt);
                 }
+
+                // Before starting (either the first or others), we get the name and tier (if exists) and store them
                 pokemonTeamBuffer.setLength(0);
                 if (s.contains("[") && s.contains("]")) {
+                    currentNickname = s.substring(s.indexOf("]") + 2, s.indexOf("=", s.indexOf("]") + 2) - 1);
                     currentTierId = s.substring(s.indexOf("[") + 1, s.indexOf("]"));
-                    currentNickname = s.substring(s.indexOf("]") + 1).replace("=", "").trim();
                 } else {
                     currentTierId = "";
-                    currentNickname = s.replace("=", "").trim();
+                    currentNickname = s.substring(4, s.indexOf("=", 5) - 1);
                 }
+
             } else {
                 pokemonTeamBuffer.append(s).append("\n");
             }
         }
 
+        // Every last team will be ignored using the loop above, so we take the already loaded buffer and add him separately
         if (pokemonTeamBuffer.length() > 0 && currentNickname != null) {
             PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), appContext, true);
             pt.setNickname(currentNickname);
             if (!currentTierId.isEmpty()) {
-                for (String tier : Tiering.PLAYABLE_TIERS) {
-                    if (MyApplication.toId(tier).equals(currentTierId)) {
-                        pt.setTier(tier);
-                        break;
-                    }
+                BattleFieldData.Format currentFormat = BattleFieldData.get(appContext).getFormatUsingId(currentTierId);
+                if (currentFormat != null) {
+                    pt.setTier(currentFormat.getName());
                 }
             }
-
             mPokemonTeamList.add(pt);
         }
     }
@@ -110,7 +105,7 @@ public class PokemonTeam implements Serializable {
         String[] pokemonImportStrings = importString.split("\n");
         StringBuilder sb = new StringBuilder();
         for (String pokemonString : pokemonImportStrings) {
-            if (pokemonString.isEmpty() && sb.length() > 0) {
+            if (pokemonString.trim().isEmpty() && sb.length() > 0) {
                 Pokemon p = Pokemon.importPokemon(sb.toString(), c, withAppContest);
                 if (p != null) {
                     pt.addPokemon(p);
@@ -127,19 +122,29 @@ public class PokemonTeam implements Serializable {
                 pt.addPokemon(p);
             }
         }
-        pt.setTier(Tiering.TIER_ORDER.get(0));
+
         return pt;
     }
 
-    public void addPokemon(Pokemon p) {
-        mPokemons.add(p);
+    public static List<PokemonTeam> getPokemonTeamList(Context c) {
+        if (mPokemonTeamList == null) {
+            mPokemonTeamList = new ArrayList<>();
+        }
+
+        if (mPokemonTeamList.isEmpty()) {
+            loadPokemonTeams(c);
+        }
+
+//        for (PokemonTeam team : mPokemonTeamList) {
+//            for (Pokemon mon : team.getPokemons()) {
+//                Log.d("gssgfs", "" + mon.getName());
+//            }
+//        }
+        return mPokemonTeamList;
     }
 
-    public void addPokemon(Pokemon p, int position) {
-        mPokemons.add(position, p);
-    }
-
-    public static void savePokemonTeams(Context c) {
+    public static void savePokemonTeams(Context c, List<PokemonTeam> teams) {
+        mPokemonTeamList = teams;
         StringBuilder sb = new StringBuilder();
 
         for (PokemonTeam pokemonTeam : mPokemonTeamList) {
@@ -149,9 +154,19 @@ public class PokemonTeam implements Serializable {
             }
             sb.append(pokemonTeam.getNickname()).append(" ===\n");
             sb.append(pokemonTeam.exportPokemonTeam(c));
+            sb.append("\n");
         }
 
-        PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).apply();
+        Log.d("kbhlbhj", sb.toString());
+        PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).commit();
+    }
+
+    public void addPokemon(Pokemon p) {
+        mPokemons.add(p);
+    }
+
+    public void addPokemon(Pokemon p, int position) {
+        mPokemons.add(position, p);
     }
 
     public String getTier() {

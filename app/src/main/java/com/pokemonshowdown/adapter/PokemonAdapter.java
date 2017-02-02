@@ -57,7 +57,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
 
         holder.pokemonIcon.setImageResource(poke.getFrontSprite());
         holder.pokemonName.setText(poke.getNickName());
-        holder.ability.setText(poke.getAbility());
+        holder.ability.setText(poke.getAbility(mContext));
 
         if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             holder.level.setText("" + poke.getLevel());
@@ -96,7 +96,6 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
 
         if (!m1.equals("Empty")) {
             m1 = m1.toLowerCase().replace("-", "").trim();
-            Log.e("zdfjkjzdhkjdbkjndxkn", m1);
             JSONObject m1Json = MoveDex.get(mContext).getMoveJsonObject(m1);
             try {
                 m1 = m1Json.getString("name");
@@ -166,8 +165,8 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
                             @Override
                             public void onClick(DialogInterface dialogInterface, int uh) {
                                 Toast.makeText(mContext, "\"" + holder.pokemonName.getText() + "\" removed", Toast.LENGTH_SHORT).show();
-                                TeamBuildingActivity.fireAddButtonVisibility();
-                                TeamBuildingActivity.fireTeamSaving(position);
+                                TeamBuildingActivity.ACCESSOR.fireAddButtonVisibility();
+                                TeamBuildingActivity.ACCESSOR.firePokemonTeamSaving(position);
                             }
                         })
                         .setNegativeButton("No", null)

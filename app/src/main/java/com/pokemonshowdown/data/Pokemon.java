@@ -2,6 +2,7 @@ package com.pokemonshowdown.data;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
@@ -46,6 +47,7 @@ public class Pokemon implements Serializable {
     private int mBackSprite;
     private String mName;
     private String mNickName;
+    private String mBaseName;
     private int[] mStats;
     private int[] mBaseStats;
     private int[] mEVs;
@@ -68,19 +70,73 @@ public class Pokemon implements Serializable {
     private String mMove3;
     private String mMove4;
 
-    public Pokemon(Context appContext, String name, boolean placeHolder) throws JSONException, NullPointerException {
-        name = MyApplication.toId(name);
-        JSONObject jsonObject = Pokedex.get(appContext).getPokemonJSONObject(name);
-        initializePokemon(appContext, jsonObject);
+    public Pokemon(Context appContext, String name) {
+        try {
+            name = MyApplication.toId(name);
+            String unaltered = name;
+            String[] specialForms = new String[]{"burmysandy", "burmytrash", "shelloseast", "gastrodoneast", "deerlingsummer",
+                    "deerlingautumn", "deerlingwinter", "sawsbucksummer", "sawsbuckautumn", "sawsbuckwinter", "vivillonarchipelago",
+                    "vivilloncontinental", "vivillonelegant", "vivillongarden", "vivillonhighplains", "vivillonicysnow",
+                    "vivillonjungle", "vivillonmarine", "vivillonmodern", "vivillonmonsoon", "vivillonocean", "vivillonpolar",
+                    "vivillonriver", "vivillonsandstorm", "vivillonsavanna", "vivillonsun", "vivillontundra", "flabebeblue",
+                    "flabebeorange", "flabebewhite", "flabebeyellow", "floetteblue", "floetteorange", "floettewhite", "floetteyellow",
+                    "florgesblue", "florgesorange", "florgeswhite", "florgesyellow", "miniororange", "minioryellow", "miniorgreen",
+                    "miniorblue", "miniorindigo", "miniorviolet", "magearnaoriginal"};
+            for (String s : specialForms) {
+                if (name.equals(s)) {
+                    // We aren't using switch because of redundancy in names (E.g.: Vivillon)
+                    if (s.contains("burmy")) {
+                        name = "burmy";
+                    } else if (s.contains("shellos")) {
+                        name = "shellos";
+                    } else if (s.contains("gastrodon")) {
+                        name = "gastrodon";
+                    } else if (s.contains("deerling")) {
+                        name = "deerling";
+                    } else if (s.contains("sawsbuck")) {
+                        name = "sawsbuck";
+                    } else if (s.contains("vivillon")) {
+                        name = "vivillon";
+                    } else if (s.contains("flabebe")) {
+                        name = "flabebe";
+                    } else if (s.contains("floette")) {
+                        name = "floette";
+                    } else if (s.contains("florges")) {
+                        name = "florges";
+                    } else if (s.contains("minior")) {
+                        name = "minior";
+                    } else if (s.contains("magearna")) {
+                        name = "magearna";
+                    }
+                    break;
+                }
+            }
+
+            JSONObject jsonObject = Pokedex.get(appContext).getPokemonJSONObject(name);
+            if (name.equals(unaltered)) {
+                initializePokemon(appContext, jsonObject, false, unaltered);
+            } else {
+                initializePokemon(appContext, jsonObject, true, unaltered);
+            }
+        } catch (NullPointerException e) {
+            Log.e(PTAG, "Can't find pokemon " + name + " with error log " + e.toString());
+        }
     }
 
-    private void initializePokemon(Context appContext, JSONObject jsonObject) {
+    private void initializePokemon(Context appContext, JSONObject jsonObject, boolean isForm, String form) {
         try {
-            mName = jsonObject.getString("species");
+            if (!isForm) {
+                mName = jsonObject.getString("species");
+            } else {
+                int size = jsonObject.getString("species").length();
+                form = form.substring(size);
+                mName = jsonObject.getString("species");
+                mBaseName = jsonObject.getString("species") + "-" + form.substring(0, 1).toUpperCase() + form.substring(1, form.length());
+            }
 
-            mFrontSprite = getPokemonFrontSprite(appContext, mName, false, false, false);
-            mBackSprite = getPokemonBackSprite(appContext, mName, false, false, false);
-            mIcon = getPokemonIcon(appContext, mName);
+            mFrontSprite = getPokemonFrontSprite(appContext, mBaseName == null ? mName : mBaseName, false, false, false);
+            mBackSprite = getPokemonBackSprite(appContext, mBaseName == null ? mName : mBaseName, false, false, false);
+            mIcon = getPokemonIcon(appContext, mBaseName == null ? mName : mBaseName);
 
             setNickName(mName);
             setStats(new int[6]);
@@ -170,7 +226,8 @@ public class Pokemon implements Serializable {
     public static int getPokemonBackSprite(Context appContext, String name, boolean back, boolean female, boolean shiny) {
         try {
             name = MyApplication.toId(name);
-            String prefix = (shiny) ? "sprshiny_back_" : "sprites_back_";
+            //String prefix = (shiny) ? "sprshiny_back_" : "sprites_back_";
+            String prefix = (shiny) ? "sprshiny_front_" : "sprites_front_";
             int toReturn;
             if (female) {
                 String drawableName = prefix + name + "f";
@@ -194,8 +251,9 @@ public class Pokemon implements Serializable {
 
     public static int getPokemonIcon(Context appContext, String name) {
         try {
-            name = getPokemonName(appContext, name);
-            name = name.toLowerCase().replace("-", "_").trim();
+            Log.d("jhkljn", MyApplication.toId(name));
+            name = name.toLowerCase().replace("-", "").trim();
+            name = MyApplication.toId(name);
 //            if (name.length() >= 6) {
 //                String surfix = name.substring(name.length() - 6);
 //                if (surfix.contains("mega") && !name.equals("yanmega")) {
@@ -406,25 +464,17 @@ public class Pokemon implements Serializable {
         mIVs[0] = HP;
     }
 
-    public Pokemon(Context appContext, String name) {
-        try {
-            name = MyApplication.toId(name);
-            JSONObject jsonObject = Pokedex.get(appContext).getPokemonJSONObject(name);
-            initializePokemon(appContext, jsonObject);
-        } catch (NullPointerException e) {
-            Log.e(PTAG, "Can't find pokemon " + name + " with error log " + e.toString());
-        }
-    }
-
     public static Pokemon importPokemon(String importString, Context appContext, boolean withAppContext) {
         String[] pokemonStrings = importString.split("\n");
         if (pokemonStrings.length == 0) {
             return null;
         }
+
         String pokemonMainData = pokemonStrings[0]; // split 0 is Name @ Item or Name or nickname (Name) or  nickname (Name) @ Item
         String pokemonName = "", pokemonNickname = null, pokemonItem = null, pokemonGender = null;
         Pokemon p = null;
         boolean isGender = false; // no nickname, but gender
+
         if (pokemonMainData.contains("@")) {
             String[] nameItem = pokemonMainData.split("@");
             pokemonItem = nameItem[1];
@@ -465,11 +515,13 @@ public class Pokemon implements Serializable {
             pokemonName = pokemonMainData;
         }
 
+        //Toast.makeText(appContext, pokemonName, Toast.LENGTH_SHORT).show();
         // replace for different formes
+
         pokemonName = MyApplication.toId(pokemonName);
         try {
-            p = new Pokemon(appContext, pokemonName, true);
-        } catch (JSONException | NullPointerException e) {
+            p = new Pokemon(appContext, pokemonName);
+        } catch (NullPointerException e) {
             return null;
         }
 
@@ -605,10 +657,13 @@ public class Pokemon implements Serializable {
                 }
             } else if (currentString.contains("Shiny")) {
                 if (!p.isShiny()) {
-                    p.switchFrontShiny(appContext);
+                    p.switchFrontShiny(appContext, true);
+                    p.switchBackShiny(appContext, true);
                 }
             }
         }
+
+
         return p;
     }
 
@@ -624,14 +679,14 @@ public class Pokemon implements Serializable {
         mShiny = shiny;
     }
 
-    public void switchFrontShiny(Context c) {
-        setShiny(!isShiny());
-        setFrontSprite(getPokemonFrontSprite(c, mName, false, getGender().equals("F"), isShiny()));
+    public void switchFrontShiny(Context c, boolean shiny) {
+        setShiny(shiny);
+        setFrontSprite(getPokemonFrontSprite(c, mBaseName == null ? mName : mBaseName, false, getGender().equals("F"), isShiny()));
     }
 
-    public void switchBackShiny(Context c) {
-        setShiny(!isShiny());
-        setFrontSprite(getPokemonBackSprite(c, mName, false, getGender().equals("F"), isShiny()));
+    public void switchBackShiny(Context c, boolean shiny) {
+        setShiny(shiny);
+        setBackSprite(getPokemonBackSprite(c, mBaseName == null ? mName : mBaseName, false, getGender().equals("F"), isShiny()));
     }
 
     public String getGender() {
@@ -644,6 +699,7 @@ public class Pokemon implements Serializable {
 
     public static String getPokemonName(Context appContext, String name) {
         try {
+            name = MyApplication.toId(name);
             JSONObject jsonObject = Pokedex.get(appContext).getPokemonJSONObject(name);
             return jsonObject.getString("species");
         } catch (JSONException e) {
@@ -842,6 +898,11 @@ public class Pokemon implements Serializable {
     }
 
     public String getName() {
+        return mBaseName == null ? mName : mBaseName;
+    }
+
+    // Necessary for getting the unchanged form of the pokemon when selecting another form on PokemonActivity
+    public String getRealName() {
         return mName;
     }
 
@@ -921,6 +982,10 @@ public class Pokemon implements Serializable {
      */
     public String exportPokemon(Context appContext) {
         StringBuilder sb = new StringBuilder();
+        if (getName() == null) {
+            return "";
+        }
+
         if (getName().length() > 0) {
             if (!getNickName().equals(getName())) {
                 sb.append(getNickName()).append(" (").append(getName()).append(")");
@@ -944,8 +1009,8 @@ public class Pokemon implements Serializable {
             }
             sb.append("\n");
         }
-        if (getAbility().length() > 0) {
-            sb.append("Ability: ").append(getAbility()).append("\n");
+        if (getAbility(appContext).length() > 0) {
+            sb.append("Ability: ").append(getAbility(appContext)).append("\n");
         }
 
         if (getLevel() != 100) {
@@ -1159,8 +1224,35 @@ public class Pokemon implements Serializable {
         return sb.toString();
     }
 
-    public String getAbility() {
-        return getAbilityList().get(mAbility);
+    public String getAbility(Context context) {
+        // Necessary maneuvers to counter Null Exceptions when giving up from choosing a custom ability
+        // When having a custom ability already.
+        try {
+            String ability = getAbilityList().get(mAbility);
+            if (ability == null || ability.equals("null") || ability.isEmpty()) {
+                return AbilityDex.get(context).getAbilityJsonObject(mAbility).getString("name");
+            }
+            return getAbilityList().get(mAbility);
+        } catch (Exception ex) {
+            try {
+                JSONObject jsonObject = Pokedex.get(context).getPokemonJSONObject(getName());
+                JSONObject abilityList = (JSONObject) jsonObject.get("abilities");
+                Iterator<String> keys = abilityList.keys();
+                mAbilityList = new HashMap<>();
+
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    mAbilityList.put(key, abilityList.getString(key));
+                }
+
+                setAbilityTag("0");
+
+                Toast.makeText(context, "Failed to set a custom ability. Setting the first available instead", Toast.LENGTH_SHORT).show();
+                return getAbilityList().get("0");
+            } catch (JSONException ex2) {
+                return null;
+            }
+        }
     }
 
     public int[] getEVs() {

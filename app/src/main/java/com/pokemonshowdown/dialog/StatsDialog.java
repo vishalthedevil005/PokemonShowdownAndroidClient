@@ -3,28 +3,18 @@ package com.pokemonshowdown.dialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
-import android.text.Editable;
-import android.text.InputFilter;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.PokemonActivity;
-import com.pokemonshowdown.application.MyApplication;
-import com.pokemonshowdown.data.InputFilterMinMax;
 import com.pokemonshowdown.data.Pokemon;
-import com.pokemonshowdown.fragment.PokemonFragment;
 
 import java.util.Arrays;
 import java.util.List;

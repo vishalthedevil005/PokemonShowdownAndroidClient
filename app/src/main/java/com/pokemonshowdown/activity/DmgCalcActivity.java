@@ -20,7 +20,6 @@ import com.pokemonshowdown.data.MoveDex;
 import com.pokemonshowdown.data.Pokedex;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.fragment.DmgCalcFieldXYFragment;
-import com.pokemonshowdown.fragment.PokemonFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;

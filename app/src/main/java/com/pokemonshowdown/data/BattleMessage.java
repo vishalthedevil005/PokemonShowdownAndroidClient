@@ -4,8 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -15,6 +24,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -28,6 +39,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.common.logging.FLog;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.controller.BaseControllerListener;
+import com.facebook.drawee.controller.ControllerListener;
+import com.facebook.drawee.drawable.ScalingUtils;
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.image.ImageInfo;
+import com.facebook.imagepipeline.image.QualityInfo;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.ContainerActivity;
 import com.pokemonshowdown.application.MyApplication;
@@ -38,6 +59,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -45,9 +70,10 @@ import java.util.Random;
 public class BattleMessage {
 
     public static void processMajorAction(final BattleFragment battleFragment, final String message) throws JSONException {
+
         BattleFieldData.RoomData roomData = BattleFieldData.get(MyApplication.getMyApplication()).getAnimationInstance(battleFragment.getRoomId());
         final BattleFieldData.ViewData viewData = BattleFieldData.get(MyApplication.getMyApplication()).getViewData(battleFragment.getRoomId());
-        String command = (message.indexOf('|') == -1) ? message : message.substring(0, message.indexOf('|'));
+        final String command = (message.indexOf('|') == -1) ? message : message.substring(0, message.indexOf('|'));
         final String messageDetails = message.substring(message.indexOf('|') + 1);
         if (command.startsWith("-")) {
             processMinorAction(battleFragment, command, messageDetails, message);
@@ -126,9 +152,11 @@ public class BattleMessage {
                 break;
 
             case "gametype":
-            case "gen":
+                battleFragment.setGametype(messageDetails.substring(messageDetails.indexOf("|") + 1));
                 break;
-
+            case "gen":
+                battleFragment.setGen(messageDetails.substring(messageDetails.indexOf("|") + 1));
+                break;
             case "player":
                 final String playerType;
                 final String playerName;
@@ -193,6 +221,7 @@ public class BattleMessage {
 
             case "tier":
                 toAppend = "Format:" + "\n" + messageDetails;
+                battleFragment.setFormat(messageDetails);
                 toAppendSpannable = new SpannableString(toAppend);
                 toAppendSpannable.setSpan(new StyleSpan(Typeface.BOLD),
                         toAppend.indexOf('\n') + 1, toAppend.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -258,12 +287,18 @@ public class BattleMessage {
 
             case "teampreview":
                 int teamSelectionSize;
-                try {
-                    teamSelectionSize = Integer.parseInt(messageDetails);
-                    // sometimes messageDetails is the number of mons (for VGC), sometimes it's just teampreview
-                } catch (NumberFormatException e) {
-                    teamSelectionSize = 0;
+                if (battleFragment.getFormat().contains("Doubles") || battleFragment.getFormat().contains("VGC")) {
+                    teamSelectionSize = 2;
+                } else if (battleFragment.getFormat().contains("Triples")) {
+                    teamSelectionSize = 3;
+                } else {
+                    teamSelectionSize = 1;
                 }
+
+                final ArrayList<PokemonInfo> t1 = battleFragment.getPlayer1Team();
+                final ArrayList<PokemonInfo> t2 = battleFragment.getPlayer2Team();
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(battleFragment.getContext());
+                final boolean isAnimated = sharedPref.getBoolean("pref_key_animated", false);
 
                 final int teamSelectionSizeFinal = teamSelectionSize;
                 battleFragment.getActivity().runOnUiThread(new RunWithNet() {
@@ -277,32 +312,161 @@ public class BattleMessage {
                         frameLayout.removeAllViews();
                         LayoutInflater inflater = (LayoutInflater) MyApplication.getMyApplication().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                         inflater.inflate(R.layout.fragment_battle_teampreview, frameLayout);
-                        for (int i = 0; i < team1.size(); i++) {
-                            ImageView sprites = (ImageView) battleFragment.getView().findViewById(battleFragment.getTeamPreviewSpriteId("p1", i));
-                            PokemonInfo pkm = team1.get(i);
-                            sprites.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
-                                    MyApplication.toId(pkm.getName()), true, pkm.isFemale(), pkm.isShiny()));
+
+                        for (int i = 0; i < t1.size(); i++) {
+                            final SimpleDraweeView sprites = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getTeamPreviewSpriteId("p1", i));
+                            PokemonInfo pkm = t1.get(i);
+
+                            ControllerListener controllerListener = new BaseControllerListener<ImageInfo>() {
+                                @Override
+                                public void onFinalImageSet(String id, @Nullable ImageInfo imageInfo, @Nullable Animatable anim) {
+                                    if (imageInfo == null) {
+                                        return;
+                                    }
+
+                                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout
+                                            .LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+//                                    if (imageInfo.getHeight() < 80) {
+//                                        if (imageInfo.getHeight() <= 50) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    30, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 60) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    25, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 70) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    20, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 80) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    15, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        }
+//                                    } else {
+//                                        params.setMargins(0, 0, 0, 0);
+//                                        sprites.setLayoutParams(params);
+//                                    }
+                                }
+
+                                @Override
+                                public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo) {
+                                }
+
+                                @Override
+                                public void onFailure(String id, Throwable throwable) {
+                                }
+                            };
+
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + pkm.getName()
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonBackSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(pkm.getName()), true, pkm.isFemale(), pkm.isShiny()));
+                            }
+
+
                             ((ImageView) battleFragment.getView().findViewById(battleFragment.getIconId("p1", i)))
                                     .setImageResource(Pokemon.getPokemonIcon(MyApplication.getMyApplication(),
                                             MyApplication.toId(pkm.getName())));
                         }
-                        for (int i = team1.size(); i < 6; i++) {
+
+                        for (int i = t1.size(); i < 6; i++) {
                             ((ImageView) battleFragment.getView().findViewById(battleFragment.getIconId("p1", i)))
                                     .setImageResource(R.drawable.pokeball_none);
                         }
-                        for (int i = 0; i < team2.size(); i++) {
-                            ImageView sprites = (ImageView) battleFragment.getView().findViewById(battleFragment.getTeamPreviewSpriteId("p2", i));
-                            PokemonInfo pkm = team2.get(i);
-                            sprites.setImageResource(Pokemon.getPokemonBackSprite(MyApplication.getMyApplication(),
-                                    MyApplication.toId(pkm.getName()), false, pkm.isFemale(), pkm.isShiny()));
+
+                        for (int i = 0; i < t2.size(); i++) {
+                            final SimpleDraweeView sprites = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getTeamPreviewSpriteId("p2", i));
+                            PokemonInfo pkm = t2.get(i);
+
+                            ControllerListener controllerListener = new BaseControllerListener<ImageInfo>() {
+                                @Override
+                                public void onFinalImageSet(String id, @Nullable ImageInfo imageInfo, @Nullable Animatable anim) {
+                                    if (imageInfo == null) {
+                                        return;
+                                    }
+
+//                                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(70, 70);
+//                                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+//
+//
+//                                    if (imageInfo.getHeight() < 80) {
+//                                        if (imageInfo.getHeight() <= 50) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    30, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 60) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    25, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 70) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    20, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        } else if (imageInfo.getHeight() <= 80) {
+//                                            int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+//                                                    15, battleFragment.getResources().getDisplayMetrics());
+//                                            params.setMargins(0, px, 0, px);
+//                                            sprites.setLayoutParams(params);
+//                                        }
+//                                    } else {
+//                                        params.setMargins(0, 0, 0, 0);
+//                                        sprites.setLayoutParams(params);
+//                                    }
+                                }
+
+                                @Override
+                                public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo) {
+                                }
+
+                                @Override
+                                public void onFailure(String id, Throwable throwable) {
+                                }
+                            };
+
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + pkm.getName()
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(pkm.getName()), false, pkm.isFemale(), pkm.isShiny()));
+                            }
+
                             ((ImageView) battleFragment.getView().findViewById(battleFragment.getIconId("p2", i)))
                                     .setImageResource(Pokemon.getPokemonIcon(MyApplication.getMyApplication(),
                                             MyApplication.toId(pkm.getName())));
                         }
-                        for (int i = team2.size(); i < 6; i++) {
+
+                        for (int i = t2.size(); i < 6; i++) {
                             ((ImageView) battleFragment.getView().findViewById(battleFragment.getIconId("p2", i)))
                                     .setImageResource(R.drawable.pokeball_none);
                         }
+
                         battleFragment.setTeamSize(teamSelectionSizeFinal);
                         battleFragment.getView().findViewById(R.id.p2a_prev)
                                 .setOnClickListener(battleFragment.new PokemonInfoListener(false, 0));
@@ -326,14 +490,14 @@ public class BattleMessage {
 
                 toAppendBuilder = new StringBuilder();
                 toAppendBuilder.append(battleFragment.getPlayer1()).append("'s Team: ");
-                String[] p1Team = battleFragment.getTeamNameStringArray(team1);
+                String[] p1Team = battleFragment.getTeamNameStringArray(t1);
                 for (int i = 0; i < p1Team.length - 1; i++) {
                     toAppendBuilder.append(p1Team[i]).append("/");
                 }
                 toAppendBuilder.append(p1Team[p1Team.length - 1]);
 
                 toAppendBuilder.append("\n").append(battleFragment.getPlayer2()).append("'s Team: ");
-                String[] p2Team = battleFragment.getTeamNameStringArray(team2);
+                String[] p2Team = battleFragment.getTeamNameStringArray(t2);
                 for (int i = 0; i < p2Team.length - 1; i++) {
                     toAppendBuilder.append(p2Team[i]).append("/");
                 }
@@ -419,19 +583,38 @@ public class BattleMessage {
                             FrameLayout frameLayout = (FrameLayout) battleFragment.getView().findViewById(R.id.battle_interface);
                             frameLayout.removeAllViews();
                             LayoutInflater inflater = (LayoutInflater) MyApplication.getMyApplication().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                            inflater.inflate(R.layout.fragment_battle_animation, frameLayout);
-                            battleFragment.getView().findViewById(R.id.p1a)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(true, 0));
-                            battleFragment.getView().findViewById(R.id.p1b)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(true, 1));
-                            battleFragment.getView().findViewById(R.id.p1c)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(true, 2));
-                            battleFragment.getView().findViewById(R.id.p2a)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(false, 0));
-                            battleFragment.getView().findViewById(R.id.p2b)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(false, 1));
-                            battleFragment.getView().findViewById(R.id.p2c)
-                                    .setOnClickListener(battleFragment.new PokemonInfoListener(false, 2));
+
+                            if (battleFragment.getFormat().contains("Doubles") || battleFragment.getFormat().contains("VGC")) {
+                                inflater.inflate(R.layout.fragment_battle_animation_doubles, frameLayout);
+                                battleFragment.getView().findViewById(R.id.p1a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 0));
+                                battleFragment.getView().findViewById(R.id.p1b)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 1));
+                                battleFragment.getView().findViewById(R.id.p2a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 0));
+                                battleFragment.getView().findViewById(R.id.p2b)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 1));
+                            } else if (battleFragment.getFormat().contains("Triples")) {
+                                inflater.inflate(R.layout.fragment_battle_animation_triples, frameLayout);
+                                battleFragment.getView().findViewById(R.id.p1a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 0));
+                                battleFragment.getView().findViewById(R.id.p1b)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 1));
+                                battleFragment.getView().findViewById(R.id.p1c)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 2));
+                                battleFragment.getView().findViewById(R.id.p2a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 0));
+                                battleFragment.getView().findViewById(R.id.p2b)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 1));
+                                battleFragment.getView().findViewById(R.id.p2c)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 2));
+                            } else {
+                                inflater.inflate(R.layout.fragment_battle_animation_singles, frameLayout);
+                                battleFragment.getView().findViewById(R.id.p1a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(true, 0));
+                                battleFragment.getView().findViewById(R.id.p2a)
+                                        .setOnClickListener(battleFragment.new PokemonInfoListener(false, 0));
+                            }
                         }
                     }
                 });
@@ -509,7 +692,7 @@ public class BattleMessage {
                 final int hp = processHpFraction(split[2]);
                 final String status = processStatusFraction(split[2]);
 
-                String species = !split[1].contains(",") ? split[1] :
+                final String species = !split[1].contains(",") ? split[1] :
                         split[1].substring(0, split[1].indexOf(","));
                 String speciesId = MyApplication.toId(species);
                 pokemonInfo = new PokemonInfo(MyApplication.getMyApplication(), speciesId);
@@ -528,6 +711,7 @@ public class BattleMessage {
                 } else {
                     toBeSwapped = battleFragment.findPokemonInTeam(playerTeam, species);
                 }
+
                 int j = battleFragment.getTeamSlot(messageDetails);
                 PokemonInfo holder = playerTeam.get(j);
                 playerTeam.set(j, playerTeam.get(toBeSwapped));
@@ -547,6 +731,11 @@ public class BattleMessage {
                     }
                 }
 
+                String name = pokemonInfo.getName();
+                name = name.replace("Mega-X", "megax");
+                name = name.replace("Mega-Y", "megay");
+                final String finalName = name;
+
                 toast = battleFragment.makeToast(new SpannableStringBuilder(toAppendBuilder));
                 toast.addListener(new AnimatorListenerWithNet() {
                     @Override
@@ -557,17 +746,99 @@ public class BattleMessage {
 
                         battleFragment.displayPokemon(split[0]);
 
-                        ImageView sprites = (ImageView) battleFragment.getView()
-                                .findViewById(battleFragment.getSpriteId(split[0]));
-                        if (sprites != null) {
-                            sprites.setImageResource(pokemonInfo.getSprite(MyApplication.getMyApplication()));
+                        final SimpleDraweeView sprites = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
+                        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(battleFragment.getContext());
+                        final boolean isAnimated = sharedPref.getBoolean("pref_key_animated", false);
+                        boolean hasCry = sharedPref.getBoolean("pref_key_sfx", false);
+
+                        if (hasCry && !battleFragment.getReOriented()) {
+                            AudioManager.playPokemonCry(finalName.toLowerCase().replace(" ", "").replace(".", ""));
                         }
+
+                        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>() {
+                            @Override
+                            public void onFinalImageSet(String id, @Nullable ImageInfo imageInfo, @Nullable Animatable anim) {
+                                if (imageInfo == null) {
+                                    return;
+                                }
+
+                                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout
+                                        .LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+                                if (imageInfo.getHeight() < 80) {
+                                    if (imageInfo.getHeight() <= 50) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                30, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 60) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                25, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 70) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                20, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 80) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                15, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    }
+                                } else {
+                                    params.setMargins(0, 0, 0, 0);
+                                    sprites.setLayoutParams(params);
+                                }
+                            }
+
+                            @Override
+                            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo) {
+                            }
+
+                            @Override
+                            public void onFailure(String id, Throwable throwable) {
+                            }
+                        };
+
+                        if (sprites != null) {
+                            sprites.setImageResource(0);
+                            if (isAnimated) {
+                                if (split[0].contains("p1")) {
+                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + finalName
+                                            .toLowerCase().replace(" ", "").replace(".", "") + ".gif");
+
+                                    DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                            .setControllerListener(controllerListener)
+                                            .setUri(imageUri)
+                                            .setAutoPlayAnimations(true)
+                                            .build();
+                                    sprites.getHierarchy().setActualImageScaleType(ScalingUtils.ScaleType.FIT_CENTER);
+                                    sprites.setController(controller);
+                                } else {
+                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + finalName
+                                            .toLowerCase().replace(" ", "").replace(".", "") + ".gif");
+
+                                    DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                            .setControllerListener(controllerListener)
+                                            .setUri(imageUri)
+                                            .setAutoPlayAnimations(true)
+                                            .build();
+                                    sprites.setController(controller);
+                                }
+                            } else {
+                                sprites.setImageResource(pokemonInfo.getSprite(MyApplication.getMyApplication(), split[0].contains("p2")));
+                            }
+                        }
+
                         ImageView iconLeader = (ImageView) battleFragment.getView()
                                 .findViewById(battleFragment.getIconId(split[0], battleFragment.getTeamSlot(messageDetails)));
                         Drawable leader = iconLeader.getDrawable();
                         ImageView iconTrailer = (ImageView) battleFragment.getView()
                                 .findViewById(battleFragment.getIconId(split[0], toBeSwapped));
                         float alphaTrailer = iconTrailer.getAlpha();
+
                         iconTrailer.setImageDrawable(leader);
                         iconTrailer.setAlpha(iconLeader.getAlpha());
                         iconLeader.setImageResource(pokemonInfo.getIcon(MyApplication.getMyApplication()));
@@ -592,7 +863,7 @@ public class BattleMessage {
                         ProgressBar hpBar = (ProgressBar) battleFragment.getView()
                                 .findViewById(battleFragment.getHpBarId(messageDetails.substring(0, 3)));
                         if (hpText != null) {
-                            hpText.setText(Integer.toString(hp));
+                            hpText.setText(Integer.toString(hp) + "%");
                         }
                         if (hpBar != null) {
                             hpBar.setProgress(hp);
@@ -624,11 +895,100 @@ public class BattleMessage {
                             return;
                         }
 
+                        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(battleFragment.getContext());
+                        final boolean isAnimated = sharedPref.getBoolean("pref_key_animated", false);
+                        boolean hasCry = sharedPref.getBoolean("pref_key_sfx", false);
+
+                        String name = pokemonInfo.getName();
+                        name = name.replace("Mega-X", "megax");
+                        name = name.replace("Mega-Y", "megay");
+
+                        if (hasCry && !battleFragment.getReOriented()) {
+                            AudioManager.playPokemonCry(name.toLowerCase().replace(" ", "").replace(".", ""));
+                        }
+
                         boolean back = split[0].startsWith("p1");
-                        ImageView sprite = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(position));
-                        Toast.makeText(MyApplication.getMyApplication(), "Sprite requested on line 627 on BattleMessage. Delivering front one.", Toast.LENGTH_SHORT).show();
-                        sprite.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
-                                MyApplication.toId(forme), back, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                        final SimpleDraweeView sprites = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(position));
+
+                        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>() {
+                            @Override
+                            public void onFinalImageSet(String id, @Nullable ImageInfo imageInfo, @Nullable Animatable anim) {
+                                if (imageInfo == null) {
+                                    return;
+                                }
+
+                                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout
+                                        .LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+                                if (imageInfo.getHeight() < 80) {
+                                    if (imageInfo.getHeight() <= 50) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                30, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 60) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                25, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 70) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                20, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 80) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                15, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    }
+                                } else {
+                                    params.setMargins(0, 0, 0, 0);
+                                    sprites.setLayoutParams(params);
+                                }
+                            }
+
+                            @Override
+                            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo) {
+                            }
+
+                            @Override
+                            public void onFailure(String id, Throwable throwable) {
+                            }
+                        };
+
+                        if (!back) {
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + name
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(forme), false, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                            }
+                        } else {
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + name
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonBackSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(forme), true, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                            }
+                        }
+
                         ImageView icon = (ImageView) battleFragment.getView().findViewById(battleFragment.getIconId(position));
                         icon.setImageResource(Pokemon.getPokemonIcon(MyApplication.getMyApplication(),
                                 MyApplication.toId(forme)));
@@ -645,6 +1005,7 @@ public class BattleMessage {
                     toAppendBuilder.append("The opposing ");
                 }
                 toAppendBuilder.append(attacker).append(" fainted!");
+
                 toast = battleFragment.makeToast(new SpannableStringBuilder(toAppendBuilder));
                 toast.addListener(new AnimatorListenerWithNet() {
                     @Override
@@ -961,10 +1322,10 @@ public class BattleMessage {
 
                         ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
 
-                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
-                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
-                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
+                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
+//                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
                         layoutParams.setMargins((int) (imageView.getWidth() * 0.5f), (int) (imageView.getHeight() * 0.5f), 0, 0);
                         relativeLayout.addView(damage, layoutParams);
                     }
@@ -975,7 +1336,7 @@ public class BattleMessage {
                             return;
                         }
 
-                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
                         relativeLayout.removeView(damage);
                     }
                 });
@@ -1091,10 +1452,10 @@ public class BattleMessage {
 
                         ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
 
-                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
-                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
-                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
+                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
+//                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
                         layoutParams.setMargins((int) (imageView.getWidth() * 0.5f), (int) (imageView.getHeight() * 0.5f), 0, 0);
                         relativeLayout.addView(heal, layoutParams);
                     }
@@ -1105,7 +1466,7 @@ public class BattleMessage {
                             return;
                         }
 
-                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
                         relativeLayout.removeView(heal);
                     }
                 });
@@ -2207,10 +2568,89 @@ public class BattleMessage {
                         }
 
                         boolean back = split[0].startsWith("p1");
-                        ImageView sprite = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(oldForm));
-                        Toast.makeText(MyApplication.getMyApplication(), "Sprite requested on line 2208 on BattleMessage. Delivering front one.", Toast.LENGTH_SHORT).show();
-                        sprite.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
-                                MyApplication.toId(newFormPrintable), back, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                        final SimpleDraweeView sprites = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(oldForm));
+                        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(battleFragment.getContext());
+                        final boolean isAnimated = sharedPref.getBoolean("pref_key_animated", false);
+
+                        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>() {
+                            @Override
+                            public void onFinalImageSet(String id, @Nullable ImageInfo imageInfo, @Nullable Animatable anim) {
+                                if (imageInfo == null) {
+                                    return;
+                                }
+
+                                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout
+                                        .LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+                                if (imageInfo.getHeight() < 80) {
+                                    if (imageInfo.getHeight() <= 50) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                30, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 60) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                25, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 70) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                20, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    } else if (imageInfo.getHeight() <= 80) {
+                                        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                15, battleFragment.getResources().getDisplayMetrics());
+                                        params.setMargins(0, px, 0, px);
+                                        sprites.setLayoutParams(params);
+                                    }
+                                } else {
+                                    params.setMargins(0, 0, 0, 0);
+                                    sprites.setLayoutParams(params);
+                                }
+                            }
+
+                            @Override
+                            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo) {
+                            }
+
+                            @Override
+                            public void onFailure(String id, Throwable throwable) {
+                            }
+                        };
+
+                        if (!back) {
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + pokemonInfo.getName()
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonFrontSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(newFormPrintable), false, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                            }
+                        } else {
+                            if (isAnimated) {
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + pokemonInfo.getName()
+                                        .toLowerCase().replace(" ", "") + ".gif");
+
+                                DraweeController controller = Fresco.newDraweeControllerBuilder()
+                                        .setControllerListener(controllerListener)
+                                        .setUri(imageUri)
+                                        .setAutoPlayAnimations(true)
+                                        .build();
+                                sprites.setController(controller);
+                            } else {
+                                sprites.setImageResource(Pokemon.getPokemonBackSprite(MyApplication.getMyApplication(),
+                                        MyApplication.toId(newFormPrintable), true, pokemonInfo.isFemale(), pokemonInfo.isShiny()));
+                            }
+                        }
+
                         ImageView icon = (ImageView) battleFragment.getView().findViewById(battleFragment.getIconId(oldForm));
                         icon.setImageResource(Pokemon.getPokemonIcon(MyApplication.getMyApplication(),
                                 MyApplication.toId(newFormPrintable)));
@@ -3070,6 +3510,16 @@ public class BattleMessage {
 
                     case "stickyweb":
                         toAppendBuilder.append("A sticky web spreads out beneath ").append(side).append("'s feet!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                int id = (messageDetails.startsWith("p1")) ? R.id.field_webs : R.id.field_webs_o;
+                                battleFragment.getView().findViewById(id).setVisibility(View.VISIBLE);
+                            }
+                        });
                         break;
 
                     case "tailwind":
@@ -3099,6 +3549,20 @@ public class BattleMessage {
                                     return;
                                 }
                                 int id = (messageDetails.startsWith("p1")) ? R.id.field_lightscreen : R.id.field_lightscreen_o;
+                                battleFragment.getView().findViewById(id).setVisibility(View.VISIBLE);
+                            }
+                        });
+                        break;
+
+                    case "auroraveil":
+                        toAppendBuilder.append("Aurora Veil made the opposing team stronger against physical and special moves!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                int id = (messageDetails.startsWith("p1")) ? R.id.field_auroraveil : R.id.field_auroraveil_o;
                                 battleFragment.getView().findViewById(id).setVisibility(View.VISIBLE);
                             }
                         });
@@ -3198,6 +3662,16 @@ public class BattleMessage {
 
                     case "stickyweb":
                         toAppendBuilder.append("The sticky web has disappeared from beneath ").append(side).append("'s feet!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                int id = (messageDetails.startsWith("p1")) ? R.id.field_webs : R.id.field_webs_o;
+                                battleFragment.getView().findViewById(id).setVisibility(View.INVISIBLE);
+                            }
+                        });
                         break;
 
                     case "tailwind":
@@ -3230,6 +3704,20 @@ public class BattleMessage {
                                     return;
                                 }
                                 int id = (messageDetails.startsWith("p1")) ? R.id.field_lightscreen : R.id.field_lightscreen_o;
+                                battleFragment.getView().findViewById(id).setVisibility(View.INVISIBLE);
+                            }
+                        });
+                        break;
+
+                    case "auroraveil":
+                        toAppendBuilder.append("Aurora Veil made your team stronger against physical and special moves!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                int id = (messageDetails.startsWith("p1")) ? R.id.field_auroraveil : R.id.field_auroraveil_o;
                                 battleFragment.getView().findViewById(id).setVisibility(View.INVISIBLE);
                             }
                         });
@@ -3274,11 +3762,20 @@ public class BattleMessage {
                 break;
 
             case "-weather":
-                final String weather = split[0];
+                String get;
+                if (split[0].contains("ability")) {
+                    get = split[1].substring(0, split[1].indexOf("|"));
+                } else {
+                    get = split[0];
+                }
+
                 boolean upkeep = false;
-                if (split.length > 1) {
+                if (split.length > 1 && split[1].contains("upkeep")) {
                     upkeep = true;
                 }
+
+                final String weather = get;
+
                 animatorSet = new AnimatorSet();
                 switch (weather) {
                     case "RainDance":
@@ -3672,16 +4169,16 @@ public class BattleMessage {
         HashMap<String, Integer> moves = new HashMap<>();
         for (int i = 0; i < movesArray.length(); i++) {
             String move = movesArray.getString(i);
-            if (move.startsWith("hiddenpower")) {
+            if (move.startsWith("hiddenpower") || move.startsWith("return") || move.startsWith("frustration")
+                    || move.startsWith("gyroball") || move.startsWith("heavyslam")) {
                 move = move.toLowerCase().replaceAll("[^a-z]", "");
-                //dirty fix to remvoe that 60 from hiddenpower...
+                //dirty fix to remove numbers from base-power variant attacks
             }
             moves.put(move, Integer.parseInt(MoveDex.getMoveMaxPP(MyApplication.getMyApplication(), move)));
         }
         pkm.setMoves(moves);
         pkm.setAbility(info.getString("baseAbility"));
         pkm.setItem(info.getString("item"));
-        pkm.setCanMegaEvo(info.optBoolean("canMegaEvo", false));
         return pkm;
     }
 
@@ -3715,5 +4212,4 @@ public class BattleMessage {
             return statusFraction.substring(status + 1);
         }
     }
-
 }

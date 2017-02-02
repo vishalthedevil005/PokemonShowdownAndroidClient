@@ -1,0 +1,24 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Battles Options"
+        android:key="pref_key_storage_settings">
+
+        <SwitchPreference
+            android:key="pref_key_animated"
+            android:summary="Enables animated sprites in-battle. May cause increase in data usage and slowdown."
+            android:title="Animated Sprites"
+            android:defaultValue="true" />
+
+        <SwitchPreference
+            android:key="pref_key_music"
+            android:summary="Enables music in-battle. May cause slowdown."
+            android:title="Music"
+            android:defaultValue="true" />
+
+        <SwitchPreference
+            android:key="pref_key_sfx"
+            android:summary="Enables sound effects (cries) in-battle. May cause increase in data usage and slowdown."
+            android:title="SFX"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

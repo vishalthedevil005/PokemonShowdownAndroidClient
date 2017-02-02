@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:autofit="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/animation_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:id="@+id/p2a"
+                android:layout_width="225dp"
+                android:layout_height="155dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="40dp"
+                android:orientation="vertical"
+                android:weightSum="30">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="5"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="7">
+
+                    <me.grantland.widget.AutofitTextView
+                        android:id="@+id/p2a_pkm"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="1dp"
+                        android:layout_weight="6"
+                        android:gravity="center"
+                        android:lines="1"
+                        android:shadowColor="#000"
+                        android:shadowDx="1"
+                        android:shadowDy="1"
+                        android:shadowRadius="7"
+                        android:textColor="#fff"
+                        autofit:minTextSize="1sp" />
+
+                    <ImageView
+                        android:id="@+id/p2a_gender"
+                        android:layout_width="0dp"
+                        android:layout_height="20dp"
+                        android:layout_weight="1"
+                        android:contentDescription="@string/gender"
+                        android:paddingLeft="2dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/p2a_hp_layout"
+                    android:layout_width="120dp"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="3"
+                    android:background="@drawable/editable_frame_grey"
+                    android:orientation="horizontal"
+                    android:weightSum="11">
+
+                    <me.grantland.widget.AutofitTextView
+                        android:id="@+id/p2a_hp"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="2dp"
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:lines="1"
+                        android:minEms="2"
+                        android:text="100%"
+                        android:textColor="#fff"
+                        autofit:minTextSize="1sp" />
+
+                    <ProgressBar
+                        android:id="@+id/p2a_bar_hp"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="3dp"
+                        android:layout_marginRight="3dp"
+                        android:layout_weight="9"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="100" />
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="225dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="22">
+
+                    <LinearLayout
+                        android:id="@+id/p2a_temp_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="45dp"
+                        android:orientation="vertical">
+
+                    </LinearLayout>
+
+                    <com.facebook.drawee.view.SimpleDraweeView
+                        android:id="@+id/p2a_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="22"
+                        android:scaleType="centerInside"
+                        fresco:actualImageScaleType="fitCenter" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/field_reflect_o"
+                android:layout_width="168dp"
+                android:layout_height="90dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="39dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingEnd="31dp"
+                android:src="@drawable/field_reflect"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_lightscreen_o"
+                android:layout_width="162dp"
+                android:layout_height="90dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="45dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingEnd="25dp"
+                android:src="@drawable/field_lightscreen"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_auroraveil_o"
+                android:layout_width="152dp"
+                android:layout_height="90dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="51dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingEnd="19dp"
+                android:src="@drawable/field_auroraveil"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes1_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="60dp"
+                android:layout_marginTop="140dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes2_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="115dp"
+                android:layout_marginTop="140dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes3_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="85dp"
+                android:layout_marginTop="135dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_tspikes1_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="73dp"
+                android:layout_marginTop="143dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_tspikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_tspikes2_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="98dp"
+                android:layout_marginTop="141dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_tspikes"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/field_rocks_o"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="60dp"
+                android:layout_marginTop="130dp"
+                android:orientation="vertical"
+                android:visibility="invisible">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/dmg_calc_field_sr"
+                    android:src="@drawable/field_rocks" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="50dp"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/dmg_calc_field_sr"
+                    android:src="@drawable/field_rocks" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/field_webs_o"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="70dp"
+                android:layout_marginTop="103dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_webs"
+                android:visibility="invisible" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/field_reflect"
+                android:layout_width="152dp"
+                android:layout_height="90dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="-1dp"
+                android:layout_marginTop="40dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingStart="19dp"
+                android:src="@drawable/field_reflect"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_lightscreen"
+                android:layout_width="152dp"
+                android:layout_height="90dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="46dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingStart="19dp"
+                android:src="@drawable/field_lightscreen"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_auroraveil"
+                android:layout_width="158dp"
+                android:layout_height="90dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="52dp"
+                android:contentDescription="@string/dmg_calc_field_reflect"
+                android:paddingStart="25dp"
+                android:src="@drawable/field_auroraveil"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="55dp"
+                android:layout_marginTop="135dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="90dp"
+                android:layout_marginTop="139dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_spikes3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="120dp"
+                android:layout_marginTop="135dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_spikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_tspikes1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="73dp"
+                android:layout_marginTop="133dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_tspikes"
+                android:visibility="invisible" />
+
+            <ImageView
+                android:id="@+id/field_tspikes2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="103dp"
+                android:layout_marginTop="130dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_tspikes"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/field_rocks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="60dp"
+                android:layout_marginTop="120dp"
+                android:orientation="vertical"
+                android:visibility="invisible">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/dmg_calc_field_sr"
+                    android:src="@drawable/field_rocks" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="50dp"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/dmg_calc_field_sr"
+                    android:src="@drawable/field_rocks" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/field_webs"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="70dp"
+                android:layout_marginTop="103dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/dmg_calc_field_sr"
+                android:src="@drawable/field_webs"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/p1a"
+                android:layout_width="225dp"
+                android:layout_height="155dp"
+                android:layout_marginStart="40dp"
+                android:orientation="vertical"
+                android:weightSum="30">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="5"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="7">
+
+                    <me.grantland.widget.AutofitTextView
+                        android:id="@+id/p1a_pkm"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="1dp"
+                        android:layout_weight="6"
+                        android:gravity="center"
+                        android:lines="1"
+                        android:shadowColor="#000"
+                        android:shadowDx="1"
+                        android:shadowDy="1"
+                        android:shadowRadius="7"
+                        android:textColor="#fff"
+                        autofit:minTextSize="1sp" />
+
+                    <ImageView
+                        android:id="@+id/p1a_gender"
+                        android:layout_width="0dp"
+                        android:layout_height="20dp"
+                        android:layout_weight="1"
+                        android:contentDescription="@string/gender"
+                        android:paddingLeft="2dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/p1a_hp_layout"
+                    android:layout_width="120dp"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="3"
+                    android:background="@drawable/editable_frame_grey"
+                    android:orientation="horizontal"
+                    android:weightSum="11">
+
+                    <me.grantland.widget.AutofitTextView
+                        android:id="@+id/p1a_hp"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="2dp"
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:lines="1"
+                        android:minEms="2"
+                        android:text="100%"
+                        android:textColor="#fff"
+                        autofit:minTextSize="1sp" />
+
+                    <ProgressBar
+                        android:id="@+id/p1a_bar_hp"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="3dp"
+                        android:layout_marginRight="3dp"
+                        android:layout_weight="9"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="100" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="225dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="22">
+
+                    <LinearLayout
+                        android:id="@+id/p1a_temp_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="45dp"
+                        android:orientation="vertical">
+
+                    </LinearLayout>
+
+                    <com.facebook.drawee.view.SimpleDraweeView
+                        android:id="@+id/p1a_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerInside"
+                        fresco:actualImageScaleType="fitCenter" />
+                </RelativeLayout>
+            </LinearLayout>
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/toast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="4dp"
+            android:alpha="0"
+            android:background="@drawable/editable_frame_blackwhite"
+            android:padding="2dp"
+            android:textColor="#000" />
+    </RelativeLayout>
+</LinearLayout>

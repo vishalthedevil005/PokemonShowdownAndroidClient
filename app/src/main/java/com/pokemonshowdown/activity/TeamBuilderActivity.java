@@ -7,6 +7,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,8 +24,8 @@ import com.pokemonshowdown.R;
 import com.pokemonshowdown.adapter.PokemonTeamsAdapter;
 import com.pokemonshowdown.adapter.SimpleStringAdapter;
 import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.PokemonTeam;
-import com.pokemonshowdown.data.Tiering;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,25 +45,21 @@ public class TeamBuilderActivity extends BaseActivity {
     private final static int CLIPBOARD = 0;
     private final static int PASTEBIN = 1;
     private final static int QR = 2;
-    private static List<PokemonTeam> mPokemonTeamList;
-    private static RecyclerView mRecyclerTeams;
-    private static UpdateRecyclerView UPDATE;
+    private List<PokemonTeam> mPokemonTeamList;
+    private RecyclerView mRecyclerTeams;
+    private UpdateRecyclerView UPDATE;
+    public static PokemonTeamAccessor ACCESSOR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ACCESSOR = new PokemonTeamAccessor();
         UPDATE = new UpdateRecyclerView();
         setContentView(R.layout.fragment_team_builder);
         setupToolbar();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-        setupRecyclerTeams();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
         setupRecyclerTeams();
     }
 
@@ -88,8 +85,8 @@ public class TeamBuilderActivity extends BaseActivity {
             case R.id.action_create_team:
                 pt = new PokemonTeam();
                 pt.setNickname("Team nº" + (mPokemonTeamList.size() + 1));
-                pt.setTier(Tiering.TIER_ORDER.get(1));
-                saveOrUpdateTeam(pt);
+                pt.setTier(BattleFieldData.get(getContext()).getFormatTypes().get(0).getFormatList().get(2).getName());
+                saveTeam(pt, mPokemonTeamList.size());
                 mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
                 Toast.makeText(getApplicationContext(), R.string.team_created, Toast.LENGTH_SHORT).show();
                 return true;
@@ -109,7 +106,7 @@ public class TeamBuilderActivity extends BaseActivity {
                                         String pasteData = clipItem.getText().toString();
                                         PokemonTeam pt = PokemonTeam.importPokemonTeam(pasteData, getApplicationContext(), true);
                                         if (pt != null && pt.getTeamSize() > 0) {
-                                            pt.setTier(Tiering.PLAYABLE_TIERS.get(0));
+                                            pt.setTier(BattleFieldData.get(getContext()).getFormatTypes().get(0).getFormatList().get(2).getName());
                                             pt.setNickname("Imported Team");
                                             mPokemonTeamList.add(pt);
                                             mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
@@ -159,8 +156,7 @@ public class TeamBuilderActivity extends BaseActivity {
     }
 
     private void setupRecyclerTeams() {
-        PokemonTeam.loadPokemonTeams(getContext());
-        mPokemonTeamList = PokemonTeam.getPokemonTeamList();
+        mPokemonTeamList = PokemonTeam.getPokemonTeamList(getContext());
 
         mRecyclerTeams = (RecyclerView) findViewById(R.id.recycler_teams);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -174,6 +170,20 @@ public class TeamBuilderActivity extends BaseActivity {
         }
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication(), mPokemonTeamList);
+        setupRecyclerTeams();
+    }
+
+    @Override
+    protected void onDestroy() {
+        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication(), mPokemonTeamList);
+        super.onDestroy();
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (scanResult != null) {
@@ -190,22 +200,27 @@ public class TeamBuilderActivity extends BaseActivity {
         }
     }
 
-    public static void saveOrUpdateTeam(PokemonTeam team) {
+    private void saveOrUpdateTeam(PokemonTeam team) {
+        PokemonTeam temp = new PokemonTeam();
         for (PokemonTeam t : mPokemonTeamList) {
             if (t.getNickname().equals(team.getNickname())) {
-                mPokemonTeamList.remove(t);
+                temp = t;
+                break;
             }
         }
+        mPokemonTeamList.remove(temp);
         mPokemonTeamList.add(team);
-        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication());
+        mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
+        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication(), mPokemonTeamList);
     }
 
-    public static void saveTeam(PokemonTeam team, int position) {
+    private void saveTeam(PokemonTeam team, int position) {
         mPokemonTeamList.add(position, team);
-        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication());
+        mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
+        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication(), mPokemonTeamList);
     }
 
-    public static int deleteTeam(PokemonTeam team) {
+    private int deleteTeam(PokemonTeam team) {
         int i = 0;
         for (PokemonTeam t : mPokemonTeamList) {
             if (t.getNickname().equals(team.getNickname())) {
@@ -214,8 +229,8 @@ public class TeamBuilderActivity extends BaseActivity {
             i++;
         }
         mPokemonTeamList.remove(team);
-        mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(UPDATE.getContext(), mPokemonTeamList));
-        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication());
+        mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
+        PokemonTeam.savePokemonTeams(MyApplication.getMyApplication(), mPokemonTeamList);
         UPDATE.setupView();
         return i;
     }
@@ -225,9 +240,20 @@ public class TeamBuilderActivity extends BaseActivity {
         public void setupView() {
             setupRecyclerTeams();
         }
+    }
 
-        public Context getContext() {
-            return getBaseContext();
+    public class PokemonTeamAccessor {
+
+        public void savePokemonTeam(PokemonTeam team, int position) {
+            saveTeam(team, position);
+        }
+
+        public int deletePokemonTeam(PokemonTeam team) {
+            return deleteTeam(team);
+        }
+
+        public void saveOrUpdatePokemonTeam(PokemonTeam team) {
+            saveOrUpdateTeam(team);
         }
     }
 

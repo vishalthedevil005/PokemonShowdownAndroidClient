@@ -9,9 +9,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.fragment.BattleFragment;
@@ -27,10 +28,10 @@ public class BattleAnimation {
         }
         Context context = battleFragment.getView().getContext();
         RelativeLayout wrapper = (RelativeLayout) battleFragment.getView().findViewById(R.id.animation_layout);
-        RelativeLayout atkC = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(split[0]));
-        ImageView atk = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
-        RelativeLayout defC = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(split[2]));
-        ImageView def = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[2]));
+        LinearLayout atkC = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(split[0]));
+        SimpleDraweeView atk = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
+        LinearLayout defC = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(split[2]));
+        SimpleDraweeView def = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[2]));
         try {
             if (animationId == null) {
                 return fast(battleFragment.getView().getContext(), wrapper, atkC, atk, defC, def);
@@ -207,10 +208,10 @@ public class BattleAnimation {
         }
     }
 
-    public static AnimatorSet fast(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def) {
+    public static AnimatorSet fast(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView fast = new ImageView(context);
+        final SimpleDraweeView fast = new SimpleDraweeView(context);
         fast.setImageDrawable(atk.getDrawable());
         fast.setX(atkC.getX() + atk.getX());
         fast.setY(atkC.getY() + atk.getY());
@@ -242,7 +243,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet shake(RelativeLayout atkC, ImageView atk) {
+    public static AnimatorSet shake(LinearLayout atkC, SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator shakeLeft = ObjectAnimator.ofFloat(atk, "x", 0f);
         shakeLeft.setDuration(BattleFragment.ANIMATION_LONG / 6);
@@ -259,7 +260,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet dance(RelativeLayout atkC, ImageView atk) {
+    public static AnimatorSet dance(LinearLayout atkC, SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator shakeLeft = ObjectAnimator.ofFloat(atk, "x", 0f);
         shakeLeft.setDuration(BattleFragment.ANIMATION_LONG / 4);
@@ -273,7 +274,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet flight(Context context, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC) {
+    public static AnimatorSet flight(Context context, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator flightLeft = ObjectAnimator.ofFloat(atk, "x", 0f);
@@ -282,7 +283,7 @@ public class BattleAnimation {
         flightTop.setDuration(BattleFragment.ANIMATION_LONG / 4);
         ObjectAnimator flightAlpha = ObjectAnimator.ofFloat(atk, "alpha", 0f);
         flightAlpha.setDuration(BattleFragment.ANIMATION_LONG / 4);
-        final ImageView leftClaw = new ImageView(context);
+        final SimpleDraweeView leftClaw = new SimpleDraweeView(context);
         leftClaw.setImageResource(R.drawable.battle_leftclaw);
         final ViewGroup.LayoutParams imageParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         ObjectAnimator flightClawRight = ObjectAnimator.ofFloat(leftClaw, "x", defC.getWidth());
@@ -320,7 +321,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet spinAtk(Context context, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC) {
+    public static AnimatorSet spinAtk(Context context, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator flightLeft = ObjectAnimator.ofFloat(atk, "x", 0f);
@@ -329,7 +330,7 @@ public class BattleAnimation {
         flightTop.setDuration(BattleFragment.ANIMATION_LONG / 4);
         ObjectAnimator flightAlpha = ObjectAnimator.ofFloat(atk, "alpha", 0f);
         flightAlpha.setDuration(BattleFragment.ANIMATION_LONG / 4);
-        final ImageView spin = new ImageView(context);
+        final SimpleDraweeView spin = new SimpleDraweeView(context);
         spin.setImageDrawable(atk.getDrawable());
         spin.setX(0);
         spin.setY(0);
@@ -370,7 +371,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet xatk(Context context, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC) {
+    public static AnimatorSet xatk(Context context, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator flightLeft = ObjectAnimator.ofFloat(atk, "x", 0f);
@@ -379,9 +380,9 @@ public class BattleAnimation {
         flightTop.setDuration(BattleFragment.ANIMATION_LONG / 4);
         ObjectAnimator flightAlpha = ObjectAnimator.ofFloat(atk, "alpha", 0f);
         flightAlpha.setDuration(BattleFragment.ANIMATION_LONG / 4);
-        final ImageView leftClaw = new ImageView(context);
+        final SimpleDraweeView leftClaw = new SimpleDraweeView(context);
         leftClaw.setImageResource(R.drawable.battle_leftclaw);
-        final ImageView rightClaw = new ImageView(context);
+        final SimpleDraweeView rightClaw = new SimpleDraweeView(context);
         rightClaw.setImageResource(R.drawable.battle_rightclaw);
         final ViewGroup.LayoutParams imageParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         ObjectAnimator flightClawRight = ObjectAnimator.ofFloat(leftClaw, "x", defC.getWidth());
@@ -429,9 +430,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet self(Context context, final RelativeLayout atkC, final ImageView atk) {
+    public static AnimatorSet self(Context context, final LinearLayout atkC, final SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView flash = new ImageView(context);
+        final SimpleDraweeView flash = new SimpleDraweeView(context);
         flash.setImageResource(R.drawable.battle_wisp);
         flash.setMaxHeight(80);
         flash.setMaxWidth(80);
@@ -463,9 +464,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet selfLight(Context context, final RelativeLayout atkC, final ImageView atk) {
+    public static AnimatorSet selfLight(Context context, final LinearLayout atkC, final SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView flash = new ImageView(context);
+        final SimpleDraweeView flash = new SimpleDraweeView(context);
         flash.setImageResource(R.drawable.battle_electroball);
         flash.setMaxHeight(atk.getHeight());
         flash.setMaxWidth(atk.getWidth());
@@ -492,9 +493,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet selfDark(Context context, final RelativeLayout atkC, final ImageView atk) {
+    public static AnimatorSet selfDark(Context context, final LinearLayout atkC, final SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView flash = new ImageView(context);
+        final SimpleDraweeView flash = new SimpleDraweeView(context);
         flash.setImageResource(R.drawable.battle_shadowball);
         flash.setMaxHeight(atk.getHeight());
         flash.setMaxWidth(atk.getWidth());
@@ -521,9 +522,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet trick(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, ImageView def) {
+    public static AnimatorSet trick(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView trick = new ImageView(context);
+        final SimpleDraweeView trick = new SimpleDraweeView(context);
         trick.setImageResource(R.drawable.pokeball_available);
         final ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         float startX = atkC.getX() + atk.getX() + atk.getWidth() * 0.5f;
@@ -556,7 +557,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet charge(Context context, RelativeLayout atkC, final ImageView atk, RelativeLayout defC, ImageView def, String[] split) {
+    public static AnimatorSet charge(Context context, LinearLayout atkC, final SimpleDraweeView atk, LinearLayout defC, SimpleDraweeView def, String[] split) {
         final float initialAlpha = atk.getAlpha();
         if (split.length >= 4 && split[3].equals("[still]")) {
             AnimatorSet animatorSet = new AnimatorSet();
@@ -575,9 +576,9 @@ public class BattleAnimation {
         }
     }
 
-    public static AnimatorSet spread(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, int spreadId) {
+    public static AnimatorSet spread(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, int spreadId) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView flash1 = new ImageView(context);
+        final SimpleDraweeView flash1 = new SimpleDraweeView(context);
         flash1.setImageResource(spreadId);
         flash1.setMaxHeight(100);
         flash1.setMaxWidth(100);
@@ -586,35 +587,35 @@ public class BattleAnimation {
         float startY = atkC.getY() + atk.getY() + atk.getHeight() * 0.5f - 50;
         flash1.setX(startX);
         flash1.setY(startY);
-        final ImageView flash2 = new ImageView(context);
+        final SimpleDraweeView flash2 = new SimpleDraweeView(context);
         flash2.setImageResource(spreadId);
         flash2.setMaxHeight(100);
         flash2.setMaxWidth(100);
         flash2.setAdjustViewBounds(true);
         flash2.setX(startX);
         flash2.setY(startY);
-        final ImageView flash3 = new ImageView(context);
+        final SimpleDraweeView flash3 = new SimpleDraweeView(context);
         flash3.setImageResource(spreadId);
         flash3.setMaxHeight(100);
         flash3.setMaxWidth(100);
         flash3.setAdjustViewBounds(true);
         flash3.setX(startX);
         flash3.setY(startY);
-        final ImageView flash4 = new ImageView(context);
+        final SimpleDraweeView flash4 = new SimpleDraweeView(context);
         flash4.setImageResource(spreadId);
         flash4.setMaxHeight(100);
         flash4.setMaxWidth(100);
         flash4.setAdjustViewBounds(true);
         flash4.setX(startX);
         flash4.setY(startY);
-        final ImageView flash5 = new ImageView(context);
+        final SimpleDraweeView flash5 = new SimpleDraweeView(context);
         flash5.setImageResource(spreadId);
         flash5.setMaxHeight(100);
         flash5.setMaxWidth(100);
         flash5.setAdjustViewBounds(true);
         flash5.setX(startX);
         flash5.setY(startY);
-        final ImageView flash6 = new ImageView(context);
+        final SimpleDraweeView flash6 = new SimpleDraweeView(context);
         flash6.setImageResource(spreadId);
         flash6.setMaxHeight(100);
         flash6.setMaxWidth(100);
@@ -685,10 +686,10 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet contact(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def, int contactId) {
+    public static AnimatorSet contact(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def, int contactId) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView atkPkm = new ImageView(context);
+        final SimpleDraweeView atkPkm = new SimpleDraweeView(context);
         atkPkm.setImageDrawable(atk.getDrawable());
         atkPkm.setX(atkC.getX() + atk.getX());
         atkPkm.setY(atkC.getY() + atk.getY());
@@ -706,7 +707,7 @@ public class BattleAnimation {
                 wrapper.addView(atkPkm, imageParams);
             }
         });
-        final ImageView contact = new ImageView(context);
+        final SimpleDraweeView contact = new SimpleDraweeView(context);
         contact.setMaxWidth(100);
         contact.setMaxHeight(100);
         contact.setAdjustViewBounds(true);
@@ -746,9 +747,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet drain(Context context, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC) {
+    public static AnimatorSet drain(Context context, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView attack = new ImageView(context);
+        final SimpleDraweeView attack = new SimpleDraweeView(context);
         attack.setImageResource(R.drawable.battle_energyball);
         attack.setMaxHeight(40);
         attack.setMaxWidth(40);
@@ -771,7 +772,7 @@ public class BattleAnimation {
                 defC.removeView(attack);
             }
         });
-        final ImageView drain = new ImageView(context);
+        final SimpleDraweeView drain = new SimpleDraweeView(context);
         drain.setImageResource(R.drawable.battle_energyball);
         drain.setMaxHeight(atk.getHeight());
         drain.setMaxWidth(atk.getWidth());
@@ -799,10 +800,10 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet contactTwice(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def, int contact1Id, int contact2Id) {
+    public static AnimatorSet contactTwice(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def, int contact1Id, int contact2Id) {
         final float initialAlpha = atk.getAlpha();
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView atkPkm = new ImageView(context);
+        final SimpleDraweeView atkPkm = new SimpleDraweeView(context);
         atkPkm.setImageDrawable(atk.getDrawable());
         atkPkm.setX(atkC.getX() + atk.getX());
         atkPkm.setY(atkC.getY() + atk.getY());
@@ -820,7 +821,7 @@ public class BattleAnimation {
                 wrapper.addView(atkPkm, imageParams);
             }
         });
-        final ImageView contact1 = new ImageView(context);
+        final SimpleDraweeView contact1 = new SimpleDraweeView(context);
         contact1.setMaxWidth(100);
         contact1.setMaxHeight(100);
         contact1.setAdjustViewBounds(true);
@@ -838,7 +839,7 @@ public class BattleAnimation {
         defendX.setDuration(BattleFragment.ANIMATION_LONG / 3);
         ObjectAnimator defendY = ObjectAnimator.ofFloat(atkPkm, "y", (atkC.getY() + atk.getY()));
         defendY.setDuration(BattleFragment.ANIMATION_LONG / 3);
-        final ImageView contact2 = new ImageView(context);
+        final SimpleDraweeView contact2 = new SimpleDraweeView(context);
         contact2.setMaxWidth(100);
         contact2.setMaxHeight(100);
         contact2.setAdjustViewBounds(true);
@@ -888,10 +889,10 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet stream(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def, int spreadId) {
+    public static AnimatorSet stream(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def, int spreadId) {
         AnimatorSet animatorSet = new AnimatorSet();
         int initialSize = 40;
-        final ImageView flash1 = new ImageView(context);
+        final SimpleDraweeView flash1 = new SimpleDraweeView(context);
         flash1.setImageResource(spreadId);
         flash1.setMaxHeight(initialSize);
         flash1.setMaxWidth(initialSize);
@@ -900,35 +901,35 @@ public class BattleAnimation {
         float startY = atkC.getY() + atk.getY() + atk.getHeight() * 0.5f - 20;
         flash1.setX(startX);
         flash1.setY(startY);
-        final ImageView flash2 = new ImageView(context);
+        final SimpleDraweeView flash2 = new SimpleDraweeView(context);
         flash2.setImageResource(spreadId);
         flash2.setMaxHeight(initialSize);
         flash2.setMaxWidth(initialSize);
         flash2.setAdjustViewBounds(true);
         flash2.setX(startX);
         flash2.setY(startY);
-        final ImageView flash3 = new ImageView(context);
+        final SimpleDraweeView flash3 = new SimpleDraweeView(context);
         flash3.setImageResource(spreadId);
         flash3.setMaxHeight(initialSize);
         flash3.setMaxWidth(initialSize);
         flash3.setAdjustViewBounds(true);
         flash3.setX(startX);
         flash3.setY(startY);
-        final ImageView flash4 = new ImageView(context);
+        final SimpleDraweeView flash4 = new SimpleDraweeView(context);
         flash4.setImageResource(spreadId);
         flash4.setMaxHeight(initialSize);
         flash4.setMaxWidth(initialSize);
         flash4.setAdjustViewBounds(true);
         flash4.setX(startX);
         flash4.setY(startY);
-        final ImageView flash5 = new ImageView(context);
+        final SimpleDraweeView flash5 = new SimpleDraweeView(context);
         flash5.setImageResource(spreadId);
         flash5.setMaxHeight(initialSize);
         flash5.setMaxWidth(initialSize);
         flash5.setAdjustViewBounds(true);
         flash5.setX(startX);
         flash5.setY(startY);
-        final ImageView flash6 = new ImageView(context);
+        final SimpleDraweeView flash6 = new SimpleDraweeView(context);
         flash6.setImageResource(spreadId);
         flash6.setMaxHeight(initialSize);
         flash6.setMaxWidth(initialSize);
@@ -1062,7 +1063,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet earth(final RelativeLayout defC, final ImageView def) {
+    public static AnimatorSet earth(final LinearLayout defC, final SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
         float left = 0f;
         float right = defC.getWidth() - def.getWidth();
@@ -1072,7 +1073,7 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet phaze(final ImageView def) {
+    public static AnimatorSet phaze(final SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
         ObjectAnimator spin = ObjectAnimator.ofFloat(def, "rotation", 1080f);
         spin.setDuration(BattleFragment.ANIMATION_LONG);
@@ -1087,12 +1088,12 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet thunderStrong(Context context, final RelativeLayout defC, final ImageView def) {
+    public static AnimatorSet thunderStrong(Context context, final LinearLayout defC, final SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView thunder1 = new ImageView(context);
+        final SimpleDraweeView thunder1 = new SimpleDraweeView(context);
         thunder1.setImageResource(R.drawable.battle_lightning);
         thunder1.setMaxHeight(defC.getHeight());
-        thunder1.setScaleType(ImageView.ScaleType.FIT_END);
+        thunder1.setScaleType(SimpleDraweeView.ScaleType.FIT_END);
         thunder1.setAdjustViewBounds(true);
         thunder1.setX(def.getX() + def.getWidth() * 0.5f);
         ObjectAnimator flash1 = ObjectAnimator.ofFloat(thunder1, "alpha", 0f, 1f);
@@ -1119,20 +1120,20 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet thunderNeutral(Context context, final RelativeLayout defC, final ImageView def) {
+    public static AnimatorSet thunderNeutral(Context context, final LinearLayout defC, final SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
         final ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        final ImageView thunder1 = new ImageView(context);
+        final SimpleDraweeView thunder1 = new SimpleDraweeView(context);
         thunder1.setImageResource(R.drawable.battle_lightning);
         thunder1.setMaxHeight(def.getHeight());
         thunder1.setAdjustViewBounds(true);
         thunder1.setX(def.getX() + def.getWidth() * 0.5f);
-        final ImageView thunder2 = new ImageView(context);
+        final SimpleDraweeView thunder2 = new SimpleDraweeView(context);
         thunder2.setImageResource(R.drawable.battle_lightning);
         thunder2.setMaxHeight(def.getHeight());
         thunder2.setAdjustViewBounds(true);
         thunder2.setX(def.getX() + def.getWidth() * 0.5f - 20);
-        final ImageView thunder3 = new ImageView(context);
+        final SimpleDraweeView thunder3 = new SimpleDraweeView(context);
         thunder3.setImageResource(R.drawable.battle_lightning);
         thunder3.setMaxHeight(def.getHeight());
         thunder3.setAdjustViewBounds(true);
@@ -1183,10 +1184,10 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet thunderWeak(Context context, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def) {
+    public static AnimatorSet thunderWeak(Context context, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def) {
         AnimatorSet animatorSet = new AnimatorSet();
         final ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        final ImageView glow = new ImageView(context);
+        final SimpleDraweeView glow = new SimpleDraweeView(context);
         glow.setImageResource(R.drawable.battle_electroball);
         glow.setAlpha(0.5f);
         glow.setMaxWidth(40);
@@ -1194,7 +1195,7 @@ public class BattleAnimation {
         glow.setX(atk.getX() + atk.getWidth() * 0.5f);
         glow.setY(atk.getY() + atk.getHeight() * 0.5f);
         glow.setAdjustViewBounds(true);
-        final ImageView thunder = new ImageView(context);
+        final SimpleDraweeView thunder = new SimpleDraweeView(context);
         thunder.setImageResource(R.drawable.battle_lightning);
         thunder.setMaxHeight(defC.getHeight());
         thunder.setAdjustViewBounds(true);
@@ -1232,9 +1233,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet status(Context context, final RelativeLayout defC, final ImageView def, int statusId) {
+    public static AnimatorSet status(Context context, final LinearLayout defC, final SimpleDraweeView def, int statusId) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView status = new ImageView(context);
+        final SimpleDraweeView status = new SimpleDraweeView(context);
         status.setImageResource(statusId);
         status.setMaxHeight(100);
         status.setMaxWidth(100);
@@ -1260,9 +1261,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet ball(Context context, final RelativeLayout wrapper, final RelativeLayout atkC, final ImageView atk, final RelativeLayout defC, final ImageView def, int ballId) {
+    public static AnimatorSet ball(Context context, final RelativeLayout wrapper, final LinearLayout atkC, final SimpleDraweeView atk, final LinearLayout defC, final SimpleDraweeView def, int ballId) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView ball = new ImageView(context);
+        final SimpleDraweeView ball = new SimpleDraweeView(context);
         ball.setImageResource(ballId);
         ball.setMaxHeight(atk.getHeight());
         ball.setMaxWidth(atk.getWidth());
@@ -1290,9 +1291,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet wish(Context context, final RelativeLayout atkC, final ImageView atk) {
+    public static AnimatorSet wish(Context context, final LinearLayout atkC, final SimpleDraweeView atk) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView wish = new ImageView(context);
+        final SimpleDraweeView wish = new SimpleDraweeView(context);
         wish.setImageResource(R.drawable.battle_wisp);
         wish.setMaxWidth(60);
         wish.setMaxHeight(60);
@@ -1316,9 +1317,9 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet slash(Context context, final RelativeLayout defC) {
+    public static AnimatorSet slash(Context context, final LinearLayout defC) {
         AnimatorSet animatorSet = new AnimatorSet();
-        final ImageView slash = new ImageView(context);
+        final SimpleDraweeView slash = new SimpleDraweeView(context);
         slash.setImageResource(R.drawable.battle_leftclaw);
         ObjectAnimator slashX = ObjectAnimator.ofFloat(slash, "x", defC.getWidth());
         slashX.setDuration(BattleFragment.ANIMATION_LONG);
@@ -1341,22 +1342,22 @@ public class BattleAnimation {
         return animatorSet;
     }
 
-    public static AnimatorSet bomb(Context context, final RelativeLayout defC, final ImageView def, int bombId) {
+    public static AnimatorSet bomb(Context context, final LinearLayout defC, final SimpleDraweeView def, int bombId) {
         AnimatorSet animatorSet = new AnimatorSet();
         int maxSize = 240;
-        final ImageView bomb1 = new ImageView(context);
+        final SimpleDraweeView bomb1 = new SimpleDraweeView(context);
         bomb1.setImageResource(bombId);
         bomb1.setMaxHeight(maxSize);
         bomb1.setMaxWidth(maxSize);
         bomb1.setAdjustViewBounds(true);
-        final ImageView bomb2 = new ImageView(context);
+        final SimpleDraweeView bomb2 = new SimpleDraweeView(context);
         bomb2.setImageResource(bombId);
         bomb2.setMaxHeight(maxSize);
         bomb2.setMaxWidth(maxSize);
         bomb2.setAdjustViewBounds(true);
         bomb2.setX(defC.getWidth() / 4);
         bomb2.setY(defC.getHeight() / 4);
-        final ImageView bomb3 = new ImageView(context);
+        final SimpleDraweeView bomb3 = new SimpleDraweeView(context);
         bomb3.setImageResource(bombId);
         bomb3.setMaxHeight(maxSize);
         bomb3.setMaxWidth(maxSize);

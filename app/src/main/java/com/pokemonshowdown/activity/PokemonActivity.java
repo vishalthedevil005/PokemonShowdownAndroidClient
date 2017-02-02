@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -28,11 +29,16 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.pokemonshowdown.R;
+import com.pokemonshowdown.adapter.ImageAdapter;
+import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.AbilityDex;
 import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.MoveDex;
+import com.pokemonshowdown.data.Pokedex;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.dialog.StatsDialog;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,6 +59,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
     private AutofitTextView pokeName;
     private AutofitTextView itemLabel;
     private AutofitTextView nature;
+    private ImageView pokeIcon;
     private View hpBar, atkBar, defBar, spAtkBar, spDefBar, speBar;
     private AutofitTextView hpIvs, atkIvs, defIvs, spAtkIvs, spDefIvs, speIvs;
     private AutofitTextView hpStats, atkStats, defStats, spAtkStats, spDefStats, speStats;
@@ -83,8 +90,12 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
         position = extras.getInt("position");
 
-        ImageView pokeIcon = (ImageView) findViewById(R.id.poke_icon);
+        pokeIcon = (ImageView) findViewById(R.id.poke_icon);
+        if (mPokemon.isShiny()) {
+            mPokemon.switchFrontShiny(getContext(), true);
+        }
         pokeIcon.setImageResource(mPokemon.getFrontSprite());
+        pokeIcon.setOnClickListener(this);
 
         pokeName = (AutofitTextView) findViewById(R.id.poke_name);
         pokeName.setText(mPokemon.getNickName());
@@ -134,37 +145,29 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
         }
         itemLabel.setOnClickListener(this);
 
-        ArrayList<String> abilities = new ArrayList<>();
+        String currentAbility = mPokemon.getAbility(getContext());
+        final ArrayList<String> abilities = new ArrayList<>();
         for (String key : mPokemon.getAbilityList().keySet()) {
             abilities.add(mPokemon.getAbilityList().get(key));
+            if (mPokemon.getAbilityList().get(key).equals(currentAbility)) {
+                currentAbility = "";
+            }
         }
+
+        // Unavailable abilities, but compatible with Hackmons
+        if (!currentAbility.isEmpty()) {
+            abilities.add(currentAbility);
+        }
+        abilities.add("Other ability...");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.fragment_user_list, abilities);
         final Spinner abilitiesSpinner = (Spinner) findViewById(R.id.poke_ability_spinner);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         abilitiesSpinner.setAdapter(adapter);
 
-        abilitiesSpinner.setSelection(abilities.indexOf(mPokemon.getAbility()));
+        abilitiesSpinner.setSelection(abilities.indexOf(mPokemon.getAbility(getContext())));
 
-        abilitiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                String k = "";
-                for (String key : mPokemon.getAbilityList().keySet()) {
-                    if (mPokemon.getAbilityList().get(key).equals(abilitiesSpinner.getSelectedItem().toString())) {
-                        k = key;
-                        break;
-                    }
-                }
-
-                mPokemon.setAbilityTag(k);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
+        abilitiesSpinner.setOnItemSelectedListener(getItemClickListener(abilities, abilitiesSpinner));
 
         nature = (AutofitTextView) findViewById(R.id.nature);
         nature.setText(mPokemon.getNature());
@@ -263,6 +266,39 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
         setupStatsBars();
     }
 
+    private AdapterView.OnItemSelectedListener getItemClickListener(final ArrayList<String> abilities, final Spinner abilitiesSpinner) {
+        return new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (abilities.get(position).equals("Other ability...")) {
+                    startActivityForAbility();
+                    return;
+                }
+
+                String k = "";
+                for (String key : mPokemon.getAbilityList().keySet()) {
+                    if (mPokemon.getAbilityList().get(key).equals(abilitiesSpinner.getSelectedItem().toString())) {
+                        k = key;
+                        break;
+                    }
+                }
+
+                mPokemon.setAbilityTag(k);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        };
+    }
+
+    private void startActivityForAbility() {
+        Intent intent = new Intent(getApplicationContext(), SearchableActivity.class);
+        intent.putExtra(SearchableActivity.SEARCH_TYPE, SearchableActivity.REQUEST_CODE_SEARCH_ABILITY);
+        startActivityForResult(intent, SearchableActivity.REQUEST_CODE_SEARCH_ABILITY);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
@@ -278,7 +314,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 } catch (JSONException ex) {
                     ex.printStackTrace();
                 }
-            } else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_ITEM) {
+            } /* else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_ITEM) {
                 String item = data.getExtras().getString("Search");
                 JSONObject itemJson = ItemDex.get(getApplicationContext()).getItemJsonObject(item);
                 try {
@@ -289,8 +325,8 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 } catch (JSONException ex) {
                     ex.printStackTrace();
                 }
-                TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
-            } else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_MOVES) {
+                TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
+            }*/ else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_MOVES) {
                 String move = data.getExtras().getString("Search");
                 JSONObject moveJson = MoveDex.get(getApplicationContext()).getMoveJsonObject(move);
                 try {
@@ -329,7 +365,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 } catch (JSONException ex) {
                     ex.printStackTrace();
                 }
-                TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
+                TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
 
                 // hiddenpower X : change IV'
                 // furstration : set 0 happiness
@@ -390,6 +426,18 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
                     }
                 }
+            } else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_ABILITY) {
+                String ability = data.getExtras().getString("Search");
+                Toast.makeText(this, ability, Toast.LENGTH_SHORT).show();
+                mPokemon.setAbilityTag(ability);
+
+                try {
+                    ability = AbilityDex.get(getContext()).getAbilityJsonObject(ability).getString("name");
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                }
+
+                Toast.makeText(this, "Custom ability \"" + ability + "\" setted", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -406,13 +454,96 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
     @Override
     public void onBackPressed() {
-        TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
+        TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
         super.onBackPressed();
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.poke_icon:
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle("Select Form");
+                final ArrayList<Integer> iconIdList = new ArrayList<Integer>();
+                final ArrayList<String> iconNameList = new ArrayList<>();
+                GridView gridView = new GridView(getContext());
+
+                // Check if said pokemon has multiple forms (Vivillon)
+                ArrayList<String> otherForms = new ArrayList<>();
+                try {
+                    JSONArray array = Pokedex.get(getContext()).getPokemonJSONObject(mPokemon.getRealName()).getJSONArray("otherForms");
+                    for (int i = 0; i < array.length(); i++) {
+                        otherForms.add(array.getString(i));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                iconIdList.add(getApplicationContext().getResources().getIdentifier("sprites_front_" + MyApplication.toId(mPokemon
+                        .getRealName()), "drawable", getApplicationContext().getPackageName()));
+                iconIdList.add(getApplicationContext().getResources().getIdentifier("sprshiny_front_" + MyApplication.toId(mPokemon
+                        .getRealName()), "drawable", getApplicationContext().getPackageName()));
+                iconNameList.add("sprites_front_" + MyApplication.toId(mPokemon.getName()));
+                iconNameList.add("sprshiny_front_" + MyApplication.toId(mPokemon.getName()));
+
+                if (!otherForms.isEmpty()) {
+                    for (String s : otherForms) {
+                        iconIdList.add(getApplicationContext().getResources().getIdentifier("sprites_front_" + s, "drawable",
+                                getApplicationContext().getPackageName()));
+                        iconIdList.add(getApplicationContext().getResources().getIdentifier("sprshiny_front_" + s, "drawable",
+                                getApplicationContext().getPackageName()));
+                        iconNameList.add("sprites_front_" + s);
+                        iconNameList.add("sprshiny_front_" + s);
+                    }
+
+                    ImageAdapter iconItems = new ImageAdapter(getContext(), iconIdList);
+
+                    gridView.setAdapter(iconItems);
+                    gridView.setNumColumns(3);
+                    gridView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
+                    builder.setView(gridView);
+                    final AlertDialog alert = builder.create();
+
+                    gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
+                            if (iconNameList.get(i).contains("sprshiny_front_")) {
+                                mPokemon.setShiny(true);
+                            } else {
+                                mPokemon.setShiny(false);
+                            }
+                            Pokemon original = mPokemon;
+                            String name = iconNameList.get(i);
+                            mPokemon = new Pokemon(getContext(), name.substring(name.lastIndexOf("_") + 1));
+                            mPokemon.setNickName(original.getNickName());
+                            mPokemon.setShiny(original.isShiny());
+                            mPokemon.setAbilityTag(original.getAbilityTag());
+                            mPokemon.setItem(original.getItem());
+                            mPokemon.setAtkEV(original.getAtkEV());
+                            mPokemon.setDefEV(original.getDefEV());
+                            mPokemon.setSpAtkEV(original.getSpAtkEV());
+                            mPokemon.setSpDefEV(original.getSpDefEV());
+                            mPokemon.setSpdEV(original.getSpdEV());
+                            mPokemon.setAtkIV(original.getAtkIV());
+                            mPokemon.setDefIV(original.getDefIV());
+                            mPokemon.setSpAtkIV(original.getSpAtkIV());
+                            mPokemon.setSpDefIV(original.getSpDefIV());
+                            mPokemon.setSpdIV(original.getSpdIV());
+                            TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
+
+                            // force activity restart, for new name and all
+                            Intent intent = getIntent();
+                            intent.putExtra("pokemon", new Gson().toJson(mPokemon));
+                            intent.putExtra("position", position);
+                            finish();
+                            startActivity(intent);
+                            alert.dismiss();
+                        }
+                    });
+
+                    alert.show();
+                }
+                break;
             case R.id.poke_name:
                 final EditText dialogView = new EditText(getContext());
                 dialogView.setText(mPokemon.getNickName());
@@ -718,7 +849,7 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
 
         String[] femaleOnly = new String[]{"Nidoran♀", "Nidorina", "Nidoqueen", "Illumise", "Latias", "Gardevoir", "Froslass", "Wormadan",
                 "Vespiqueen", "Salazzle", "Happiny", "Chansey", "Blissey", "Kangaskhan", "Smoochum", "Jynx", "Miltank", "Cresselia",
-                "Petilill", "Lilligant", "Vullaby", "Mandibuzz", "Flabébé", "Floette", "Florges", "Bounsweet", "Steenee", "Tsarenna"};
+                "Petilill", "Lilligant", "Vullaby", "Mandibuzz", "Flabébé", "Flabebe", "Floette", "Florges", "Bounsweet", "Steenee", "Tsarenna"};
 
         String[] genderless = new String[]{"Arceus", "Articuno", "Azelf", "Baltoy", "Beldum", "Bronzong", "Bronsor", "Buzzwole",
                 "Carbink", "Celebi", "Celesteela", "Claydol", "Cobalion", "Cosmoem", "Cosmog", "Cryogonal", "Darkrai", "Deoxys", "Dhelmise",
@@ -1004,12 +1135,12 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
             spDefStats.invalidate();
             speStats.setText("" + stats[5]);
             speStats.invalidate();
-            TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
+            TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
         }
 
         public void setPokemonEVs(int[] evs) {
             mPokemon.setEVs(evs);
-            TeamBuildingActivity.firePokemonSwapping(mPokemon, position);
+            TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
         }
 
         public void setupBars() {

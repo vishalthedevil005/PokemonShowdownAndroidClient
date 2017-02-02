@@ -10,12 +10,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -28,14 +30,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +63,10 @@ import org.json.JSONObject;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+
+import me.grantland.widget.AutofitTextView;
 
 public class BattleFragment extends Fragment {
     public final static String BTAG = BattleFragment.class.getName();
@@ -86,11 +93,17 @@ public class BattleFragment extends Fragment {
     /**
      * false if battle not over
      */
-    public static Receiver RECEIVER;
     private boolean mBattleEnd;
+    private boolean mMegaEvo = false;
+    private boolean mHasUseZMove = false;
+    private boolean mReOriented = false;
+    public static Receiver RECEIVER;
     private boolean mTimer;
     private String mPlayer1;
     private String mPlayer2;
+    private String mFormat;
+    private String mGametype;
+    private String mGen;
     private ArrayList<PokemonInfo> mPlayer1Team = new ArrayList<>();
     private ArrayList<PokemonInfo> mPlayer2Team = new ArrayList<>();
     private String mCurrentWeather;
@@ -113,9 +126,14 @@ public class BattleFragment extends Fragment {
 
         if (savedInstanceState != null) {
             mRoomId = savedInstanceState.getString(ROOM_ID);
+            mMegaEvo = savedInstanceState.getBoolean("mega_evo");
+            mHasUseZMove = savedInstanceState.getBoolean("z_move");
+            mFormat = savedInstanceState.getString("format");
+            mGametype = savedInstanceState.getString("gametype");
+            mGen = savedInstanceState.getString("gen");
+            mCurrentWeather = savedInstanceState.getString("weather");
         } else {
             mRoomId = ContainerActivity.lastRoomIdCreated;
-            RECEIVER = new Receiver();
         }
 
         return view;
@@ -125,15 +143,9 @@ public class BattleFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (getArguments() != null) {
-            mRoomId = getArguments().getString(ROOM_ID);
-            if (getArguments().getBoolean("instantiated")) {
-                return;
-            }
-        }
-
         mBattling = 0;
         mBattleEnd = false;
+        RECEIVER = new Receiver();
         //Toast.makeText(getContext(), R.string.loading, Toast.LENGTH_SHORT).show();
 
         view.findViewById(R.id.battlelog).setOnClickListener(new View.OnClickListener() {
@@ -164,6 +176,21 @@ public class BattleFragment extends Fragment {
             public void onClick(View v) {
                 if (getView() != null) {
                     getView().findViewById(R.id.back).setVisibility(View.GONE);
+
+                    if (isTeamPreview()) {
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                            ((AutofitTextView) getView().findViewById(R.id.action_label)).setText("How will you start the battle?");
+                        }
+                    } else {
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                            ((AutofitTextView) getView().findViewById(R.id.action_label)).setText("What will " + getCurrentActivePokemon().getName() + " do?");
+                        }
+
+                        if (mMegaEvo && !getCurrentActivePokemon().getName().contains("Mega")
+                                && getCurrentActivePokemon().canMegaEvo()) {
+                            mMegaEvo = false;
+                        }
+                    }
                 }
                 MyApplication.getMyApplication().sendClientMessage(mRoomId + "|/undo");
                 setRequestJson(getUndoMessage());
@@ -187,14 +214,25 @@ public class BattleFragment extends Fragment {
                 if (battleLog != null) {
                     battleLog.setChatBox(null);
                 }
+
+                mReOriented = true;
                 for (String serverMessage : serverMessageArchive) {
                     processServerMessage(serverMessage);
                 }
                 endAllAnimations();
+                mReOriented = false;
             }
         }
 
         //getArguments().putBoolean("instantiated", true);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            mBattleEnd = savedInstanceState.getBoolean("battle_end", false);
+        }
     }
 
     @Override
@@ -223,6 +261,19 @@ public class BattleFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ROOM_ID, mRoomId);
+        outState.putBoolean("battle_end", mBattleEnd);
+        outState.putBoolean("mega_evo", mMegaEvo);
+        outState.putBoolean("z_move", mHasUseZMove);
+        outState.putString("format", mFormat);
+        outState.putString("gametype", mGametype);
+        outState.putString("gen", mGen);
+        outState.putString("weather", mCurrentWeather);
+    }
+
     public void setUpTimer() {
         if (getView() == null) {
             return;
@@ -238,9 +289,11 @@ public class BattleFragment extends Fragment {
                 if (mTimer) {
                     timer.setBackgroundResource(R.drawable.editable_frame_light_red);
                     MyApplication.getMyApplication().sendClientMessage(mRoomId + "|/timer on");
+                    Toast.makeText(getContext(), "Battle timer is now ON", Toast.LENGTH_SHORT).show();
                 } else {
-                    timer.setBackgroundResource(R.drawable.editable_frame_light_red);
+                    timer.setBackgroundResource(R.drawable.button_battle_action);
                     MyApplication.getMyApplication().sendClientMessage(mRoomId + "|/timer off");
+                    Toast.makeText(getContext(), "Battle timer is now OFF", Toast.LENGTH_SHORT).show();
                 }
                 if (getAnimatorSetQueue().isEmpty() && getRequestJson() != null) {
                     startRequest();
@@ -250,6 +303,12 @@ public class BattleFragment extends Fragment {
     }
 
     public void processServerMessage(final String message) {
+        if (getView() != null && !isTeamPreview()) {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(" ");
+            }
+        }
+
         BattleFieldData.RoomData roomData = BattleFieldData.get(getContext()).getAnimationInstance(mRoomId);
         if (roomData != null) {
             roomData.addServerMessageArchive(message);
@@ -350,6 +409,34 @@ public class BattleFragment extends Fragment {
 
     public void setBattling(int i) {
         mBattling = i;
+    }
+
+    public void setFormat(String format) {
+        mFormat = format;
+    }
+
+    public String getFormat() {
+        return mFormat;
+    }
+
+    public void setGametype(String gametype) {
+        mGametype = gametype;
+    }
+
+    public String getGametype() {
+        return mGametype;
+    }
+
+    public void setGen(String gen) {
+        mGen = gen;
+    }
+
+    public String getGen() {
+        return mGen;
+    }
+
+    public boolean getReOriented() {
+        return mReOriented;
     }
 
     public void setBattling(JSONObject object) throws JSONException {
@@ -922,6 +1009,7 @@ public class BattleFragment extends Fragment {
             }
             stt.setPadding(2, 2, 2, 2);
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
             stt.setLayoutParams(layoutParams);
 
             statusBar.addView(stt, 0);
@@ -1076,7 +1164,7 @@ public class BattleFragment extends Fragment {
 
     public void hidePokemon(String tag) {
         try {
-            RelativeLayout relativeLayout;
+            LinearLayout linearLayout;
             int layoutId;
 
             tag = tag.substring(0, 3);
@@ -1103,9 +1191,9 @@ public class BattleFragment extends Fragment {
                     layoutId = R.id.p2c;
             }
 
-            relativeLayout = (RelativeLayout) getView().findViewById(layoutId);
-            relativeLayout.setVisibility(View.INVISIBLE);
-            relativeLayout.invalidate();
+            linearLayout = (LinearLayout) getView().findViewById(layoutId);
+            linearLayout.setVisibility(View.INVISIBLE);
+            linearLayout.invalidate();
         } catch (NullPointerException e) {
 
         }
@@ -1122,7 +1210,7 @@ public class BattleFragment extends Fragment {
 
     public void displayPokemon(String tag) {
         try {
-            RelativeLayout relativeLayout;
+            LinearLayout linearLayout;
             int layoutId;
 
             tag = tag.substring(0, 3);
@@ -1145,8 +1233,8 @@ public class BattleFragment extends Fragment {
                 default:
                     layoutId = R.id.p2c;
             }
-            relativeLayout = (RelativeLayout) getView().findViewById(layoutId);
-            relativeLayout.setVisibility(View.VISIBLE);
+            linearLayout = (LinearLayout) getView().findViewById(layoutId);
+            linearLayout.setVisibility(View.VISIBLE);
             getView().findViewById(getSpriteId(tag)).setAlpha(1f);
             if (!isBatonPass()) {
                 ((LinearLayout) getView().findViewById(getTempStatusId(tag))).removeAllViews();
@@ -1159,10 +1247,10 @@ public class BattleFragment extends Fragment {
                 removeAddonStatus(tag, "par");
                 removeAddonStatus(tag, "frz");
             }
-            ImageView sub = (ImageView) relativeLayout.findViewWithTag("Substitute");
+            ImageView sub = (ImageView) linearLayout.findViewWithTag("Substitute");
             if (sub != null) {
                 if (!isBatonPass()) {
-                    relativeLayout.removeView(sub);
+                    linearLayout.removeView(sub);
                 } else {
                     getView().findViewById(getSpriteId(tag)).setAlpha(0.2f);
                 }
@@ -1474,7 +1562,7 @@ public class BattleFragment extends Fragment {
     private void sendCommands(StringBuilder command) {
         command.insert(0, getRoomId());
         command.append("|").append(getRqid());
-        Log.d(BTAG, command.toString());
+        Log.d("myst tag", command.toString());
         MyApplication.getMyApplication().sendClientMessage(command.toString());
 
         if (getView() != null) {
@@ -1489,9 +1577,18 @@ public class BattleFragment extends Fragment {
     }
 
     public void processSwitch(int id) throws JSONException {
+        Toast.makeText(getContext(), "processSwitch(" + id + ")", Toast.LENGTH_SHORT).show();
         if (isTeamPreview()) {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(getPlayer1Team().get(id).getName()
+                        + " will be sent out first.");
+            }
             chooseLeadInTeamPreview(id);
         } else {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(getPlayer1Team().get(id).getName()
+                        + " will replace " + getCurrentActivePokemon().getName());
+            }
             chooseSwitch(id);
         }
     }
@@ -1541,7 +1638,6 @@ public class BattleFragment extends Fragment {
                 mChooseCommand.append(lineUp.get(i));
             }
 
-            setTeamPreview(false);
             triggerTeamPreview(false);
             sendCommands(mChooseCommand);
         }
@@ -1620,46 +1716,47 @@ public class BattleFragment extends Fragment {
                         setBattling(-1);
                         switchUpPlayer();
                     }
-                    JSONObject sideJson = requestJson.getJSONObject("side");
-                    JSONArray teamJson = sideJson.getJSONArray("pokemon");
-                    setPlayer1Team(new ArrayList<PokemonInfo>());
-                    for (int i = 0; i < teamJson.length(); i++) {
-                        JSONObject info = teamJson.getJSONObject(i);
-                        final PokemonInfo pkm = BattleMessage.parsePokemonInfo(BattleFragment.this, info);
-                        getPlayer1Team().add(pkm);
-                        final int pos = i;
+                }
 
-                        getActivity().runOnUiThread(new RunWithNet() {
-                            @Override
-                            public void runWithNet() {
-                                if (getView() == null) {
-                                    return;
-                                }
+                JSONArray teamJson = requestJson.getJSONObject("side").getJSONArray("pokemon");
+                setPlayer1Team(new ArrayList<PokemonInfo>());
 
-                                int pkmIcon = Pokemon.getPokemonIcon(getContext(),
-                                        MyApplication.toId(pkm.getName()));
-                                ImageView icon = (ImageView) getView().findViewById(getIconId("p1", pos));
-                                icon.setImageResource(pkmIcon);
-                                float alpha = pkm.getHp() == 0 ? 0.5f : 1f;
-                                icon.setAlpha(alpha);
+                for (int i = 0; i < teamJson.length(); i++) {
+                    JSONObject info = teamJson.getJSONObject(i);
+                    final PokemonInfo pkm = BattleMessage.parsePokemonInfo(BattleFragment.this, info);
+                    getPlayer1Team().add(pkm);
+                    final int pos = i;
+
+                    getActivity().runOnUiThread(new RunWithNet() {
+                        @Override
+                        public void runWithNet() {
+                            if (getView() == null) {
+                                return;
                             }
-                        });
-                    }
-                    for (int i = teamJson.length(); i < 6; i++) {
-                        // we set the rest to empty balls (for vgc)
-                        final int finalI = i;
-                        new RunWithNet() {
-                            @Override
-                            public void runWithNet() {
-                                if (getView() == null) {
-                                    return;
-                                }
-                                ImageView icon = (ImageView) getView().findViewById(getIconId("p1", finalI));
-                                icon.setImageResource(R.drawable.pokeball_none);
-                            }
-                        }.run();
 
-                    }
+                            int pkmIcon = Pokemon.getPokemonIcon(getContext(),
+                                    MyApplication.toId(pkm.getName()));
+                            ImageView icon = (ImageView) getView().findViewById(getIconId("p1", pos));
+                            icon.setImageResource(pkmIcon);
+                            float alpha = pkm.getHp() == 0 ? 0.5f : 1f;
+                            icon.setAlpha(alpha);
+                        }
+                    });
+                }
+                for (int i = teamJson.length(); i < 6; i++) {
+                    // we set the rest to empty balls (for vgc)
+                    final int finalI = i;
+                    new RunWithNet() {
+                        @Override
+                        public void runWithNet() {
+                            if (getView() == null) {
+                                return;
+                            }
+                            ImageView icon = (ImageView) getView().findViewById(getIconId("p1", finalI));
+                            icon.setImageResource(R.drawable.pokeball_none);
+                        }
+                    }.run();
+
                 }
 
                 setRqid(requestJson.optInt("rqid", 0));
@@ -1697,22 +1794,26 @@ public class BattleFragment extends Fragment {
     private void triggerAttackOptions(final JSONArray active) {
         if (getView() == null) {
             return;
+        } else {
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                ((AutofitTextView) getView().findViewById(R.id.action_label)).setText("What will " + getCurrentActivePokemon().getName() + " do?");
+            }
         }
 
         FrameLayout frameLayout = (FrameLayout) getView().findViewById(R.id.action_interface);
         frameLayout.removeAllViews();
 
         getActivity().getLayoutInflater().inflate(R.layout.fragment_battle_action_moves, frameLayout);
-        RelativeLayout[] moveViews = new RelativeLayout[4];
-        moveViews[0] = (RelativeLayout) getView().findViewById(R.id.active_move1);
-        moveViews[1] = (RelativeLayout) getView().findViewById(R.id.active_move2);
-        moveViews[2] = (RelativeLayout) getView().findViewById(R.id.active_move3);
-        moveViews[3] = (RelativeLayout) getView().findViewById(R.id.active_move4);
-        TextView[] moveNames = new TextView[4];
-        moveNames[0] = (TextView) getView().findViewById(R.id.active_move1_name);
-        moveNames[1] = (TextView) getView().findViewById(R.id.active_move2_name);
-        moveNames[2] = (TextView) getView().findViewById(R.id.active_move3_name);
-        moveNames[3] = (TextView) getView().findViewById(R.id.active_move4_name);
+        LinearLayout[] moveViews = new LinearLayout[4];
+        moveViews[0] = (LinearLayout) getView().findViewById(R.id.active_move1);
+        moveViews[1] = (LinearLayout) getView().findViewById(R.id.active_move2);
+        moveViews[2] = (LinearLayout) getView().findViewById(R.id.active_move3);
+        moveViews[3] = (LinearLayout) getView().findViewById(R.id.active_move4);
+        final AutofitTextView[] moveNames = new AutofitTextView[4];
+        moveNames[0] = (AutofitTextView) getView().findViewById(R.id.active_move1_name);
+        moveNames[1] = (AutofitTextView) getView().findViewById(R.id.active_move2_name);
+        moveNames[2] = (AutofitTextView) getView().findViewById(R.id.active_move3_name);
+        moveNames[3] = (AutofitTextView) getView().findViewById(R.id.active_move4_name);
         TextView[] movePps = new TextView[4];
         movePps[0] = (TextView) getView().findViewById(R.id.active_move1_pp);
         movePps[1] = (TextView) getView().findViewById(R.id.active_move2_pp);
@@ -1727,11 +1828,71 @@ public class BattleFragment extends Fragment {
         PokemonInfo currentPokemonInfo = getCurrentActivePokemon();
         CheckBox checkBox = (CheckBox) getView().findViewById(R.id.mega_evolution_checkbox);
 
-        if (currentPokemonInfo.canMegaEvo()) {
+        if (currentPokemonInfo.canMegaEvo() && mMegaEvo && !currentPokemonInfo.getName().contains("-Mega")) {
+            mMegaEvo = false;
+        }
+
+        boolean temp = false;
+        if (currentPokemonInfo.canMegaEvo() && !mMegaEvo) {
             checkBox.setVisibility(View.VISIBLE);
+        } else if (!currentPokemonInfo.getName().contains("-Mega") && currentPokemonInfo.canZMove() && !mHasUseZMove) {
+            checkBox.setVisibility(View.VISIBLE);
+            checkBox.setText("Use Z-Move");
+            temp = true;
         } else {
             checkBox.setVisibility(View.GONE);
         }
+
+        final boolean isZMove = temp;
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isZMove && isChecked) {
+                    String crystal = getCurrentActivePokemon().getItemName(getContext());
+                    List<String> types = new ArrayList<>();
+                    List<String> power = new ArrayList<>();
+                    List<String> boost = new ArrayList<>();
+                    String type = "null";
+                    String zPower = "null";
+                    String zBoost = "null";
+
+                    try {
+                        JSONArray atk = active.getJSONObject(mCurrentActivePokemon).getJSONArray("moves");
+                        for (int i = 0; i < atk.length(); i++) {
+                            JSONObject obj = MoveDex.get(getContext()).getMoveJsonObject(atk.getJSONObject(i).getString("id"));
+
+                            type = obj.getString("type");
+                            if (obj.has("zMovePower")) {
+                                zPower = obj.getString("zMovePower");
+                            }
+                            if (obj.has("zMoveBoost")) {
+                                zBoost = obj.getString("zMoveBoost");
+                            }
+
+                            types.add(type);
+                            power.add(zPower);
+                            boost.add(zBoost);
+                            //Toast.makeText(getContext(), "Type: " + type + " | zPower: " + zPower + " | zBoost: " + zBoost, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+                    }
+
+                    switch (crystal) {
+                        case "Normalium Z":
+                            for (int i = 0; i < types.size(); i++) {
+                                if (types.get(i).equals("Normal")) {
+                                    Toast.makeText(getContext(), "Breakneck Blitz " + power.get(i) + "BP | " + boost + " Effect", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            break;
+                    }
+                } else {
+                    mMegaEvo = isChecked;
+                }
+                mHasUseZMove = isChecked;
+            }
+        });
 
         try {
             JSONObject currentActive = active.getJSONObject(mCurrentActivePokemon);
@@ -1740,21 +1901,80 @@ public class BattleFragment extends Fragment {
                     currentActive.optBoolean("maybeTrapped");
             if (!trapped || moves.length() != 1) {
                 for (int i = 0; i < moves.length(); i++) {
-                    JSONObject moveJson = moves.getJSONObject(i);
-                    moveNames[i].setText(moveJson.getString("move"));
+                    final JSONObject moveJson = moves.getJSONObject(i);
+                    String move = moveJson.getString("move");
+                    if (move.contains("Return") || move.contains("Frustration")) {
+                        move = move.replaceAll("[^A-z]", "");
+                    }
+                    moveNames[i].setText(move);
                     if (moveJson.optString("maxpp", "0").equals("0")) {
                         //sttruggle has noppinfo
                         movePps[i].setText("");
                     } else {
-                        movePps[i].setText(moveJson.optString("pp", "0"));
+                        String maxPP = "" + (Integer.parseInt(MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("pp"))
+                                * 8 / 5);
+                        movePps[i].setText(moveJson.optString("pp", "0") + "/" + maxPP);
                     }
-                    int typeIcon = MoveDex.getMoveTypeIcon(getContext(), moveJson.getString("id"));
+
+                    String type = MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("type");
+
+                    int typeIcon = getMoveIcon(type);
                     moveIcons[i].setImageResource(typeIcon);
                     moveViews[i].setOnClickListener(parseMoveTarget(active, i));
                     if (moveJson.optBoolean("disabled", false)) {
                         moveViews[i].setOnClickListener(null);
                         moveViews[i].setBackgroundResource(R.drawable.uneditable_frame);
                     }
+
+                    String ability = getCurrentActivePokemon().getAbilityName(getContext());
+
+                    // Account for all different move-type variations
+                    if (moveJson.getString("move").contains("Hidden Power")) {
+                        moveViews[i].setBackgroundResource(getMoveBackground(moveJson.getString("move").substring(13)));
+                        moveIcons[i].setImageResource(getMoveIcon(moveJson.getString("move").substring(13)));
+                    } else if (moveJson.getString("move").contains("Judgment") && getCurrentActivePokemon().getName()
+                            .contains("Arceus") && getCurrentActivePokemon().getItemName(getContext()).contains("Plate")) {
+                        String arceus = getCurrentActivePokemon().getName().substring(7, getCurrentActivePokemon().getName().length());
+                        moveViews[i].setBackgroundResource(getMoveBackground(arceus));
+                        moveIcons[i].setImageResource(getMoveIcon(arceus.toLowerCase()));
+                    } else if (type.equals("Normal") && ability.equals("Aerilate") || ability.equals("Pixilate") || ability.equals("Galvanize") ||
+                            ability.equals("Refrigerate")) {
+                        switch (ability) {
+                            case "Aerilate":
+                                moveViews[i].setBackgroundResource(getMoveBackground("flying"));
+                                moveIcons[i].setImageResource(getMoveIcon("flying"));
+                                break;
+                            case "Pixilate":
+                                moveViews[i].setBackgroundResource(getMoveBackground("fairy"));
+                                moveIcons[i].setImageResource(getMoveIcon("fairy"));
+                                break;
+                            case "Galvanize":
+                                moveViews[i].setBackgroundResource(getMoveBackground("electric"));
+                                moveIcons[i].setImageResource(getMoveIcon("electric"));
+                                break;
+                            case "Refrigerate":
+                                moveViews[i].setBackgroundResource(getMoveBackground("ice"));
+                                moveIcons[i].setImageResource(getMoveIcon("ice"));
+                                break;
+                        }
+                    } else if (ability.equals("Normalize")) {
+                        moveViews[i].setBackgroundResource(getMoveBackground("normal"));
+                        moveIcons[i].setImageResource(getMoveIcon("normal"));
+                    } else {
+                        moveViews[i].setBackgroundResource(getMoveBackground(type));
+                    }
+
+                    moveViews[i].setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            try {
+                                Toast.makeText(getContext(), "long clicked on move " + moveJson.getString("move"), Toast.LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            return false;
+                        }
+                    });
                 }
 
                 if (trapped) {
@@ -1773,6 +1993,132 @@ public class BattleFragment extends Fragment {
         }
     }
 
+    private int getMoveIcon(String type) {
+        int res = 0;
+
+        switch (type.toLowerCase()) {
+            case "bug":
+                res = R.drawable.types_bug;
+                break;
+            case "dark":
+                res = R.drawable.types_dark;
+                break;
+            case "dragon":
+                res = R.drawable.types_dragon;
+                break;
+            case "electric":
+                res = R.drawable.types_electric;
+                break;
+            case "fairy":
+                res = R.drawable.types_fairy;
+                break;
+            case "fighting":
+                res = R.drawable.types_fighting;
+                break;
+            case "fire":
+                res = R.drawable.types_fire;
+                break;
+            case "flying":
+                res = R.drawable.types_flying;
+                break;
+            case "ghost":
+                res = R.drawable.types_ghost;
+                break;
+            case "grass":
+                res = R.drawable.types_grass;
+                break;
+            case "ground":
+                res = R.drawable.types_ground;
+                break;
+            case "ice":
+                res = R.drawable.types_ice;
+                break;
+            case "normal":
+                res = R.drawable.types_normal;
+                break;
+            case "poison":
+                res = R.drawable.types_poison;
+                break;
+            case "psychic":
+                res = R.drawable.types_psychic;
+                break;
+            case "rock":
+                res = R.drawable.types_rock;
+                break;
+            case "steel":
+                res = R.drawable.types_steel;
+                break;
+            case "water":
+                res = R.drawable.types_water;
+                break;
+        }
+
+        return res;
+    }
+
+    private int getMoveBackground(String type) {
+        int res = 0;
+
+        switch (type.toLowerCase()) {
+            case "bug":
+                res = R.drawable.button_attack_bug;
+                break;
+            case "dark":
+                res = R.drawable.button_attack_dark;
+                break;
+            case "dragon":
+                res = R.drawable.button_attack_dragon;
+                break;
+            case "electric":
+                res = R.drawable.button_attack_electric;
+                break;
+            case "fairy":
+                res = R.drawable.button_attack_fairy;
+                break;
+            case "fighting":
+                res = R.drawable.button_attack_fighting;
+                break;
+            case "fire":
+                res = R.drawable.button_attack_fire;
+                break;
+            case "flying":
+                res = R.drawable.button_attack_flying;
+                break;
+            case "ghost":
+                res = R.drawable.button_attack_ghost;
+                break;
+            case "grass":
+                res = R.drawable.button_attack_grass;
+                break;
+            case "ground":
+                res = R.drawable.button_attack_ground;
+                break;
+            case "ice":
+                res = R.drawable.button_attack_ice;
+                break;
+            case "normal":
+                res = R.drawable.button_attack_normal;
+                break;
+            case "poison":
+                res = R.drawable.button_attack_poison;
+                break;
+            case "psychic":
+                res = R.drawable.button_attack_psychic;
+                break;
+            case "rock":
+                res = R.drawable.button_attack_rock;
+                break;
+            case "steel":
+                res = R.drawable.button_attack_steel;
+                break;
+            case "water":
+                res = R.drawable.button_attack_water;
+                break;
+        }
+
+        return res;
+    }
+
     private View.OnClickListener parseMoveTarget(final JSONArray active, final int moveId) throws JSONException {
         if (getView() == null) {
             return null;
@@ -1784,6 +2130,7 @@ public class BattleFragment extends Fragment {
                 new RunWithNet() {
                     @Override
                     public void runWithNet() throws Exception {
+
                         AlertDialog targetDialog = parseMoveTargetDialog(active, moveId);
                         if (targetDialog == null) {
                             parseMoveCommandAndSend(active, moveId, 0);
@@ -1809,12 +2156,22 @@ public class BattleFragment extends Fragment {
         int maxAlly = 0;
         int maxFoe = 0;
         if (getView() != null) {
-            maxAlly += (getView().findViewById(R.id.p1a).getVisibility() != View.GONE) ? 1 : 0;
-            maxAlly += (getView().findViewById(R.id.p1b).getVisibility() != View.GONE) ? 1 : 0;
-            maxAlly += (getView().findViewById(R.id.p1c).getVisibility() != View.GONE) ? 1 : 0;
-            maxFoe += (getView().findViewById(R.id.p2a).getVisibility() != View.GONE) ? 1 : 0;
-            maxFoe += (getView().findViewById(R.id.p2b).getVisibility() != View.GONE) ? 1 : 0;
-            maxFoe += (getView().findViewById(R.id.p2c).getVisibility() != View.GONE) ? 1 : 0;
+            if (getGametype().contains("doubles")) {
+                maxAlly += (getView().findViewById(R.id.p1a).getVisibility() != View.GONE) ? 1 : 0;
+                maxAlly += (getView().findViewById(R.id.p1b).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2a).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2b).getVisibility() != View.GONE) ? 1 : 0;
+            } else if (getGametype().contains("triples")) {
+                maxAlly += (getView().findViewById(R.id.p1a).getVisibility() != View.GONE) ? 1 : 0;
+                maxAlly += (getView().findViewById(R.id.p1b).getVisibility() != View.GONE) ? 1 : 0;
+                maxAlly += (getView().findViewById(R.id.p1c).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2a).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2b).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2c).getVisibility() != View.GONE) ? 1 : 0;
+            } else {
+                maxAlly += (getView().findViewById(R.id.p1a).getVisibility() != View.GONE) ? 1 : 0;
+                maxFoe += (getView().findViewById(R.id.p2a).getVisibility() != View.GONE) ? 1 : 0;
+            }
         }
 
         int startFoe = Math.max(0, maxFoe - mCurrentActivePokemon - 2);
@@ -2011,8 +2368,16 @@ public class BattleFragment extends Fragment {
 
                 CheckBox checkBox = (CheckBox) getView().findViewById(R.id.mega_evolution_checkbox);
                 if (checkBox.isChecked()) {
+                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(getCurrentActivePokemon().getName()
+                                + " will mega evolve, then use " + moveName);
+                    }
                     command = "move " + moveName + " mega";
                 } else {
+                    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(getCurrentActivePokemon().getName()
+                                + " will use " + moveName);
+                    }
                     command = "move " + moveName;
                 }
 
@@ -2121,12 +2486,12 @@ public class BattleFragment extends Fragment {
                 public void onAnimationStartWithNet(Animator animation) {
                     ImageView imageView = (ImageView) getView().findViewById(getSpriteId(tag));
 
-                    RelativeLayout relativeLayout = (RelativeLayout) getView().findViewById(getPkmLayoutId(tag));
-                    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    layoutParams.addRule(RelativeLayout.ALIGN_TOP, getSpriteId(tag));
-                    layoutParams.addRule(RelativeLayout.ALIGN_LEFT, getSpriteId(tag));
+                    LinearLayout linearLayout = (LinearLayout) getView().findViewById(getPkmLayoutId(tag));
+                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+//                    layoutParams.addRule(LinearLayout.ALIGN_TOP, getSpriteId(tag));
+//                    layoutParams.addRule(linearLayout.ALIGN_LEFT, getSpriteId(tag));
                     layoutParams.setMargins((int) (imageView.getWidth() * 0.25f), (int) (imageView.getHeight() * 0.5f), 0, 0);
-                    relativeLayout.addView(flyingMessage, layoutParams);
+                    linearLayout.addView(flyingMessage, layoutParams);
                 }
             });
 
@@ -2176,20 +2541,22 @@ public class BattleFragment extends Fragment {
     }
 
     public void showEndBattleDialog(String battleStatusStatement) {
-        mBattleEnd = true;
+        if (!mBattleEnd) {
+            mBattleEnd = true;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getView().getContext());
-        builder.setMessage(battleStatusStatement);
+            AlertDialog.Builder builder = new AlertDialog.Builder(getView().getContext());
+            builder.setMessage(battleStatusStatement);
 
-        builder.setPositiveButton(R.string.share_replay, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                MyApplication.getMyApplication().sendClientMessage(getRoomId() + "|/savereplay");
-            }
-        });
-        builder.setNegativeButton(R.string.back_to_battle, null);
+            builder.setPositiveButton(R.string.share_replay, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    MyApplication.getMyApplication().sendClientMessage(getRoomId() + "|/savereplay");
+                }
+            });
+            builder.setNegativeButton(R.string.back_to_battle, null);
 
-        builder.show();
+            builder.show();
+        }
     }
 
     public void setTeamSize(int teamSize) {
@@ -2280,7 +2647,7 @@ public class BattleFragment extends Fragment {
             }
 
             if (info != null) {
-                PokemonInfoFragment.newInstance(info, true)
+                PokemonInfoFragment.newInstance(info, true, BTAG, mId)
                         .show(getActivity().getSupportFragmentManager(), BTAG);
             }
         }

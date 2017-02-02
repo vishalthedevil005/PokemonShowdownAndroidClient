@@ -27,6 +27,7 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
     private int count = 1;
     private Context context;
     private List<String> fragmentsClasses;
+    private List<String> fragmentsIdentifiers;
     private List<Bundle> bundles;
     public static int LAST_TAB = 0;
 
@@ -34,6 +35,7 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
         super(fm);
         this.context = context;
         fragmentsClasses = new ArrayList<>();
+        fragmentsIdentifiers = new ArrayList<>();
         bundles = new ArrayList<>();
     }
 
@@ -44,7 +46,8 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        return Fragment.instantiate(context, fragmentsClasses.get(position), bundles.get(position));
+        Fragment frag = Fragment.instantiate(context, fragmentsClasses.get(position), bundles.get(position));
+        return frag;
     }
 
     public String getItemClass(int position) {
@@ -66,7 +69,7 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
 
     public int addFragment(String fragment, Bundle args, int position) {
         fragmentsClasses.add(position, fragment);
-        bundles.add(args);
+        bundles.add(position, args);
         return fragmentsClasses.size();
     }
 

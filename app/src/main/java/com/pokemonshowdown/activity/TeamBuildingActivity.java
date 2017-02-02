@@ -58,14 +58,16 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
     private final static int CLIPBOARD = 0;
     private final static int PASTEBIN = 1;
     private final static int QR = 2;
-    private static PokemonTeam mTeam;
-    private static RecyclerView mPokemonsRecycler;
-    private static FloatingActionButton addFab;
+    private PokemonTeam mTeam;
+    private RecyclerView mPokemonsRecycler;
+    private FloatingActionButton addFab;
+    public static TeamBuildingAccessor ACCESSOR;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_team_building);
+        ACCESSOR = new TeamBuildingAccessor();
         setupToolbar();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -122,12 +124,6 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
                 startActivityForResult(intent, SearchableActivity.REQUEST_CODE_SEARCH_POKEMON);
                 break;
         }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        PokemonTeam.savePokemonTeams(getContext());
     }
 
     @Override
@@ -334,7 +330,7 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
                     addFab.setVisibility(View.VISIBLE);
                 }
 
-                TeamBuilderActivity.saveOrUpdateTeam(mTeam);
+                TeamBuilderActivity.ACCESSOR.saveOrUpdatePokemonTeam(mTeam);
             }
         }
     }
@@ -388,14 +384,14 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
         }
     }
 
-    public static void firePokemonSwapping(Pokemon pokemon, int position) {
+    private void fireSwapping(Pokemon pokemon, int position) {
         mTeam.removePokemon(position);
         mTeam.addPokemon(pokemon, position);
         mPokemonsRecycler.setAdapter(new PokemonAdapter(mPokemonsRecycler.getContext(), mTeam.getPokemons()));
-        TeamBuilderActivity.saveOrUpdateTeam(mTeam);
+        TeamBuilderActivity.ACCESSOR.saveOrUpdatePokemonTeam(mTeam);
     }
 
-    public static void fireAddButtonVisibility() {
+    private void fireButtonVisibility() {
         if (mTeam.isFull()) {
             addFab.setVisibility(View.GONE);
         } else {
@@ -403,10 +399,25 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
         }
     }
 
-    public static void fireTeamSaving(int position) {
+    private void fireTeamSaving(int position) {
         mTeam.removePokemon(position);
         mPokemonsRecycler.setAdapter(new PokemonAdapter(mPokemonsRecycler.getContext(), mTeam.getPokemons()));
-        TeamBuilderActivity.saveOrUpdateTeam(mTeam);
+        TeamBuilderActivity.ACCESSOR.saveOrUpdatePokemonTeam(mTeam);
+    }
+
+    public class TeamBuildingAccessor {
+
+        public void firePokemonSwapping(Pokemon pokemon, int position) {
+            fireSwapping(pokemon, position);
+        }
+
+        public void fireAddButtonVisibility() {
+            fireButtonVisibility();
+        }
+
+        public void firePokemonTeamSaving(int position) {
+            fireTeamSaving(position);
+        }
     }
 
     private enum PastebinTaskId {

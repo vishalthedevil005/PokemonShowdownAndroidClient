@@ -421,7 +421,9 @@ public class SearchableActivity extends BaseActivity {
                         finish();
                         break;
                     case REQUEST_CODE_SEARCH_ABILITY:
-
+                        intent.putExtra(SEARCH, mAdapterList.get(i));
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
                         break;
                     case REQUEST_CODE_SEARCH_ITEM:
                         intent.putExtra(SEARCH, mAdapterList.get(i));

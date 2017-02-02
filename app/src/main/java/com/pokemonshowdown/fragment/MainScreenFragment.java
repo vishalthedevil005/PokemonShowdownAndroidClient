@@ -1,21 +1,26 @@
 package com.pokemonshowdown.fragment;
 
+import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
@@ -25,9 +30,7 @@ import com.pokemonshowdown.adapter.FragmentViewPagerAdapter;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by McBeengs on 20/10/2016.
@@ -56,6 +59,10 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         battleMenu = (FloatingActionMenu) mView.findViewById(R.id.battle_menu);
         mViewPager.setOffscreenPageLimit(3);
 
+        ViewGroup layout = (ViewGroup) mView.findViewById(R.id.main_screen_frame);
+        layout.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
+        ViewGroup pager = (ViewGroup) mView.findViewById(R.id.pager_layout);
+        pager.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
 
         if (TabsHolder.getTabs().size() < 1) {
             TabsHolder.addTab(HomeFragment.class.getName(), null);
@@ -79,13 +86,18 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         mTabLayout.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+                if (TabsHolder.getTabs().get(position).contains("BattleFragment")) {
+                    mTabLayout.setVisibility(View.GONE);
+                } else {
+                    mTabLayout.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
             public void onPageSelected(int position) {
                 animateFloatingButton(position);
                 FragmentViewPagerAdapter.LAST_TAB = position;
+                mViewPager.setCurrentItem(FragmentViewPagerAdapter.LAST_TAB);
             }
 
             @Override
@@ -182,12 +194,6 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         // You might want to make "newPage" the currently displayed page:
         mViewPager.setCurrentItem(pageIndex, true);
 
-        //We need check if the home panel is already inserted before setting the mTabLayout visible
-//        Activity activity = Fragment.instantiate(getContext(), TabsHolder.getTabs().get(pageIndex - 1)).getActivity().find
-//        if (activity.findViewById(R.id.meloetta_icon) == null && mTabLayout.getVisibility() == View.GONE) {
-            mTabLayout.setVisibility(View.VISIBLE);
-//        }
-
         mTabLayout.setViewPager(mViewPager);
         mTabLayout.invalidate();
     }
@@ -212,7 +218,6 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
     public int changeFragment(int defunctFragmentPosition, String newFragmentClass, Bundle args) {
         int pageIndex = mAdapter.removeFragment(mViewPager, defunctFragmentPosition);
         pageIndex = mAdapter.addFragment(newFragmentClass, args, pageIndex);
-        mAdapter.notifyDataSetChanged();
         // You might want to choose what page to display, if the current page was "defunctPage".
         if (pageIndex == mAdapter.getCount())
             pageIndex--;
@@ -224,8 +229,6 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         return pageIndex;
     }
 
-    //-----------------------------------------------------------------------------
-    // Here's what the app should do to get the currently displayed page.
     public String getCurrentPageClass() {
         return mAdapter.getItemClass(mViewPager.getCurrentItem());
     }
@@ -251,7 +254,6 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         }
 
         public static void removeTab(int fragment) {
-            Toast.makeText(MyApplication.getMyApplication(), "remove " + fragment, Toast.LENGTH_SHORT).show();
             tabs.remove(fragment);
         }
 
@@ -267,7 +269,9 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
             return tabs.size();
         }
 
-        public static int getArgsCount() { return args.size(); }
+        public static int getArgsCount() {
+            return args.size();
+        }
     }
 
     public class TabsHolderAccessor {

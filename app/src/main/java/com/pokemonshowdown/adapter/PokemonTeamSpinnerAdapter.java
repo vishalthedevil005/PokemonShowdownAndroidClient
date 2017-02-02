@@ -45,25 +45,39 @@ public class PokemonTeamSpinnerAdapter extends ArrayAdapter<PokemonTeam> {
             teamName.setText(p.getNickname() + " (" + p.getTier() + ")");
         }
 
-        LinearLayout layout = (LinearLayout) convertView.findViewById(R.id.pokemon_small_icon_list);
-        layout.removeAllViews();
-
+        int c = 1;
         for (Pokemon pokemon : p.getPokemons()) {
             if (pokemon != null) {
-                ImageView image = new ImageView(getContext());
-                int smallIconId = pokemon.getIcon();
-                Drawable d = mContext.getResources().getDrawable(smallIconId);
-                image.setImageDrawable(d);
-                layout.addView(image);
+                switch (c) {
+                    case 1:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_1)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                    case 2:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_2)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                    case 3:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_3)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                    case 4:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_4)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                    case 5:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_5)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                    case 6:
+                        ((ImageView) convertView.findViewById(R.id.team_pokemon_icon_6)).setImageDrawable(mContext.getResources()
+                                .getDrawable(pokemon.getIcon()));
+                        break;
+                }
             }
+            c++;
         }
 
-        for (int i = 0; i < 6 - p.getPokemons().size(); i++) {
-            ImageView image = new ImageView(getContext());
-            Drawable d = mContext.getResources().getDrawable(R.drawable.smallicons_0);
-            image.setImageDrawable(d);
-            layout.addView(image);
-        }
         return convertView;
     }
 

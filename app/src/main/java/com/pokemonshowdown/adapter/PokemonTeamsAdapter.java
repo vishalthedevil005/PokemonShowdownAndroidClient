@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,10 +24,12 @@ import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.TeamBuilderActivity;
 import com.pokemonshowdown.activity.TeamBuildingActivity;
 import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.data.PokemonTeam;
 import com.pokemonshowdown.data.Tiering;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -70,25 +73,38 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
             holder.teamNickname.setText(p.getNickname());
         }
 
-        holder.pokemonsList.removeAllViews();
+        int c = 0;
         for (Pokemon pokemon : p.getPokemons()) {
             if (pokemon != null) {
-                ImageView image = new ImageView(mContext);
+                Log.d("jlkjlj", "mon: "+pokemon.exportPokemon(mContext));
                 int smallIconId = pokemon.getIcon();
                 Drawable d = mContext.getResources().getDrawable(smallIconId);
-                image.setImageDrawable(d);
-                holder.pokemonsList.addView(image);
+
+                switch (c) {
+                    case 0:
+                        holder.icon1.setImageDrawable(d);
+                        break;
+                    case 1:
+                        holder.icon2.setImageDrawable(d);
+                        break;
+                    case 2:
+                        holder.icon3.setImageDrawable(d);
+                        break;
+                    case 3:
+                        holder.icon4.setImageDrawable(d);
+                        break;
+                    case 4:
+                        holder.icon5.setImageDrawable(d);
+                        break;
+                    case 5:
+                        holder.icon6.setImageDrawable(d);
+                        break;
+                }
             }
+            c++;
         }
 
         holder.tierLabel.setText(p.getTier());
-
-        for (int i = 0; i < 6 - p.getPokemons().size(); i++) {
-            ImageView image = new ImageView(mContext);
-            Drawable d = mContext.getResources().getDrawable(R.drawable.smallicons_0);
-            image.setImageDrawable(d);
-            holder.pokemonsList.addView(image);
-        }
 
         holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -99,7 +115,7 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
                             @Override
                             public void onClick(DialogInterface dialogInterface, int uh) {
                                 Toast.makeText(mContext, "\"" + holder.teamNickname.getText() + "\" removed", Toast.LENGTH_SHORT).show();
-                                TeamBuilderActivity.deleteTeam(p);
+                                TeamBuilderActivity.ACCESSOR.deletePokemonTeam(p);
                             }
                         })
                         .setNegativeButton("No", null)
@@ -129,8 +145,8 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 PokemonTeam temp = p;
                                 p.setNickname(name.getText().toString());
-                                int pos = TeamBuilderActivity.deleteTeam(temp);
-                                TeamBuilderActivity.saveTeam(p, pos);
+                                int pos = TeamBuilderActivity.ACCESSOR.deletePokemonTeam(temp);
+                                TeamBuilderActivity.ACCESSOR.savePokemonTeam(p, pos);
                                 Toast.makeText(mContext, "Team renamed", Toast.LENGTH_SHORT).show();
                             }
                         })
@@ -145,7 +161,17 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
                 int dp = 15;
                 int pixels = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, mContext.getResources().getDisplayMetrics());
                 spinner.setPadding(pixels, pixels, pixels, pixels);
-                ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mContext, R.layout.fragment_user_list, Tiering.PLAYABLE_TIERS);
+                ArrayList<String> formats = new ArrayList<>();
+
+                for (BattleFieldData.FormatType type : BattleFieldData.get(mContext).getFormatTypes()) {
+                    for (BattleFieldData.Format format : type.getFormatList()) {
+                        if (!format.getName().contains("Random")) {
+                            formats.add(format.getName());
+                        }
+                    }
+                }
+
+                ArrayAdapter<String> formatsAdapter = new ArrayAdapter<>(mContext, R.layout.fragment_user_list, formats);
                 formatsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(formatsAdapter);
 
@@ -158,8 +184,8 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
                                 p.setTier(MyApplication.toId((String) spinner.getSelectedItem()));
                                 p.setTier((String) spinner.getSelectedItem());
                                 holder.tierLabel.setText((String) spinner.getSelectedItem());
-                                int pos = TeamBuilderActivity.deleteTeam(temp);
-                                TeamBuilderActivity.saveTeam(p, pos);
+                                int pos = TeamBuilderActivity.ACCESSOR.deletePokemonTeam(temp);
+                                TeamBuilderActivity.ACCESSOR.savePokemonTeam(p, pos);
                                 Toast.makeText(mContext, "Tier updated", Toast.LENGTH_SHORT).show();
                             }
                         })
@@ -178,7 +204,12 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
         public View mView;
         public AutofitTextView teamNickname;
         public TextView tierLabel;
-        public LinearLayout pokemonsList;
+        public ImageView icon1;
+        public ImageView icon2;
+        public ImageView icon3;
+        public ImageView icon4;
+        public ImageView icon5;
+        public ImageView icon6;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -187,7 +218,12 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
 
             teamNickname = (AutofitTextView) itemView.findViewById(R.id.team_nickname);
             tierLabel = (TextView) itemView.findViewById(R.id.tier_label);
-            pokemonsList = (LinearLayout) itemView.findViewById(R.id.pokemon_small_icon_list);
+            icon1 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_1);
+            icon2 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_2);
+            icon3 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_3);
+            icon4 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_4);
+            icon5 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_5);
+            icon6 = (ImageView) itemView.findViewById(R.id.team_pokemon_icon_6);
         }
     }
 }

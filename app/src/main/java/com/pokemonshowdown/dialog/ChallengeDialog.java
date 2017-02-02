@@ -22,6 +22,7 @@ import com.pokemonshowdown.data.BattleFieldData;
 import com.pokemonshowdown.data.PokemonTeam;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ChallengeDialog extends DialogFragment {
     public static final String CTAG = ChallengeDialog.class.getName();
@@ -138,13 +139,13 @@ public class ChallengeDialog extends DialogFragment {
                                 //teamSpinner.setAdapter(mRandomTeamAdapter);
                                 teamSpinner.setEnabled(false);
                             } else {
-                                if (PokemonTeam.getPokemonTeamList().size() > 0) {
+                                if (PokemonTeam.getPokemonTeamList(getContext()).size() > 0) {
                                     int currentSelectedTeam = teamSpinner.getSelectedItemPosition();
                                     //teamSpinner.setAdapter(mPokemonTeamListArrayAdapter);
                                     teamSpinner.setEnabled(true);
                                     int newSelectedTeam = -1;
-                                    for (int i = 0; i < PokemonTeam.getPokemonTeamList().size(); i++) {
-                                        if (PokemonTeam.getPokemonTeamList().get(i).getTier().equals(currentFormatString)) {
+                                    for (int i = 0; i < PokemonTeam.getPokemonTeamList(getContext()).size(); i++) {
+                                        if (PokemonTeam.getPokemonTeamList(getContext()).get(i).getTier().equals(currentFormatString)) {
                                             newSelectedTeam = i;
                                             break;
                                         }
@@ -174,15 +175,15 @@ public class ChallengeDialog extends DialogFragment {
 
 
         if (mFormat.isRandomFormat()) {
-            //PokemonTeamListArrayAdapter randomTeamAdapter = new PokemonTeamListArrayAdapter(getActivity(), Arrays.asList(new PokemonTeam(RANDOM_TEAM_NAME)));
-            //teamSpinner.setAdapter(randomTeamAdapter);
+            PokemonTeamListArrayAdapter randomTeamAdapter = new PokemonTeamListArrayAdapter(getActivity(), Arrays.asList(new PokemonTeam(RANDOM_TEAM_NAME)));
+            teamSpinner.setAdapter(randomTeamAdapter);
         } else {
             PokemonTeam.loadPokemonTeams(getContext());
-            if (PokemonTeam.getPokemonTeamList().isEmpty()) {
+            if (PokemonTeam.getPokemonTeamList(getContext()).isEmpty()) {
                 ArrayAdapter noTeamsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.empty_team_list_filler));
                 teamSpinner.setAdapter(noTeamsAdapter);
             } else {
-                PokemonTeamListArrayAdapter pokemonTeamListArrayAdapter = new PokemonTeamListArrayAdapter(getActivity(), PokemonTeam.getPokemonTeamList());
+                PokemonTeamListArrayAdapter pokemonTeamListArrayAdapter = new PokemonTeamListArrayAdapter(getActivity(), PokemonTeam.getPokemonTeamList(getContext()));
                 teamSpinner.setAdapter(pokemonTeamListArrayAdapter);
             }
         }
@@ -203,7 +204,7 @@ public class ChallengeDialog extends DialogFragment {
                         MyApplication.getMyApplication().sendClientMessage("|/utm");
                         MyApplication.getMyApplication().sendClientMessage("|/accept " + mChallengerName);
                     } else {
-                        if (PokemonTeam.getPokemonTeamList().isEmpty()) {
+                        if (PokemonTeam.getPokemonTeamList(getContext()).isEmpty()) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                             builder.setTitle(R.string.error_dialog_title);
                             builder.setIcon(android.R.drawable.ic_dialog_alert);

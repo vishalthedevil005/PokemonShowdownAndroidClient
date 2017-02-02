@@ -57,6 +57,8 @@ public class BattleLobbyFragment extends BaseFragment {
         final Spinner teamSpinner = (Spinner) mView.findViewById(R.id.teams_spinner);
         final Button findButton = (Button) mView.findViewById(R.id.find_button);
 
+        Toast.makeText(getContext(), "" + (savedInstanceState == null), Toast.LENGTH_SHORT).show();
+
         final String format = getArguments().getString("format");
 
         if (format.equals("normal")) {
@@ -143,13 +145,13 @@ public class BattleLobbyFragment extends BaseFragment {
                                 findButton.setEnabled(false);
                             }
                         } else {
-                            if (PokemonTeam.getPokemonTeamList() != null && PokemonTeam.getPokemonTeamList().size() > 0) {
+                            if (PokemonTeam.getPokemonTeamList(getContext()) != null && PokemonTeam.getPokemonTeamList(getContext()).size() > 0) {
                                 int currentSelectedTeam = teamSpinner.getSelectedItemPosition();
-                                teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(mView.getContext(), PokemonTeam.getPokemonTeamList()));
+                                teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(mView.getContext(), PokemonTeam.getPokemonTeamList(getContext())));
                                 teamSpinner.setEnabled(true);
                                 int newSelectedTeam = -1;
-                                for (int i = 0; i < PokemonTeam.getPokemonTeamList().size(); i++) {
-                                    if (PokemonTeam.getPokemonTeamList().get(i).getTier().equals(currentFormatString)) {
+                                for (int i = 0; i < PokemonTeam.getPokemonTeamList(getContext()).size(); i++) {
+                                    if (PokemonTeam.getPokemonTeamList(getContext()).get(i).getTier().equals(currentFormatString)) {
                                         newSelectedTeam = i;
                                         break;
                                     }
