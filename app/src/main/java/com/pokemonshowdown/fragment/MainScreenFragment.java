@@ -2,7 +2,9 @@ package com.pokemonshowdown.fragment;
 
 import android.animation.LayoutTransition;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -29,6 +31,7 @@ import com.pokemonshowdown.SlidingTabLayout;
 import com.pokemonshowdown.adapter.FragmentViewPagerAdapter;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
+import com.pokemonshowdown.data.BattleFieldData;
 
 import java.util.ArrayList;
 
@@ -57,7 +60,7 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         mTabLayout = (SlidingTabLayout) mView.findViewById(R.id.tab_layout);
         mViewPager = (ViewPager) mView.findViewById(R.id.view_pager);
         battleMenu = (FloatingActionMenu) mView.findViewById(R.id.battle_menu);
-        mViewPager.setOffscreenPageLimit(3);
+        mViewPager.setOffscreenPageLimit(4);
 
         ViewGroup layout = (ViewGroup) mView.findViewById(R.id.main_screen_frame);
         layout.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
@@ -86,7 +89,15 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         mTabLayout.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (TabsHolder.getTabs().get(position).contains("BattleFragment")) {
+                if (TabsHolder.getTabsCount() == 1) { // only HomeFragment
+                    mTabLayout.setVisibility(View.GONE);
+                    return;
+                }
+
+//                (TabsHolder.getTabs().get(position).contains("HomeFragment") || TabsHolder.getTabs().get(position)
+//                        .contains("BattleFragment")) && !
+                if (TabsHolder.getTabs().get(position).contains("BattleFragment") &&
+                        !TabsHolder.getTabs().get(position).contains("Watch")) {
                     mTabLayout.setVisibility(View.GONE);
                 } else {
                     mTabLayout.setVisibility(View.VISIBLE);
@@ -95,9 +106,9 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
             @Override
             public void onPageSelected(int position) {
-                animateFloatingButton(position);
-                FragmentViewPagerAdapter.LAST_TAB = position;
-                mViewPager.setCurrentItem(FragmentViewPagerAdapter.LAST_TAB);
+//                animateFloatingButton(position);
+//                FragmentViewPagerAdapter.LAST_TAB = position;
+//                mViewPager.setCurrentItem(FragmentViewPagerAdapter.LAST_TAB);
             }
 
             @Override
@@ -108,12 +119,6 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         mViewPager.setCurrentItem(FragmentViewPagerAdapter.LAST_TAB);
 
         battleMenu.setClosedOnTouchOutside(true);
-        battleMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
-            @Override
-            public void onMenuToggle(boolean opened) {
-                //Toast.makeText(battleMenu.getContext(), "YES", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         mView.findViewById(R.id.add_battle).setOnClickListener(this);
         mView.findViewById(R.id.watch_battle).setOnClickListener(this);
@@ -217,7 +222,9 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
     public int changeFragment(int defunctFragmentPosition, String newFragmentClass, Bundle args) {
         int pageIndex = mAdapter.removeFragment(mViewPager, defunctFragmentPosition);
+        mAdapter.notifyDataSetChanged();
         pageIndex = mAdapter.addFragment(newFragmentClass, args, pageIndex);
+        //mAdapter.notifyDataSetChanged();
         // You might want to choose what page to display, if the current page was "defunctPage".
         if (pageIndex == mAdapter.getCount())
             pageIndex--;
@@ -240,21 +247,22 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         private static ArrayList<Bundle> args = new ArrayList<>();
 
         public static void addTab(String fragment, Bundle bundle) {
-            if (!tabs.contains(fragment)) {
-                tabs.add(fragment);
-                args.add(bundle);
-            }
+//            if (!tabs.contains(fragment)) {
+            tabs.add(fragment);
+            args.add(bundle);
+//            }
         }
 
         public static void addTab(String fragment, Bundle bundle, int position) {
-            if (!tabs.contains(fragment)) {
-                tabs.add(position, fragment);
-                args.add(position, bundle);
-            }
+//            if (!tabs.contains(fragment)) {
+            tabs.add(position, fragment);
+            args.add(position, bundle);
+//            }
         }
 
         public static void removeTab(int fragment) {
             tabs.remove(fragment);
+            args.remove(fragment);
         }
 
         public static ArrayList<String> getTabs() {
@@ -282,17 +290,58 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
                     TabsHolder.getArgs().get(TabsHolder.getArgsCount() - 1));
         }
 
-        public void removeTab() {
-            String lastCurrentPage = getCurrentPageClass();
-            int c = 0;
-            for (String s : TabsHolder.getTabs()) {
-                if (s.equals(lastCurrentPage)) {
-                    break;
-                }
-                c++;
+        public void removeTab(boolean force) {
+            if (force) {
+                TabsHolder.removeTab(mViewPager.getCurrentItem());
+                removeFragment(mViewPager.getCurrentItem());
+                return;
             }
-            removeFragment(c);
-            TabsHolder.removeTab(c);
+
+            if (TabsHolder.getTabs().get(mViewPager.getCurrentItem()).contains("HomeFragment")) {
+                Toast.makeText(getContext(), "You can't leave the Home Screen.", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (TabsHolder.getTabs().get(mViewPager.getCurrentItem()).contains("Lobby")
+                    || TabsHolder.getTabs().get(mViewPager.getCurrentItem()).contains("Watch")) {
+
+                new AlertDialog.Builder(getContext())
+                        .setMessage("Are you sure you want to leave?")
+                        .setNegativeButton("NO", null)
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                TabsHolder.removeTab(mViewPager.getCurrentItem());
+                                removeFragment(mViewPager.getCurrentItem());
+                            }
+                        })
+                        .show();
+            } else if (TabsHolder.getTabs().get(mViewPager.getCurrentItem()).contains("BattleFragment")) {
+                // To avoid getting index out of bounds, a simple solution is to equal both arrays sizes
+                ArrayList<String> rooms = BattleFieldData.get(getContext()).getRoomList();
+                int c = 0;
+                for (String s : TabsHolder.getTabs()) {
+                    // We ignore Home since the "global" room is always the first
+                    if (s.contains("Lobby") || s.contains("Watch")) {
+                        rooms.add(c, "");
+                    }
+                    c++;
+                }
+
+                final String roomId = rooms.get(mViewPager.getCurrentItem());
+                if (roomId != null) {
+                    new AlertDialog.Builder(getContext())
+                            .setMessage("Forfeiting makes you lose the battle. Are you sure?")
+                            .setNegativeButton("NO", null)
+                            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    BattleFragment.RECEIVER.forfeitBattle(roomId);
+                                }
+                            })
+                            .show();
+                } else {
+                    removeTab(true);
+                }
+            }
         }
 
         public void changeTab(String newPageClass, Bundle args) {
@@ -312,6 +361,10 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
 
         public int getTabIndex() {
             return mViewPager.getCurrentItem();
+        }
+
+        public ArrayList<String> getTabs() {
+            return TabsHolder.getTabs();
         }
     }
 }

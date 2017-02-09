@@ -96,6 +96,47 @@ public class PokemonTeam implements Serializable {
         }
     }
 
+    public static PokemonTeam importPokemonTeamFromPastebin(String importString, Context c) {
+        PokemonTeam team = new PokemonTeam();
+        importString = importString.replace("\r\n", "\n");
+        String fileContentStringArray[] = importString.split("\n");
+
+        StringBuffer pokemonTeamBuffer = new StringBuffer("");
+        String currentNickname = null;
+        String currentTierId = "";
+
+        for (String s : fileContentStringArray) {
+            // Every line starting with === is a new team
+            if (s.startsWith("===") && s.endsWith("===")) {
+                pokemonTeamBuffer.setLength(0);
+                if (s.contains("[") && s.contains("]")) {
+                    currentNickname = s.substring(s.indexOf("]") + 2, s.indexOf("=", s.indexOf("]") + 2) - 1);
+                    currentTierId = s.substring(s.indexOf("[") + 1, s.indexOf("]"));
+                } else {
+                    currentTierId = "";
+                    currentNickname = s.substring(4, s.indexOf("=", 5) - 1);
+                }
+
+            } else {
+                pokemonTeamBuffer.append(s).append("\n");
+            }
+        }
+
+        if (pokemonTeamBuffer.length() > 0 && currentNickname != null) {
+            PokemonTeam pt = PokemonTeam.importPokemonTeam(pokemonTeamBuffer.toString(), c, true);
+            pt.setNickname(currentNickname);
+            if (!currentTierId.isEmpty()) {
+                BattleFieldData.Format currentFormat = BattleFieldData.get(c).getFormatUsingId(currentTierId);
+                if (currentFormat != null) {
+                    pt.setTier(currentFormat.getName());
+                }
+            }
+            team = pt;
+        }
+
+        return team;
+    }
+
     public static PokemonTeam importPokemonTeam(String importString, Context c, boolean withAppContest) {
         PokemonTeam pt = new PokemonTeam();
         if (importString.isEmpty()) {
@@ -157,7 +198,6 @@ public class PokemonTeam implements Serializable {
             sb.append("\n");
         }
 
-        Log.d("kbhlbhj", sb.toString());
         PreferenceManager.getDefaultSharedPreferences(c).edit().putString("teams", sb.toString()).commit();
     }
 

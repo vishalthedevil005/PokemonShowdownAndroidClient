@@ -84,7 +84,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         setRetainInstance(true);
-        mView = inflater.inflate(R.layout.abc_123_temp, parent, false);
+        mView = inflater.inflate(R.layout.fragment_damage_calc, parent, false);
         return mView;
     }
 

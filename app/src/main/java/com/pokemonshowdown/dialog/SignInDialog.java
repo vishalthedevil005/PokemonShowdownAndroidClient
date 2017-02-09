@@ -17,15 +17,17 @@ import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.Onboarding;
 
 public class SignInDialog extends DialogFragment {
+
     public static final String STAG = SignInDialog.class.getName();
 
-    public SignInDialog() {
-
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.DialogStyle);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         View view = inflater.inflate(R.layout.dialog_signin, container);
 
         final String username = getArguments().getString("username");

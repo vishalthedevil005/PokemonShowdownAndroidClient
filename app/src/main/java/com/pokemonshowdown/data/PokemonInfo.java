@@ -6,6 +6,10 @@ import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -219,13 +223,8 @@ public class PokemonInfo implements Serializable {
                 "Salamence", "Latias", "Latios", "Metagross", "Lopunny", "Gallade", "Audino", "Diancie"};
 
         // Since all rules are meant to be broken, Rayquaza doesn't follow the normal rules of mega-evo.
-        if (getName().contains("Rayquaza")) {
-            Iterator it = getMoves().entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                Log.d("ray moves", pair.getKey() + " = " + pair.getValue());
-                it.remove();
-            }
+        if (getName().equals("Rayquaza") && getMoves().containsKey("dragonascend")) {
+            return true;
         }
 
         for (String s : allPossibleMegas) {
@@ -238,8 +237,67 @@ public class PokemonInfo implements Serializable {
         return false;
     }
 
-    public boolean canZMove() {
+    public boolean canZMove(Context context) {
+        // All exclusive Z-Moves for mons with specific moves
+        if (getName().equals("Decidueye") && getMoves().containsKey("spiritshackle") && getItem().equals("decidiumz") ||
+                getName().equals("Incineroar") && getMoves().containsKey("darkestlariat") && getItem().equals("inciniumz") ||
+                getName().equals("Primarina") && getMoves().containsKey("sparklingaria") && getItem().equals("primariumz") ||
+                getName().equals("Raichu-Alola") && getMoves().containsKey("thunderbolt") && getItem().equals("aloraichiumz") ||
+                getName().equals("Eevee") && getMoves().containsKey("lastresort") && getItem().equals("eeviumz") ||
+                getName().equals("Marshadow") && getMoves().containsKey("spectralthief") && getItem().equals("marshadiumz") ||
+                getName().equals("Mew") && getMoves().containsKey("psychic") && getItem().equals("mewniumz") ||
+                getName().equals("Pikachu") && getMoves().containsKey("volttackle") && getItem().equals("pikaniumz") ||
+                getName().equals("Pikachu") && getMoves().containsKey("thunderbolt") && getItem().equals("pikashuniumz") ||
+                getName().equals("Snorlax") && getMoves().containsKey("gigaimpact") && getItem().equals("snorliumz") ||
+                getName().contains("Tapu") && getMoves().containsKey("naturesmadness") && getItem().equals("tapuniumz")) {
+            return true;
+        }
 
-        return true;
+        for (String s : getMoves().keySet()) {
+            try {
+                JSONObject obj = MoveDex.get(context).getMoveJsonObject(s);
+                switch (obj.getString("type")) {
+                    case "Bug":
+                        if (getItem().equals("buginiumz")) return true;
+                    case "Dark":
+                        if (getItem().equals("darkiniumz")) return true;
+                    case "Dragon":
+                        if (getItem().equals("dragoniumz")) return true;
+                    case "Electric":
+                        if (getItem().equals("electriumz")) return true;
+                    case "Fairy":
+                        if (getItem().equals("fairiumz")) return true;
+                    case "Fighting":
+                        if (getItem().equals("fightiniumz")) return true;
+                    case "Fire":
+                        if (getItem().equals("firiumz")) return true;
+                    case "Flying":
+                        if (getItem().equals("flyiniumz")) return true;
+                    case "Ghost":
+                        if (getItem().equals("ghostiumz")) return true;
+                    case "Grass":
+                        if (getItem().equals("grassiumz")) return true;
+                    case "Ground":
+                        if (getItem().equals("groundiumz")) return true;
+                    case "Ice":
+                        if (getItem().equals("iciumz")) return true;
+                    case "Normal":
+                        if (getItem().equals("normaliumz")) return true;
+                    case "Poison":
+                        if (getItem().equals("poisoniumz")) return true;
+                    case "Psychic":
+                        if (getItem().equals("psychiumz")) return true;
+                    case "Rock":
+                        if (getItem().equals("rockiumz")) return true;
+                    case "Steel":
+                        if (getItem().equals("steeliumz")) return true;
+                    case "Water":
+                        if (getItem().equals("wateriumz")) return true;
+                }
+            } catch (JSONException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return false;
     }
 }

@@ -12,12 +12,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.pokemonshowdown.R;
@@ -36,10 +39,12 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
-public class TeamBuilderActivity extends BaseActivity {
+public class TeamBuilderActivity extends BaseActivity implements View.OnClickListener {
 
     private final static String TAG = TeamBuilderActivity.class.getName();
     private final static int CLIPBOARD = 0;
@@ -49,6 +54,7 @@ public class TeamBuilderActivity extends BaseActivity {
     private RecyclerView mRecyclerTeams;
     private UpdateRecyclerView UPDATE;
     public static PokemonTeamAccessor ACCESSOR;
+    private FloatingActionMenu searchMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,15 +64,47 @@ public class TeamBuilderActivity extends BaseActivity {
         setContentView(R.layout.fragment_team_builder);
         setupToolbar();
 
+        searchMenu = (FloatingActionMenu) findViewById(R.id.search_menu);
+        findViewById(R.id.by_name).setOnClickListener(this);
+        findViewById(R.id.by_tier).setOnClickListener(this);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         setupRecyclerTeams();
     }
 
     @Override
+    public void onClick(View v) {
+        searchMenu.close(true);
+        switch (v.getId()) {
+            case R.id.by_name:
+                Collections.sort(mPokemonTeamList, new Comparator<PokemonTeam>() {
+                    @Override
+                    public int compare(PokemonTeam t1, PokemonTeam t2) {
+                        return t1.getNickname().compareTo(t2.getNickname());
+                    }
+                });
+                mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
+                Toast.makeText(this, "Teams organized alphabetically by name.", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.by_tier:
+                Collections.sort(mPokemonTeamList, new Comparator<PokemonTeam>() {
+                    @Override
+                    public int compare(PokemonTeam t1, PokemonTeam t2) {
+                        return t1.getTier().compareTo(t2.getTier());
+                    }
+                });
+                mRecyclerTeams.setAdapter(new PokemonTeamsAdapter(getContext(), mPokemonTeamList));
+                Toast.makeText(this, "Teams organized alphabetically by tiers.", Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.team_building, menu);
+
 
         menu.findItem(R.id.action_export_team).setVisible(false);
         menu.findItem(R.id.action_share_team).setVisible(false);
@@ -270,15 +308,13 @@ public class TeamBuilderActivity extends BaseActivity {
         private Exception mException;
         private boolean success;
         private ProgressDialog waitingDialog;
+        private String message;
 
         public PastebinTask(PastebinTaskId task) {
             mTask = task;
-            waitingDialog = new ProgressDialog(TeamBuilderActivity.this);
-            waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            waitingDialog.setCancelable(false);
             switch (mTask) {
                 case IMPORT:
-                    waitingDialog.setMessage(getResources().getString(R.string.import_inprogress));
+                    message = getResources().getString(R.string.import_inprogress);
                     break;
             }
         }
@@ -297,22 +333,18 @@ public class TeamBuilderActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
-            TeamBuilderActivity.this.runOnUiThread(new java.lang.Runnable() {
-                public void run() {
-                    waitingDialog.show();
-                }
-            });
+            waitingDialog = new ProgressDialog(TeamBuilderActivity.this);
+            waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            waitingDialog.setCancelable(false);
+            waitingDialog.setMessage(message);
+            waitingDialog.show();
         }
 
         @Override
         protected void onPostExecute(String aString) {
             if (success) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(TeamBuilderActivity.this);
-                TeamBuilderActivity.this.runOnUiThread(new java.lang.Runnable() {
-                    public void run() {
-                        waitingDialog.dismiss();
-                    }
-                });
+                waitingDialog.dismiss();
                 switch (mTask) {
                     case IMPORT:
                         builder.setTitle(R.string.import_success_dialog_title);
@@ -354,6 +386,7 @@ public class TeamBuilderActivity extends BaseActivity {
                 success = false;
                 return;
             }
+            url = url.trim();
             String[] split = url.split("/");
             String pastebinId = split[1];
 
@@ -371,10 +404,26 @@ public class TeamBuilderActivity extends BaseActivity {
                 success = false;
                 return;
             }
-            PokemonTeam pokemonTeam = PokemonTeam.importPokemonTeam(pastebinOut, TeamBuilderActivity.this, false);
+
+            if (pastebinOut == null || pastebinOut.isEmpty() || pastebinOut.contains("<!DOCTYPE HTML>")) {
+                success = false;
+                return;
+            }
+
+            // Not all teams imported from pastebin has their names and tiers, so he account for both
+            PokemonTeam pokemonTeam = null;
+            if (pastebinOut.contains("===")) {
+                pokemonTeam = PokemonTeam.importPokemonTeamFromPastebin(pastebinOut, TeamBuilderActivity.this);
+            } else {
+                pokemonTeam = PokemonTeam.importPokemonTeam(pastebinOut, TeamBuilderActivity.this, false);
+            }
+
             if (pokemonTeam != null && pokemonTeam.getTeamSize() > 0) {
-                pokemonTeam.setNickname("Imported Team");
+                if (pokemonTeam.getNickname() == null || pokemonTeam.getNickname().isEmpty()) {
+                    pokemonTeam.setNickname("Imported Team");
+                }
                 mPokemonTeamList.add(pokemonTeam);
+                PokemonTeam.savePokemonTeams(TeamBuilderActivity.this, mPokemonTeamList);
                 success = true;
                 return;
             } else {

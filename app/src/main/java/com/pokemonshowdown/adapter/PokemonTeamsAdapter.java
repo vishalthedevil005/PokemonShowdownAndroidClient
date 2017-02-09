@@ -48,12 +48,6 @@ public class PokemonTeamsAdapter extends RecyclerView.Adapter<PokemonTeamsAdapte
     public PokemonTeamsAdapter(Context context, List<PokemonTeam> pokemonTeamsList) {
         mContext = context;
         mPokemonTeamsList = pokemonTeamsList;
-        Collections.sort(mPokemonTeamsList, new Comparator<PokemonTeam>() {
-            @Override
-            public int compare(PokemonTeam t1, PokemonTeam t2) {
-                return t1.getNickname().compareTo(t2.getNickname());
-            }
-        });
     }
 
     @Override

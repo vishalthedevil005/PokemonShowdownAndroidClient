@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -37,6 +39,7 @@ import com.pokemonshowdown.data.CommunityLoungeData;
 import com.pokemonshowdown.data.Onboarding;
 import com.pokemonshowdown.dialog.ChallengeDialog;
 import com.pokemonshowdown.dialog.OnboardingDialog;
+import com.pokemonshowdown.dialog.UserDialog;
 import com.pokemonshowdown.fragment.BattleFragment;
 import com.pokemonshowdown.fragment.BattleLobbyFragment;
 import com.pokemonshowdown.fragment.CommunityLoungeFragment;
@@ -188,7 +191,6 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.battle_field, menu);
         menu.findItem(R.id.community_lounge).setVisible(false);
-        menu.findItem(R.id.cancel).setVisible(false);
         return true;
     }
 
@@ -207,6 +209,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         // as you specify a parent activity in AndroidManifest.xml.
 
         switch (item.getItemId()) {
+            case R.id.cancel:
+                MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab(false);
+                return true;
             case R.id.team_building:
                 startActivity(new Intent(this, TeamBuilderActivity.class));
                 return true;
@@ -235,10 +240,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                     return true;
                 }
                 if (onboarding.isSignedIn()) {
-                    Toast.makeText(this, "Make custom user dialog on ContainerActivity line 226", Toast.LENGTH_SHORT).show();
-//                    FragmentManager fm = getSupportFragmentManager();
-//                    UserDialog userDialog = new UserDialog();
-//                    userDialog.show(fm, UserDialog.UTAG);
+                    FragmentManager fm = getSupportFragmentManager();
+                    UserDialog userDialog = new UserDialog();
+                    userDialog.show(fm, UserDialog.UTAG);
                     return true;
                 }
                 FragmentManager fm = getSupportFragmentManager();
@@ -248,42 +252,40 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
             case R.id.menu_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
-//            case R.id.menu_bug_report:
-//                if (MyApplication.getMyApplication().getCaughtExceptions().size() > 0) {
-//                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
-//                            "mailto", "psandroidteam@gmail.com", null));
-//                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Bug report");
-//                    StringBuilder bodyStringBuilder = new StringBuilder();
-//                    int idx = 1;
-//                    bodyStringBuilder.append("Version ");
-//                    try {
-//                        bodyStringBuilder.append(MyApplication.getMyApplication().getPackageManager()
-//                                .getPackageInfo(MyApplication.getMyApplication().getApplicationContext().getPackageName(), 0)
-//                                .versionCode);
-//                    } catch (PackageManager.NameNotFoundException e) {
-//                        bodyStringBuilder.append("unknown");
-//                    }
-//                    bodyStringBuilder.append(System.getProperty("line.separator"));
-//                    for (Exception e : MyApplication.getMyApplication().getCaughtExceptions()) {
-//                        bodyStringBuilder.append("Bug ").append(idx++).append(System.getProperty("line.separator"));
-//                        bodyStringBuilder.append(e.getMessage()).append(System.getProperty("line.separator"));
-//                        for (StackTraceElement element : e.getStackTrace()) {
-//                            bodyStringBuilder.append(element.toString());
-//                            bodyStringBuilder.append(System.getProperty("line.separator"));
-//                        }
-//                    }
-//                    emailIntent.putExtra(Intent.EXTRA_TEXT, bodyStringBuilder.toString());
-//
-//                    startActivityForResult(Intent.createChooser(emailIntent, "Email your bug report"), REQUEST_CODE_BUG_REPORT);
-//                } else {
-//                    Toast.makeText(BattleFieldActivity.this, getText(R.string.no_bugs), Toast.LENGTH_SHORT).show();
-//                }
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-        }
+            case R.id.menu_bug_report:
+                if (MyApplication.getMyApplication().getCaughtExceptions().size() > 0) {
+                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                            "mailto", "psandroidteam@gmail.com", null));
+                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Bug report");
+                    StringBuilder bodyStringBuilder = new StringBuilder();
+                    int idx = 1;
+                    bodyStringBuilder.append("Version ");
+                    try {
+                        bodyStringBuilder.append(MyApplication.getMyApplication().getPackageManager()
+                                .getPackageInfo(MyApplication.getMyApplication().getApplicationContext().getPackageName(), 0)
+                                .versionCode);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        bodyStringBuilder.append("unknown");
+                    }
+                    bodyStringBuilder.append(System.getProperty("line.separator"));
+                    for (Exception e : MyApplication.getMyApplication().getCaughtExceptions()) {
+                        bodyStringBuilder.append("Bug ").append(idx++).append(System.getProperty("line.separator"));
+                        bodyStringBuilder.append(e.getMessage()).append(System.getProperty("line.separator"));
+                        for (StackTraceElement element : e.getStackTrace()) {
+                            bodyStringBuilder.append(element.toString());
+                            bodyStringBuilder.append(System.getProperty("line.separator"));
+                        }
+                    }
+                    emailIntent.putExtra(Intent.EXTRA_TEXT, bodyStringBuilder.toString());
 
-        return super.onOptionsItemSelected(item);
+                    startActivityForResult(Intent.createChooser(emailIntent, "Email your bug report"), REQUEST_CODE_BUG_REPORT);
+                } else {
+                    Toast.makeText(getContext(), "There are no bugs to report.", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -343,6 +345,20 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                                 mDialog.show();
                             }
                         });
+                    }
+
+                    if (BattleFieldData.sRooms == null) {
+                        BattleFieldData.sRooms = new ArrayList<>();
+                    }
+                    BattleFieldData.sRooms.clear();
+
+                    JSONObject gamesObject = updateSearchJSon.getJSONObject("games");
+                    if (gamesObject.length() != 0) {
+                        Iterator<String> iterator = gamesObject.keys();
+                        while (iterator.hasNext()) {
+                            String currentKey = iterator.next();
+                            BattleFieldData.sRooms.add(currentKey);
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -591,7 +607,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         // update the main content by replacing fragments
         mPosition = position;
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(String.valueOf(position));
-        if (fragment == null) {;
+        if (fragment == null) {
             switch (position) {
                 case 0:
                     //fragment = BattleFieldFragment.newInstance(null);
@@ -610,10 +626,8 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
             }
         }
 
-        if (fragment != null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment,
-                    String.valueOf(position)).commitAllowingStateLoss();
-        }
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment,
+                String.valueOf(position)).commitAllowingStateLoss();
     }
 }

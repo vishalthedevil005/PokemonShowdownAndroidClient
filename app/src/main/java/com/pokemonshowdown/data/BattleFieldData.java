@@ -25,6 +25,7 @@ import java.util.LinkedList;
 public class BattleFieldData {
     private final static String BTAG = BattleFieldData.class.getName();
     private static BattleFieldData sBattleFieldData;
+    public static ArrayList<String> sRooms;
     private ArrayList<FormatType> mFormatTypes;
     private int mCurrentFormat;
     private JSONObject mAvailableBattle;
@@ -50,6 +51,8 @@ public class BattleFieldData {
         }
         return sBattleFieldData;
     }
+
+
 
     public static String getRoomFormat(String roomId) {
         return roomId.substring(roomId.indexOf("-") + 1, roomId.lastIndexOf("-"));
@@ -219,6 +222,7 @@ public class BattleFieldData {
     public void joinRoom(String roomId, boolean watch) {
         HashMap<String, BattleLog> roomDataHashMap = getRoomDataHashMap();
         if (!roomDataHashMap.containsKey(roomId)) {
+            mRoomList.add(roomId);
             roomDataHashMap.put(roomId, new BattleLog(roomId, "", true));
             getAnimationDataHashMap().put(roomId, new RoomData(roomId, true));
             getViewDataHashMap().put(roomId, new ViewData(roomId));

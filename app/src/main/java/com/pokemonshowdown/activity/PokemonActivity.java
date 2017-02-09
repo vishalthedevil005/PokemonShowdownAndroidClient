@@ -483,8 +483,8 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                         .getRealName()), "drawable", getApplicationContext().getPackageName()));
                 iconIdList.add(getApplicationContext().getResources().getIdentifier("sprshiny_front_" + MyApplication.toId(mPokemon
                         .getRealName()), "drawable", getApplicationContext().getPackageName()));
-                iconNameList.add("sprites_front_" + MyApplication.toId(mPokemon.getName()));
-                iconNameList.add("sprshiny_front_" + MyApplication.toId(mPokemon.getName()));
+                iconNameList.add("sprites_front_" + MyApplication.toId(mPokemon.getRealName()));
+                iconNameList.add("sprshiny_front_" + MyApplication.toId(mPokemon.getRealName()));
 
                 if (!otherForms.isEmpty()) {
                     for (String s : otherForms) {
@@ -495,54 +495,59 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                         iconNameList.add("sprites_front_" + s);
                         iconNameList.add("sprshiny_front_" + s);
                     }
-
-                    ImageAdapter iconItems = new ImageAdapter(getContext(), iconIdList);
-
-                    gridView.setAdapter(iconItems);
-                    gridView.setNumColumns(3);
-                    gridView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
-                    builder.setView(gridView);
-                    final AlertDialog alert = builder.create();
-
-                    gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
-                            if (iconNameList.get(i).contains("sprshiny_front_")) {
-                                mPokemon.setShiny(true);
-                            } else {
-                                mPokemon.setShiny(false);
-                            }
-                            Pokemon original = mPokemon;
-                            String name = iconNameList.get(i);
-                            mPokemon = new Pokemon(getContext(), name.substring(name.lastIndexOf("_") + 1));
-                            mPokemon.setNickName(original.getNickName());
-                            mPokemon.setShiny(original.isShiny());
-                            mPokemon.setAbilityTag(original.getAbilityTag());
-                            mPokemon.setItem(original.getItem());
-                            mPokemon.setAtkEV(original.getAtkEV());
-                            mPokemon.setDefEV(original.getDefEV());
-                            mPokemon.setSpAtkEV(original.getSpAtkEV());
-                            mPokemon.setSpDefEV(original.getSpDefEV());
-                            mPokemon.setSpdEV(original.getSpdEV());
-                            mPokemon.setAtkIV(original.getAtkIV());
-                            mPokemon.setDefIV(original.getDefIV());
-                            mPokemon.setSpAtkIV(original.getSpAtkIV());
-                            mPokemon.setSpDefIV(original.getSpDefIV());
-                            mPokemon.setSpdIV(original.getSpdIV());
-                            TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
-
-                            // force activity restart, for new name and all
-                            Intent intent = getIntent();
-                            intent.putExtra("pokemon", new Gson().toJson(mPokemon));
-                            intent.putExtra("position", position);
-                            finish();
-                            startActivity(intent);
-                            alert.dismiss();
-                        }
-                    });
-
-                    alert.show();
                 }
+
+                ImageAdapter iconItems = new ImageAdapter(getContext(), iconIdList);
+
+                gridView.setAdapter(iconItems);
+                gridView.setNumColumns(3);
+                gridView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
+                builder.setView(gridView);
+                final AlertDialog alert = builder.create();
+
+                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
+                        if (iconNameList.get(i).contains("sprshiny_front_")) {
+                            mPokemon.setShiny(true);
+                        } else {
+                            mPokemon.setShiny(false);
+                        }
+                        Pokemon original = mPokemon;
+                        String name = iconNameList.get(i);
+                        mPokemon = new Pokemon(getContext(), name.substring(name.lastIndexOf("_") + 1));
+                        mPokemon.setNickName(original.getNickName());
+                        mPokemon.setShiny(original.isShiny());
+                        mPokemon.setAbilityTag(original.getAbilityTag());
+                        mPokemon.setNature(original.getNature());
+                        mPokemon.setItem(original.getItem());
+                        mPokemon.setAtkEV(original.getAtkEV());
+                        mPokemon.setDefEV(original.getDefEV());
+                        mPokemon.setSpAtkEV(original.getSpAtkEV());
+                        mPokemon.setSpDefEV(original.getSpDefEV());
+                        mPokemon.setSpdEV(original.getSpdEV());
+                        mPokemon.setAtkIV(original.getAtkIV());
+                        mPokemon.setDefIV(original.getDefIV());
+                        mPokemon.setSpAtkIV(original.getSpAtkIV());
+                        mPokemon.setSpDefIV(original.getSpDefIV());
+                        mPokemon.setSpdIV(original.getSpdIV());
+                        mPokemon.setMove1(original.getMove1());
+                        mPokemon.setMove2(original.getMove2());
+                        mPokemon.setMove3(original.getMove3());
+                        mPokemon.setMove4(original.getMove4());
+                        TeamBuildingActivity.ACCESSOR.firePokemonSwapping(mPokemon, position);
+
+                        // force activity restart, for new name and all
+                        Intent intent = getIntent();
+                        intent.putExtra("pokemon", new Gson().toJson(mPokemon));
+                        intent.putExtra("position", position);
+                        finish();
+                        startActivity(intent);
+                        alert.dismiss();
+                    }
+                });
+
+                alert.show();
                 break;
             case R.id.poke_name:
                 final EditText dialogView = new EditText(getContext());

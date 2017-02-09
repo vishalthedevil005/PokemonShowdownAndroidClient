@@ -28,7 +28,7 @@
             android:name=".activity.DmgCalcActivity"
             android:label="Damage Calculator"
             android:parentActivityName=".activity.ContainerActivity" />
-        <activity android:name=".activity.ContainerActivity"></activity>
+        <activity android:name=".activity.ContainerActivity" />
         <activity
             android:name=".activity.TeamBuilderActivity"
             android:configChanges="orientation|screenSize"

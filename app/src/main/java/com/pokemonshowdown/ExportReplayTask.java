@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.pokemonshowdown.fragment.MainScreenFragment;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -54,6 +56,7 @@ public class ExportReplayTask extends AsyncTask<String, String, Boolean> {
         builder.setPositiveButton(R.string.dialog_ok, null);
         final AlertDialog alert = builder.create();
         mWaitingDialog.dismiss();
+        MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab(true);
         alert.show();
     }
 

@@ -183,7 +183,9 @@ public class BattleMessage {
                     avatarResource = 0;
                 }
                 if (playerType.equals("p1")) {
-                    roomData.setPlayer1(playerName);
+                    if (roomData != null) {
+                        roomData.setPlayer1(playerName);
+                    }
                     battleFragment.getActivity().runOnUiThread(new RunWithNet() {
                         @Override
                         public void runWithNet() {
@@ -200,7 +202,9 @@ public class BattleMessage {
                     });
                     battleFragment.setPlayer1(playerName);
                 } else {
-                    roomData.setPlayer2(playerName);
+                    if (roomData != null) {
+                        roomData.setPlayer2(playerName);
+                    }
                     battleFragment.getActivity().runOnUiThread(new RunWithNet() {
                         @Override
                         public void runWithNet() {
@@ -806,7 +810,8 @@ public class BattleMessage {
                             sprites.setImageResource(0);
                             if (isAnimated) {
                                 if (split[0].contains("p1")) {
-                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + finalName
+                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back"
+                                            + (pokemonInfo.isShiny() ? "-shiny/" : "/") + finalName
                                             .toLowerCase().replace(" ", "").replace(".", "") + ".gif");
 
                                     DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -817,7 +822,8 @@ public class BattleMessage {
                                     sprites.getHierarchy().setActualImageScaleType(ScalingUtils.ScaleType.FIT_CENTER);
                                     sprites.setController(controller);
                                 } else {
-                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + finalName
+                                    Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani"
+                                            + (pokemonInfo.isShiny() ? "-shiny/" : "/") + finalName
                                             .toLowerCase().replace(" ", "").replace(".", "") + ".gif");
 
                                     DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -882,7 +888,6 @@ public class BattleMessage {
                 final String forme = (split[1].contains(",")) ? split[1].substring(0, split[1].indexOf(',')) : split[1];
 
                 position = split[0].substring(0, 3);
-
                 battleFragment.formChange(position, forme);
 
                 pokemonInfo = battleFragment.getPokemonInfo(position);
@@ -959,7 +964,8 @@ public class BattleMessage {
 
                         if (!back) {
                             if (isAnimated) {
-                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + name
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani"
+                                        + (pokemonInfo.isShiny() ? "-shiny/" : "/") + name
                                         .toLowerCase().replace(" ", "") + ".gif");
 
                                 DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -974,7 +980,8 @@ public class BattleMessage {
                             }
                         } else {
                             if (isAnimated) {
-                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + name
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back"
+                                        + (pokemonInfo.isShiny() ? "-shiny/" : "/") + name
                                         .toLowerCase().replace(" ", "") + ".gif");
 
                                 DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -1320,12 +1327,12 @@ public class BattleMessage {
                         }
                         ((TextView) battleFragment.getView().findViewById(battleFragment.getHpId(messageDetails))).setText(Integer.toString(intAmount));
 
-                        ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
+                        SimpleDraweeView imageView = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
 
-                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
-                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
-//                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
+                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
+                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
                         layoutParams.setMargins((int) (imageView.getWidth() * 0.5f), (int) (imageView.getHeight() * 0.5f), 0, 0);
                         relativeLayout.addView(damage, layoutParams);
                     }
@@ -1336,7 +1343,7 @@ public class BattleMessage {
                             return;
                         }
 
-                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
                         relativeLayout.removeView(damage);
                     }
                 });
@@ -1450,12 +1457,12 @@ public class BattleMessage {
                         }
                         ((TextView) battleFragment.getView().findViewById(battleFragment.getHpId(messageDetails))).setText(Integer.toString(intAmount));
 
-                        ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
+                        SimpleDraweeView imageView = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(messageDetails));
 
-                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
-                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-//                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
-//                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
+                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                        layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(messageDetails));
+                        layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(messageDetails));
                         layoutParams.setMargins((int) (imageView.getWidth() * 0.5f), (int) (imageView.getHeight() * 0.5f), 0, 0);
                         relativeLayout.addView(heal, layoutParams);
                     }
@@ -1466,7 +1473,7 @@ public class BattleMessage {
                             return;
                         }
 
-                        LinearLayout relativeLayout = (LinearLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
+                        RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(messageDetails));
                         relativeLayout.removeView(heal);
                     }
                 });
@@ -2513,6 +2520,7 @@ public class BattleMessage {
                 defender = battleFragment.getPrintable(split[1]);
                 toAppend = attacker + " transformed into " + defender + "!";
                 logMessage = new SpannableString(toAppend);
+                Toast.makeText(MyApplication.getMyApplication(), "Fix transform sprite", Toast.LENGTH_SHORT).show();
                 toast = battleFragment.makeMinorToast(logMessage);
                 toast.addListener(new AnimatorListenerWithNet() {
                     @Override
@@ -2621,7 +2629,8 @@ public class BattleMessage {
 
                         if (!back) {
                             if (isAnimated) {
-                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani/" + pokemonInfo.getName()
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani" +
+                                        (pokemonInfo.isShiny() ? "-shiny/" : "/") + pokemonInfo.getName()
                                         .toLowerCase().replace(" ", "") + ".gif");
 
                                 DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -2636,7 +2645,8 @@ public class BattleMessage {
                             }
                         } else {
                             if (isAnimated) {
-                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back/" + pokemonInfo.getName()
+                                Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back" +
+                                        (pokemonInfo.isShiny() ? "-shiny/" : "/") + pokemonInfo.getName()
                                         .toLowerCase().replace(" ", "") + ".gif");
 
                                 DraweeController controller = Fresco.newDraweeControllerBuilder()
@@ -2947,7 +2957,7 @@ public class BattleMessage {
                                     if (battleFragment.getView() == null) {
                                         return;
                                     }
-                                    ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
+                                    SimpleDraweeView imageView = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
                                     imageView.setAlpha(0.2f);
                                     ImageView substitute = new ImageView(MyApplication.getMyApplication());
                                     substitute.setImageResource(battleFragment.getSubstitute(split[0]));
@@ -2955,7 +2965,7 @@ public class BattleMessage {
 
                                     RelativeLayout relativeLayout = (RelativeLayout) battleFragment.getView().findViewById(battleFragment.getPkmLayoutId(split[0]));
                                     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                                    layoutParams.addRule(RelativeLayout.ALIGN_TOP, battleFragment.getSpriteId(split[0]));
+                                    layoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, battleFragment.getSpriteId(split[0]));
                                     layoutParams.addRule(RelativeLayout.ALIGN_LEFT, battleFragment.getSpriteId(split[0]));
                                     relativeLayout.addView(substitute, layoutParams);
                                 }
@@ -3100,7 +3110,7 @@ public class BattleMessage {
                                 if (v != null) {
                                     relativeLayout.removeView(v);
                                 }
-                                ImageView imageView = (ImageView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
+                                SimpleDraweeView imageView = (SimpleDraweeView) battleFragment.getView().findViewById(battleFragment.getSpriteId(split[0]));
                                 imageView.setAlpha(1f);
                             }
                         });
@@ -3993,6 +4003,53 @@ public class BattleMessage {
                         toAppendBuilder.append("Fire's power was weakened!");
                         break;
 
+                    case "electricterrain":
+                        toAppendBuilder.append("An electric current runs across the battlefield!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(R.drawable.terrain_electric);
+                            }
+                        });
+
+                    case "psychicterrain":
+                        toAppendBuilder.append("The battlefield got weird!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(R.drawable.terrain_psychic);
+                            }
+                        });
+
+                    case "grassyterrain":
+                        toAppendBuilder.append("Grass grew to cover the battlefield!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(R.drawable.terrain_grassy);
+                            }
+                        });
+
+                    case "mistyterrain":
+                        toAppendBuilder.append("Mist swirls around the battlefield!");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(R.drawable.terrain_misty);
+                            }
+                        });
                     default:
                         toAppendBuilder.append(battleFragment.getPrintable(split[0])).append(" started!");
                         break;
@@ -4039,6 +4096,54 @@ public class BattleMessage {
                     case "watersport":
                         toAppendBuilder.append("The effects of Water Sport have faded.");
                         break;
+
+                    case "electricterrain":
+                        toAppendBuilder.append("The battlefield returned to normal.");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(0);
+                            }
+                        });
+
+                    case "psychicterrain":
+                        toAppendBuilder.append("The battlefield returned to normal.");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(0);
+                            }
+                        });
+
+                    case "grassyterrain":
+                        toAppendBuilder.append("The grass disappeared from the battlefield.");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(0);
+                            }
+                        });
+
+                    case "mistyterrain":
+                        toAppendBuilder.append("The battlefield returned to normal.");
+                        animatorSet.addListener(new AnimatorListenerWithNet() {
+                            @Override
+                            public void onAnimationStartWithNet(Animator animation) {
+                                if (battleFragment.getView() == null) {
+                                    return;
+                                }
+                                ((ImageView) battleFragment.getView().findViewById(R.id.battle_terrain)).setImageResource(0);
+                            }
+                        });
 
                     default:
                         toAppendBuilder.append(battleFragment.getPrintable(split[0])).append(" ended!");

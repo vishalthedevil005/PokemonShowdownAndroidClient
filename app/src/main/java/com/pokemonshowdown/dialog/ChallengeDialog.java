@@ -140,20 +140,22 @@ public class ChallengeDialog extends DialogFragment {
                                 teamSpinner.setEnabled(false);
                             } else {
                                 if (PokemonTeam.getPokemonTeamList(getContext()).size() > 0) {
-                                    int currentSelectedTeam = teamSpinner.getSelectedItemPosition();
-                                    //teamSpinner.setAdapter(mPokemonTeamListArrayAdapter);
-                                    teamSpinner.setEnabled(true);
-                                    int newSelectedTeam = -1;
+                                    ArrayList<PokemonTeam> formatTeams = new ArrayList<PokemonTeam>();
+
                                     for (int i = 0; i < PokemonTeam.getPokemonTeamList(getContext()).size(); i++) {
                                         if (PokemonTeam.getPokemonTeamList(getContext()).get(i).getTier().equals(currentFormatString)) {
-                                            newSelectedTeam = i;
-                                            break;
+                                            formatTeams.add(PokemonTeam.getPokemonTeamList(getContext()).get(i));
                                         }
                                     }
-                                    if (newSelectedTeam > -1) {
-                                        teamSpinner.setSelection(newSelectedTeam);
+
+                                    if (formatTeams.size() == 0) {
+                                        teamSpinner.setAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item,
+                                                getActivity().getResources().getStringArray(R.array.empty_team_list_filler)));
+                                        teamSpinner.setEnabled(false);
+                                        return;
                                     } else {
-                                        teamSpinner.setSelection(currentSelectedTeam);
+                                        teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(getActivity(), formatTeams));
+                                        teamSpinner.setEnabled(true);
                                     }
                                 } else {
                                     //there are no teams, we fill the spinner with a filler item an disable it

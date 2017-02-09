@@ -201,10 +201,18 @@
     <CheckBox
         android:id="@+id/mega_evolution_checkbox"
         android:layout_width="0dp"
-        android:layout_weight="4"
-        android:gravity="center"
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
+        android:layout_weight="4"
+        android:gravity="center"
         android:text="@string/mega_evolution"
-        android:visibility="gone"/>
+        android:visibility="gone" />
+
+    <CheckBox
+        android:id="@+id/zmove_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Use Z-Move"
+        android:visibility="gone" />
 </LinearLayout>

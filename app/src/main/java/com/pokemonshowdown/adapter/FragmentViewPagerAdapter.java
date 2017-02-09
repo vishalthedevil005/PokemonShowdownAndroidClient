@@ -11,9 +11,11 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.fragment.HomeFragment;
+import com.pokemonshowdown.fragment.MainScreenFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +84,7 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
         // will in turn cause a null pointer ref.
         pager.setAdapter(null);
         fragmentsClasses.remove(position);
+        bundles.remove(position);
         notifyDataSetChanged();
         pager.setAdapter(this);
 
@@ -90,14 +93,18 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-//        Activity view = Fragment.instantiate(context, fragmentsClasses.get(position)).getActivity();
-//        if (view.findViewById(R.id.battles_display) != null) { // is fragment "Home"
-//            return "Home";
-//        } else if (view.findViewById(R.id.user_text) != null) { // is fragment "BattleLobby"
-//            return "Battle Lobby";
-//        } else if (view.findViewById(R.id.battles_list_view) != null) { // is fragment "WatchBattle"
-//            return "Watch Battle";
-//        }
-        return "Stub!";
+        try {
+            String frag = MainScreenFragment.TABS_HOLDER_ACCESSOR.getTabs().get(position);
+            if (frag.contains("Home")) { // is fragment "Home"
+                return "Home";
+            } else if (frag.contains("BattleLobby")) { // is fragment "BattleLobby"
+                return "Battle Lobby";
+            } else if (frag.contains("WatchBattle")) { // is fragment "WatchBattle"
+                return "Watch Battle";
+            }
+        } catch (IndexOutOfBoundsException ex) {
+            return "Stub!";
+        }
+        return null;
     }
 }

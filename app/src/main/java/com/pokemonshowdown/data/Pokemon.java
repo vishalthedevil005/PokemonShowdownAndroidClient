@@ -226,11 +226,11 @@ public class Pokemon implements Serializable {
     public static int getPokemonBackSprite(Context appContext, String name, boolean back, boolean female, boolean shiny) {
         try {
             name = MyApplication.toId(name);
-            //String prefix = (shiny) ? "sprshiny_back_" : "sprites_back_";
-            String prefix = (shiny) ? "sprshiny_front_" : "sprites_front_";
+            String prefix = (shiny) ? "sprshiny_back_" : "sprites_back_";
             int toReturn;
             if (female) {
-                String drawableName = prefix + name + "f";
+                //String drawableName = prefix + name + "f";
+                String drawableName = prefix + name;
                 toReturn = appContext.getResources().getIdentifier(drawableName, "drawable", appContext.getPackageName());
                 if (toReturn == 0) {
                     drawableName = prefix + name;
@@ -266,8 +266,7 @@ public class Pokemon implements Serializable {
 //            }
 
             int toReturn = appContext.getResources()
-                    .getIdentifier(("smallicons_" + name).replace(" ", "_").replace(".", "").replace(":", "").replace("'", "_")
-                            .replace("%", ""), "drawable", appContext.getPackageName());
+                    .getIdentifier("smallicons_" + name, "drawable", appContext.getPackageName());
             return (toReturn == 0) ? R.drawable.smallicons_0 : toReturn;
         } catch (NullPointerException e) {
             return R.drawable.smallicons_0;
@@ -470,7 +469,14 @@ public class Pokemon implements Serializable {
             return null;
         }
 
-        String pokemonMainData = pokemonStrings[0]; // split 0 is Name @ Item or Name or nickname (Name) or  nickname (Name) @ Item
+        String pokemonMainData = "";
+        // We need to bypass g between mons on the import, causing split[0] to be != null
+        for (String s : pokemonStrings) {
+            if (!s.trim().isEmpty()) {
+                pokemonMainData = s; // is Name @ Item or Name or nickname (Name) or  nickname (Name) @ Item
+                break;
+            }
+        }
         String pokemonName = "", pokemonNickname = null, pokemonItem = null, pokemonGender = null;
         Pokemon p = null;
         boolean isGender = false; // no nickname, but gender
@@ -663,7 +669,7 @@ public class Pokemon implements Serializable {
             }
         }
 
-
+        Log.d("dfjd", p.exportPokemon(appContext));
         return p;
     }
 

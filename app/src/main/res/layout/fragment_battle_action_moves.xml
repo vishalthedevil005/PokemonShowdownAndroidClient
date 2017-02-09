@@ -197,6 +197,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/mega_evolution" />
+        android:text="@string/mega_evolution"
+        android:visibility="gone" />
 
+    <CheckBox
+        android:id="@+id/zmove_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Use Z-Move"
+        android:visibility="gone" />
 </LinearLayout>

@@ -55,26 +55,9 @@ public class WatchBattleFragment extends BaseFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         mView = view;
         TextView roomTitle = (TextView) mView.findViewById(R.id.room_title);
-        TextView forgetButton = (TextView) mView.findViewById(R.id.forget_button);
         final Spinner formatsSpinner = (Spinner) mView.findViewById(R.id.formats_spinner);
         mListView = (ListView) mView.findViewById(R.id.battles_list_view);
         final Button findButton = (Button) mView.findViewById(R.id.find_button);
-
-        forgetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AlertDialog.Builder(mView.getContext())
-                        .setMessage("Are you sure you want to leave?")
-                        .setNegativeButton("NO", null)
-                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab();
-                            }
-                        })
-                        .show();
-            }
-        });
 
         //Populate formats spinner with webservice response
         final ArrayList<String> mFormatList = new ArrayList<>();

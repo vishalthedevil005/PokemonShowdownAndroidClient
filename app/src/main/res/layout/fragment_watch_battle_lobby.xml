@@ -27,19 +27,6 @@
                     android:text="Watch Battle Room"
                     android:textSize="30sp" />
 
-                <TextView
-                    android:id="@+id/forget_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|right"
-                    android:layout_margin="10dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:drawableRight="@drawable/ic_action_cancel"
-                    android:drawableTint="@color/dark_red"
-                    android:gravity="center"
-                    android:text="Forget it" />
-
             </android.support.design.widget.CoordinatorLayout>
 
             <LinearLayout

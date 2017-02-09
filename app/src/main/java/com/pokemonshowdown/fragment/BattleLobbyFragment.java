@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,16 +52,16 @@ public class BattleLobbyFragment extends BaseFragment {
     public void onViewCreated(final View mView, @Nullable Bundle savedInstanceState) {
         LinearLayout userLayout = (LinearLayout) mView.findViewById(R.id.user_layout);
         final EditText userText = (EditText) mView.findViewById(R.id.user_text);
-        TextView roomTitle = (TextView) mView.findViewById(R.id.room_title);
-        TextView forgetButton = (TextView) mView.findViewById(R.id.forget_button);
         final Spinner formatsSpinner = (Spinner) mView.findViewById(R.id.formats_spinner);
         final Spinner teamSpinner = (Spinner) mView.findViewById(R.id.teams_spinner);
         final Button findButton = (Button) mView.findViewById(R.id.find_button);
 
-        Toast.makeText(getContext(), "" + (savedInstanceState == null), Toast.LENGTH_SHORT).show();
+        String temp = "";
+        if (getArguments() != null) {
+            temp = getArguments().getString("format");
+        }
 
-        final String format = getArguments().getString("format");
-
+        final String format = temp;
         if (format.equals("normal")) {
             userLayout.setVisibility(View.GONE);
         } else {
@@ -85,22 +86,6 @@ public class BattleLobbyFragment extends BaseFragment {
                 }
             });
         }
-
-        forgetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AlertDialog.Builder(mView.getContext())
-                        .setMessage("Are you sure you want to leave?")
-                        .setNegativeButton("NO", null)
-                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab();
-                            }
-                        })
-                        .show();
-            }
-        });
 
         //Populate formats spinner with webservice response
         final ArrayList<String> mFormatList = new ArrayList<>();
@@ -146,20 +131,24 @@ public class BattleLobbyFragment extends BaseFragment {
                             }
                         } else {
                             if (PokemonTeam.getPokemonTeamList(getContext()) != null && PokemonTeam.getPokemonTeamList(getContext()).size() > 0) {
-                                int currentSelectedTeam = teamSpinner.getSelectedItemPosition();
-                                teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(mView.getContext(), PokemonTeam.getPokemonTeamList(getContext())));
-                                teamSpinner.setEnabled(true);
-                                int newSelectedTeam = -1;
+                                ArrayList<PokemonTeam> formatTeams = new ArrayList<>();
+
                                 for (int i = 0; i < PokemonTeam.getPokemonTeamList(getContext()).size(); i++) {
                                     if (PokemonTeam.getPokemonTeamList(getContext()).get(i).getTier().equals(currentFormatString)) {
-                                        newSelectedTeam = i;
-                                        break;
+                                        formatTeams.add(PokemonTeam.getPokemonTeamList(getContext()).get(i));
                                     }
                                 }
-                                if (newSelectedTeam > -1) {
-                                    teamSpinner.setSelection(newSelectedTeam);
+
+                                if (formatTeams.size() == 0) {
+                                    teamSpinner.setAdapter(new ArrayAdapter<>(mView.getContext(), android.R.layout.simple_spinner_item,
+                                            mView.getResources().getStringArray(R.array.empty_team_list_filler)));
+                                    teamSpinner.setEnabled(false);
+                                    findButton.setEnabled(false);
+                                    findButton.setEnabled(false);
+                                    return;
                                 } else {
-                                    teamSpinner.setSelection(currentSelectedTeam);
+                                    teamSpinner.setAdapter(new PokemonTeamSpinnerAdapter(mView.getContext(), formatTeams));
+                                    teamSpinner.setEnabled(true);
                                 }
 
                                 if (format.equals("challenge") && !userText.getText().toString().isEmpty()) {
