@@ -9,6 +9,13 @@
 
     <!-- Divider here -->
 
+    <EditText
+        android:id="@+id/battle_chat_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Type here..."
+        android:inputType="textNoSuggestions" />
+
     <ScrollView
         android:id="@+id/battlelog_scrollview"
         android:layout_width="match_parent"
@@ -23,12 +30,5 @@
             android:padding="4dp" />
 
     </ScrollView>
-
-    <EditText
-        android:id="@+id/battle_chat_box"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Type here..."
-        android:inputType="textNoSuggestions" />
 
 </LinearLayout>
