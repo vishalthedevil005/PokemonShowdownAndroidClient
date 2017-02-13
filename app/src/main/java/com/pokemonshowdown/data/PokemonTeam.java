@@ -2,8 +2,6 @@ package com.pokemonshowdown.data;
 
 import android.content.Context;
 import android.preference.PreferenceManager;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
 
@@ -213,11 +211,19 @@ public class PokemonTeam implements Serializable {
         return mTier;
     }
 
+    public void setTier(String tier) {
+        this.mTier = tier;
+    }
+
     /**
      * Accessors
      */
     public String getNickname() {
         return mNickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.mNickname = nickname;
     }
 
     public String exportPokemonTeam(Context appContext) {
@@ -231,14 +237,6 @@ public class PokemonTeam implements Serializable {
         }
 
         return sb.toString();
-    }
-
-    public void setNickname(String nickname) {
-        this.mNickname = nickname;
-    }
-
-    public void setTier(String tier) {
-        this.mTier = tier;
     }
 
     public String exportForVerification() {

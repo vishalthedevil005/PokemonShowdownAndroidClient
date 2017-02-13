@@ -53,6 +53,7 @@ import me.grantland.widget.AutofitTextView;
 
 public class PokemonActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
+    public static SetPokemonStats POKEMON_STATS;
     private Pokemon mPokemon;
     private int position;
     private int mSelectedMove;
@@ -67,7 +68,6 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
     private ImageView move1Type, move2Type, move3Type, move4Type;
     private ImageView move1Damage, move2Damage, move3Damage, move4Damage;
     private AutofitTextView move1Name, move2Name, move3Name, move4Name;
-    public static SetPokemonStats POKEMON_STATS;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -428,7 +428,6 @@ public class PokemonActivity extends BaseActivity implements View.OnClickListene
                 }
             } else if (requestCode == SearchableActivity.REQUEST_CODE_SEARCH_ABILITY) {
                 String ability = data.getExtras().getString("Search");
-                Toast.makeText(this, ability, Toast.LENGTH_SHORT).show();
                 mPokemon.setAbilityTag(ability);
 
                 try {

@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class DownloadUpdateTask extends AsyncTask<Void, Integer, Void> {
-    private ProgressDialog waitingDialog;
     private final static String APK_LOCATION = "http://ns3367227.ip-37-187-3.eu/showdown/current.apk";
+    private ProgressDialog waitingDialog;
     private int status;
 
     private ContainerActivity battleFieldActivity;

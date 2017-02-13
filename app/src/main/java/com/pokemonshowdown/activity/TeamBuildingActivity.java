@@ -27,7 +27,6 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.adapter.PokemonAdapter;
 import com.pokemonshowdown.adapter.SimpleStringAdapter;
-import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.data.PokemonTeam;
@@ -58,10 +57,10 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
     private final static int CLIPBOARD = 0;
     private final static int PASTEBIN = 1;
     private final static int QR = 2;
+    public static TeamBuildingAccessor ACCESSOR;
     private PokemonTeam mTeam;
     private RecyclerView mPokemonsRecycler;
     private FloatingActionButton addFab;
-    public static TeamBuildingAccessor ACCESSOR;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -175,7 +174,7 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
                         }
                     }
                 }
-                
+
                 //Check item-exclusive pokemon. If true, add the item
                 if (pokemon.getName().contains("Arceus-")) {
                     String type = pokemon.getName().substring(7, pokemon.getName().length());
@@ -405,6 +404,10 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
         TeamBuilderActivity.ACCESSOR.saveOrUpdatePokemonTeam(mTeam);
     }
 
+    private enum PastebinTaskId {
+        EXPORT, EXPORT_FOR_QR // for QR
+    }
+
     public class TeamBuildingAccessor {
 
         public void firePokemonSwapping(Pokemon pokemon, int position) {
@@ -418,10 +421,6 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
         public void firePokemonTeamSaving(int position) {
             fireTeamSaving(position);
         }
-    }
-
-    private enum PastebinTaskId {
-        EXPORT, EXPORT_FOR_QR // for QR
     }
 
     private class PastebinTask extends AsyncTask<String, Void, String> {
@@ -552,12 +551,8 @@ public class TeamBuildingActivity extends BaseActivity implements View.OnClickLi
                 HttpResponse response = httpclient.execute(httppost);
                 HttpEntity entity = response.getEntity();
                 outputURL = EntityUtils.toString(entity, ENCODING);
-                if (outputURL.startsWith("http://pastebin.com/")) {
-                    success = true;
-                } else {
-                    //export error (post limit reached)
-                    success = false;
-                }
+                //export error (post limit reached)
+                success = outputURL.startsWith("http://pastebin.com/");
             } catch (IOException e) {
                 outputURL = null;
                 mException = e;

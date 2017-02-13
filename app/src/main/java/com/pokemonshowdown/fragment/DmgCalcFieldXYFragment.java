@@ -616,10 +616,6 @@ public class DmgCalcFieldXYFragment extends Fragment {
         return mAttacker;
     }
 
-    public Pokemon getDefender() {
-        return mDefender;
-    }
-
     public void setAttacker(Pokemon attacker) {
         mAttacker = attacker;
 
@@ -636,6 +632,10 @@ public class DmgCalcFieldXYFragment extends Fragment {
         setAttackerMove4(attacker.getMove4());
         setupMetricsDisplay(true);
         //calculateDamage(1);
+    }
+
+    public Pokemon getDefender() {
+        return mDefender;
     }
 
     public void setDefender(Pokemon defender) {
@@ -2031,74 +2031,74 @@ public class DmgCalcFieldXYFragment extends Fragment {
 
     private void createIndexOfTypeModifiers() {
         // Normal Type
-        mEffectivenessStrong.put("Normal", Arrays.asList(new String[]{"Fighting"}));
-        mEffectivenessImmune.put("Normal", Arrays.asList(new String[]{"Ghost"}));
+        mEffectivenessStrong.put("Normal", Arrays.asList("Fighting"));
+        mEffectivenessImmune.put("Normal", Arrays.asList("Ghost"));
 
         // Steel Type
-        mEffectivenessStrong.put("Steel", Arrays.asList(new String[]{"Fighting", "Fire", "Ground"}));
-        mEffectivenessWeak.put("Steel", Arrays.asList(new String[]{"Bug", "Dragon", "Flying", "Fairy", "Grass",
-                "Ice", "Normal", "Psychic", "Rock", "Steel"}));
-        mEffectivenessImmune.put("Steel", Arrays.asList(new String[]{"Poison"}));
+        mEffectivenessStrong.put("Steel", Arrays.asList("Fighting", "Fire", "Ground"));
+        mEffectivenessWeak.put("Steel", Arrays.asList("Bug", "Dragon", "Flying", "Fairy", "Grass",
+                "Ice", "Normal", "Psychic", "Rock", "Steel"));
+        mEffectivenessImmune.put("Steel", Arrays.asList("Poison"));
 
         // Fighting Type
-        mEffectivenessStrong.put("Fighting", Arrays.asList(new String[]{"Fairy", "Flying", "Psychic"}));
-        mEffectivenessWeak.put("Fighting", Arrays.asList(new String[]{"Bug", "Dark", "Rock"}));
+        mEffectivenessStrong.put("Fighting", Arrays.asList("Fairy", "Flying", "Psychic"));
+        mEffectivenessWeak.put("Fighting", Arrays.asList("Bug", "Dark", "Rock"));
 
         // Grass Type
-        mEffectivenessStrong.put("Grass", Arrays.asList(new String[]{"Bug", "Fire", "Flying", "Ice", "Poison"}));
-        mEffectivenessWeak.put("Grass", Arrays.asList(new String[]{"Electric", "Grass", "Ground", "Water"}));
+        mEffectivenessStrong.put("Grass", Arrays.asList("Bug", "Fire", "Flying", "Ice", "Poison"));
+        mEffectivenessWeak.put("Grass", Arrays.asList("Electric", "Grass", "Ground", "Water"));
 
         // Water Type
-        mEffectivenessStrong.put("Water", Arrays.asList(new String[]{"Electric", "Grass"}));
-        mEffectivenessWeak.put("Water", Arrays.asList(new String[]{"Fire", "Ice", "Steel", "Water"}));
+        mEffectivenessStrong.put("Water", Arrays.asList("Electric", "Grass"));
+        mEffectivenessWeak.put("Water", Arrays.asList("Fire", "Ice", "Steel", "Water"));
 
         // Electric Type
-        mEffectivenessStrong.put("Electric", Arrays.asList(new String[]{"Ground"}));
-        mEffectivenessWeak.put("Electric", Arrays.asList(new String[]{"Electric", "Flying", "Steel"}));
+        mEffectivenessStrong.put("Electric", Arrays.asList("Ground"));
+        mEffectivenessWeak.put("Electric", Arrays.asList("Electric", "Flying", "Steel"));
 
         // Fairy Type
-        mEffectivenessStrong.put("Fairy", Arrays.asList(new String[]{"Poison", "Steel"}));
-        mEffectivenessWeak.put("Fairy", Arrays.asList(new String[]{"Bug", "Dark", "Fighting"}));
-        mEffectivenessImmune.put("Fairy", Arrays.asList(new String[]{"Dragon"}));
+        mEffectivenessStrong.put("Fairy", Arrays.asList("Poison", "Steel"));
+        mEffectivenessWeak.put("Fairy", Arrays.asList("Bug", "Dark", "Fighting"));
+        mEffectivenessImmune.put("Fairy", Arrays.asList("Dragon"));
 
         // Dragon Type
-        mEffectivenessStrong.put("Dragon", Arrays.asList(new String[]{"Dragon", "Fairy", "Ice"}));
-        mEffectivenessWeak.put("Dragon", Arrays.asList(new String[]{"Electric", "Fire", "Grass", "Water"}));
+        mEffectivenessStrong.put("Dragon", Arrays.asList("Dragon", "Fairy", "Ice"));
+        mEffectivenessWeak.put("Dragon", Arrays.asList("Electric", "Fire", "Grass", "Water"));
 
         // Dark Type
-        mEffectivenessStrong.put("Dark", Arrays.asList(new String[]{"Bug", "Fairy", "Fighting"}));
-        mEffectivenessWeak.put("Dark", Arrays.asList(new String[]{"Dark", "Ghost"}));
-        mEffectivenessImmune.put("Dark", Arrays.asList(new String[]{"Psychic"}));
+        mEffectivenessStrong.put("Dark", Arrays.asList("Bug", "Fairy", "Fighting"));
+        mEffectivenessWeak.put("Dark", Arrays.asList("Dark", "Ghost"));
+        mEffectivenessImmune.put("Dark", Arrays.asList("Psychic"));
 
         // Bug Type
-        mEffectivenessStrong.put("Bug", Arrays.asList(new String[]{"Fire", "Flying", "Rock"}));
-        mEffectivenessWeak.put("Bug", Arrays.asList(new String[]{"Fighting", "Grass", "Ground"}));
+        mEffectivenessStrong.put("Bug", Arrays.asList("Fire", "Flying", "Rock"));
+        mEffectivenessWeak.put("Bug", Arrays.asList("Fighting", "Grass", "Ground"));
 
         // Flying Type
-        mEffectivenessStrong.put("Flying", Arrays.asList(new String[]{"Electric", "Ice", "Rock"}));
-        mEffectivenessWeak.put("Flying", Arrays.asList(new String[]{"Bug", "Fighting", "Grass"}));
-        mEffectivenessImmune.put("Flying", Arrays.asList(new String[]{"Ground"}));
+        mEffectivenessStrong.put("Flying", Arrays.asList("Electric", "Ice", "Rock"));
+        mEffectivenessWeak.put("Flying", Arrays.asList("Bug", "Fighting", "Grass"));
+        mEffectivenessImmune.put("Flying", Arrays.asList("Ground"));
 
         // Poison Type
-        mEffectivenessStrong.put("Poison", Arrays.asList(new String[]{"Ground", "Psychic"}));
-        mEffectivenessWeak.put("Poison", Arrays.asList(new String[]{"Bug", "Fairy", "Fighting", "Grass", "Poison"}));
+        mEffectivenessStrong.put("Poison", Arrays.asList("Ground", "Psychic"));
+        mEffectivenessWeak.put("Poison", Arrays.asList("Bug", "Fairy", "Fighting", "Grass", "Poison"));
 
         // Ice Type
-        mEffectivenessStrong.put("Ice", Arrays.asList(new String[]{"Fighting", "Fire", "Rock", "Steel"}));
-        mEffectivenessWeak.put("Ice", Arrays.asList(new String[]{"Ice"}));
+        mEffectivenessStrong.put("Ice", Arrays.asList("Fighting", "Fire", "Rock", "Steel"));
+        mEffectivenessWeak.put("Ice", Arrays.asList("Ice"));
 
         // Psychic Type
-        mEffectivenessStrong.put("Psychic", Arrays.asList(new String[]{"Bug", "Dark", "Ghost"}));
-        mEffectivenessWeak.put("Psychic", Arrays.asList(new String[]{"Fighting", "Psychic"}));
+        mEffectivenessStrong.put("Psychic", Arrays.asList("Bug", "Dark", "Ghost"));
+        mEffectivenessWeak.put("Psychic", Arrays.asList("Fighting", "Psychic"));
 
         // Ghost Type
-        mEffectivenessStrong.put("Ghost", Arrays.asList(new String[]{"Dark", "Ghost"}));
-        mEffectivenessWeak.put("Ghost", Arrays.asList(new String[]{"Bug", "Poison"}));
-        mEffectivenessImmune.put("Ghost", Arrays.asList(new String[]{"Fighting", "Normal"}));
+        mEffectivenessStrong.put("Ghost", Arrays.asList("Dark", "Ghost"));
+        mEffectivenessWeak.put("Ghost", Arrays.asList("Bug", "Poison"));
+        mEffectivenessImmune.put("Ghost", Arrays.asList("Fighting", "Normal"));
 
         // Fire Type
-        mEffectivenessStrong.put("Fire", Arrays.asList(new String[]{"Ground", "Rock", "Water"}));
-        mEffectivenessWeak.put("Fire", Arrays.asList(new String[]{"Bug", "Fairy", "Fire", "Grass", "Ice", "Steel"}));
+        mEffectivenessStrong.put("Fire", Arrays.asList("Ground", "Rock", "Water"));
+        mEffectivenessWeak.put("Fire", Arrays.asList("Bug", "Fairy", "Fire", "Grass", "Ice", "Steel"));
     }
 
     private void setConditionStatus(FieldConditions conditions, boolean value) {
@@ -2163,7 +2163,7 @@ public class DmgCalcFieldXYFragment extends Fragment {
     }
 
     public enum FieldConditions {
-        SINGLES, DOUBLES, STEALTH_ROCK, ZERO_SPIKES, ONE_SPIKES, TWO_SPIKES, THREE_SPIKES, REFLECT, LIGHT_SCREEN, FORESIGHT, HELPING_HAND, NO_WEATHER, SUN, RAIN, SAND, HAIL, GRAVITY;
+        SINGLES, DOUBLES, STEALTH_ROCK, ZERO_SPIKES, ONE_SPIKES, TWO_SPIKES, THREE_SPIKES, REFLECT, LIGHT_SCREEN, FORESIGHT, HELPING_HAND, NO_WEATHER, SUN, RAIN, SAND, HAIL, GRAVITY
     }
 
     private enum Weather {

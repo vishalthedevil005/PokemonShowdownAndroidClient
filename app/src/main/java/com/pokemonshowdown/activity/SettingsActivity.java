@@ -2,7 +2,6 @@ package com.pokemonshowdown.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.preference.PreferenceFragment;
 
 import com.pokemonshowdown.R;

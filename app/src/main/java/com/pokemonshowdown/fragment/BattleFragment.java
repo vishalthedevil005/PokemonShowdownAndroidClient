@@ -3,28 +3,21 @@ package com.pokemonshowdown.fragment;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -32,12 +25,9 @@ import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
@@ -47,17 +37,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.common.util.UriUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.controller.BaseControllerListener;
-import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.image.ImageInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.ContainerActivity;
 import com.pokemonshowdown.application.MyApplication;
@@ -77,6 +66,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,6 +87,7 @@ public class BattleFragment extends Fragment {
     public final static String[] STTUS = {"psn", "tox", "frz", "par", "slp", "brn"};
     public final static String[][] TEAMMATES = {{"p1a", "p1b", "p1c"}, {"p2a", "p2b", "p2c"}};
     public final static String[] MORPHS = {"Arceus", "Gourgeist", "Genesect", "Pumpkaboo", "Wormadam"};
+    public static Receiver RECEIVER;
     private ArrayDeque<AnimatorSet> mAnimatorSetQueue;
     private Animator mCurrentBattleAnimation;
     private String mRoomId;
@@ -106,7 +97,6 @@ public class BattleFragment extends Fragment {
      * -1 if player is p2
      */
     private int mBattling;
-
     /**
      * false if battle not over
      */
@@ -114,13 +104,15 @@ public class BattleFragment extends Fragment {
     private boolean mMegaEvo = false;
     private boolean mZMove = false;
     private boolean mReOriented = false;
-    public static Receiver RECEIVER;
+    private boolean mHasAdvertized = false;
+    private int mBackground = 0;
     private boolean mTimer;
     private String mPlayer1;
     private String mPlayer2;
     private String mFormat;
     private String mGametype;
     private String mGen;
+    private ArrayList<String> mReceivedMessages;
     private ArrayList<PokemonInfo> mPlayer1Team = new ArrayList<>();
     private ArrayList<PokemonInfo> mPlayer2Team = new ArrayList<>();
     private String mCurrentWeather;
@@ -148,9 +140,18 @@ public class BattleFragment extends Fragment {
             mZMove = savedInstanceState.getBoolean("z_move");
             mFormat = savedInstanceState.getString("format");
             mGametype = savedInstanceState.getString("gametype");
+            mHasAdvertized = savedInstanceState.getBoolean("ad");
             mGen = savedInstanceState.getString("gen");
             mCurrentWeather = savedInstanceState.getString("weather");
-        } else {
+            mBackground = savedInstanceState.getInt("background");
+
+            String list = savedInstanceState.getString("messages");
+            Type listOfTestObject = new TypeToken<ArrayList<String>>() {
+            }.getType();
+            mReceivedMessages = new Gson().fromJson(list, listOfTestObject);
+        }
+
+        if (mRoomId == null) {
             mRoomId = ContainerActivity.lastRoomIdCreated;
         }
 
@@ -164,7 +165,6 @@ public class BattleFragment extends Fragment {
         mBattling = 0;
         mBattleEnd = false;
         RECEIVER = new Receiver();
-        //Toast.makeText(getContext(), R.string.loading, Toast.LENGTH_SHORT).show();
 
         view.findViewById(R.id.battlelog).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,15 +174,10 @@ public class BattleFragment extends Fragment {
             }
         });
 
-        //
-        //
-        //
-        //
-        int id = new Random().nextInt(BACKGROUND_LIBRARY.length);
-        ((ImageView) view.findViewById(R.id.battle_background)).setImageResource(BACKGROUND_LIBRARY[id]);
-        //
-        //
-        //
+        if (mBackground == 0) {
+            mBackground = new Random().nextInt(BACKGROUND_LIBRARY.length);
+        }
+        ((ImageView) view.findViewById(R.id.battle_background)).setImageResource(BACKGROUND_LIBRARY[mBackground]);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
         final boolean hasMusic = sharedPref.getBoolean("pref_key_music", false);
@@ -261,7 +256,15 @@ public class BattleFragment extends Fragment {
             view.findViewById(R.id.p2a).setOnClickListener(new PokemonInfoListener(false, 0));
         }
 
-        //getArguments().putBoolean("instantiated", true);
+        if (!mHasAdvertized) {
+            Toast.makeText(getContext(), R.string.loading, Toast.LENGTH_SHORT).show();
+            if (Onboarding.get(MyApplication.getMyApplication()).isAdvertising()) {
+                // sending advertisement message
+                String advertisement = getRoomId() + "|" + MyApplication.getMyApplication().getString(R.string.advertise_message);
+                MyApplication.getMyApplication().sendClientMessage(advertisement);
+            }
+            mHasAdvertized = true;
+        }
     }
 
     @Override
@@ -331,8 +334,15 @@ public class BattleFragment extends Fragment {
         outState.putBoolean("z_move", mZMove);
         outState.putString("format", mFormat);
         outState.putString("gametype", mGametype);
+        outState.putBoolean("ad", mHasAdvertized);
         outState.putString("gen", mGen);
         outState.putString("weather", mCurrentWeather);
+        outState.putInt("background", mBackground);
+
+        Type listOfTestObject = new TypeToken<ArrayList<String>>() {
+        }.getType();
+        String list = new Gson().toJson(mReceivedMessages, listOfTestObject);
+        outState.putString("messages", list);
     }
 
     public void setUpTimer() {
@@ -381,7 +391,7 @@ public class BattleFragment extends Fragment {
                 if (mBattling == -1) {
                     processedMessage = message.replace("p1", "p3").replace("p2", "p1").replace("p3", "p2");
                 }
-                BattleMessage.processMajorAction(BattleFragment.this, processedMessage);
+                BattleMessage.get().processMajorAction(BattleFragment.this, processedMessage);
             }
         }.run();
     }
@@ -468,38 +478,6 @@ public class BattleFragment extends Fragment {
         return mBattling;
     }
 
-    public void setBattling(int i) {
-        mBattling = i;
-    }
-
-    public void setFormat(String format) {
-        mFormat = format;
-    }
-
-    public String getFormat() {
-        return mFormat;
-    }
-
-    public void setGametype(String gametype) {
-        mGametype = gametype;
-    }
-
-    public String getGametype() {
-        return mGametype;
-    }
-
-    public void setGen(String gen) {
-        mGen = gen;
-    }
-
-    public String getGen() {
-        return mGen;
-    }
-
-    public boolean getReOriented() {
-        return mReOriented;
-    }
-
     public void setBattling(JSONObject object) throws JSONException {
         String side = object.getJSONObject("side").getString("id");
         if (side.equals("p1")) {
@@ -509,6 +487,38 @@ public class BattleFragment extends Fragment {
             switchUpPlayer();
         }
         setUpTimer();
+    }
+
+    public void setBattling(int i) {
+        mBattling = i;
+    }
+
+    public String getFormat() {
+        return mFormat;
+    }
+
+    public void setFormat(String format) {
+        mFormat = format;
+    }
+
+    public String getGametype() {
+        return mGametype;
+    }
+
+    public void setGametype(String gametype) {
+        mGametype = gametype;
+    }
+
+    public String getGen() {
+        return mGen;
+    }
+
+    public void setGen(String gen) {
+        mGen = gen;
+    }
+
+    public boolean getReOriented() {
+        return mReOriented;
     }
 
     public boolean isBattleOver() {
@@ -586,10 +596,18 @@ public class BattleFragment extends Fragment {
 
                 final SimpleDraweeView team1Sprite = (SimpleDraweeView) getView().findViewById(getSpriteId(team1[i]));
                 PokemonInfo poke1 = mPlayer1Team.get(i);
+
                 String poke1Name = poke1.getName().toLowerCase();
                 poke1Name = poke1Name.replace("mega-x", "megax");
                 poke1Name = poke1Name.replace("mega-y", "megay");
                 poke1Name = poke1Name.replace(" ", "");
+                poke1Name = poke1Name.replace(":", "");
+                if (poke1Name.contains("ho-oh")) {
+                    poke1Name = poke1Name.replace("-", "");
+                }
+                if (poke1Name.contains("basculin-blue")) {
+                    poke1Name = "basculin-bluestriped";
+                }
 
                 /**
                  * Opponent side
@@ -611,9 +629,16 @@ public class BattleFragment extends Fragment {
                 poke2Name = poke2Name.replace("mega-x", "megax");
                 poke2Name = poke2Name.replace("mega-y", "megay");
                 poke2Name = poke2Name.replace(" ", "");
-
+                poke2Name = poke2Name.replace(":", "");
+                if (poke2Name.contains("ho-oh")) {
+                    poke2Name = poke2Name.replace("-", "");
+                }
+                if (poke2Name.contains("basculin-blue")) {
+                    poke2Name = "basculin-bluestriped";
+                }
 
                 int visibility = team2View.getVisibility();
+                String holderTag = "";
 
                 if (team1View.getVisibility() == View.VISIBLE) {
                     team2View.setVisibility(View.VISIBLE);
@@ -623,8 +648,15 @@ public class BattleFragment extends Fragment {
                     ((ProgressBar) getView().findViewById(getHpBarId(team2[i]))).setProgress(team1Hp);
 
                     if (isAnimated) {
-                        Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani-back" +
-                                (poke1.isShiny() ? "-shiny/" : "/") + poke1Name + ".gif");
+                        String url = team2Sprite.getTag().toString();
+                        if (url.contains("-back")) {
+                            url = url.replace("-back", "");
+                        } else {
+                            String firstHalf = url.substring(0, url.lastIndexOf("/")) + "-back";
+                            url = firstHalf + url.substring(url.lastIndexOf("/"));
+                        }
+
+                        Uri imageUri = Uri.parse(url);
 
                         DraweeController controller = Fresco.newDraweeControllerBuilder()
                                 .setControllerListener(getController(team1Sprite))
@@ -633,6 +665,8 @@ public class BattleFragment extends Fragment {
                                 .build();
 
                         team1Sprite.setController(controller);
+                        holderTag = team1Sprite.getTag().toString();
+                        team1Sprite.setTag(url);
                     } else {
 //                            Uri uri = new Uri.Builder()
 //                                    .scheme(UriUtil.LOCAL_RESOURCE_SCHEME) // "res"
@@ -661,8 +695,15 @@ public class BattleFragment extends Fragment {
 
                     //here
                     if (isAnimated) {
-                        Uri imageUri = Uri.parse("http://play.pokemonshowdown.com/sprites/xyani" +
-                                (poke2.isShiny() ? "-shiny/" : "/") + poke2Name + ".gif");
+                        String url = holderTag;
+                        if (url.contains("-back")) {
+                            url = url.replace("-back", "");
+                        } else {
+                            String firstHalf = url.substring(0, url.lastIndexOf("/")) + "-back";
+                            url = firstHalf + url.substring(url.lastIndexOf("/"));
+                        }
+
+                        Uri imageUri = Uri.parse(url);
 
                         DraweeController controller = Fresco.newDraweeControllerBuilder()
                                 .setControllerListener(getController(team2Sprite))
@@ -671,6 +712,7 @@ public class BattleFragment extends Fragment {
                                 .build();
 
                         team2Sprite.setController(controller);
+                        team2Sprite.setTag(url);
                     } else {
 //                           Uri uri = new Uri.Builder()
 //                                   .scheme(UriUtil.LOCAL_RESOURCE_SCHEME) // "res"
@@ -787,6 +829,10 @@ public class BattleFragment extends Fragment {
         if (getView() == null) {
             return null;
         }
+        String logMessage = message.toString();
+        if (logMessage.equals("upkeep") || logMessage.contains("choice|")) {
+            return new AnimatorSet();
+        }
         TextView textView = (TextView) getView().findViewById(R.id.toast);
 
         ObjectAnimator fadeIn = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f);
@@ -814,15 +860,52 @@ public class BattleFragment extends Fragment {
         return animation;
     }
 
+    public void makeChatToast(String user, String message) {
+        if (mReceivedMessages == null) {
+            mReceivedMessages = new ArrayList<>();
+        }
+
+        if (!mReceivedMessages.contains(message)) {
+            mReceivedMessages.add(message);
+            LayoutInflater inflater = getLayoutInflater(null);
+            View layout = inflater.inflate(R.layout.dialog_custom_chat_toast,
+                    (ViewGroup) getView().findViewById(R.id.custom_toast_container));
+
+            TextView text = (TextView) layout.findViewById(R.id.user);
+            text.setText("User \"" + user + "\" said: ");
+            text.setTextColor(ChatRoomFragment.getColorStrong(user));
+
+            TextView said = (TextView) layout.findViewById(R.id.message);
+            said.setText(message);
+
+            Toast toast = new Toast(getContext());
+            toast.setDuration(Toast.LENGTH_LONG);
+            toast.setView(layout);
+            toast.show();
+        }
+    }
+
     public AnimatorSet makeToast(final String message) {
+        String logMessage = message.toString();
+        if (logMessage.equals("upkeep") || logMessage.contains("choice|")) {
+            return new AnimatorSet();
+        }
         return makeToast(message, ANIMATION_LONG);
     }
 
     public AnimatorSet makeToast(final String message, final int duration) {
+        String logMessage = message.toString();
+        if (logMessage.equals("upkeep") || logMessage.contains("choice|")) {
+            return new AnimatorSet();
+        }
         return makeToast(new SpannableString(message), duration);
     }
 
     public AnimatorSet makeToast(final Spannable message, final int duration) {
+        String logMessage = message.toString();
+        if (logMessage.equals("upkeep") || logMessage.contains("choice|")) {
+            return new AnimatorSet();
+        }
         if (getView() == null) {
             return null;
         }
@@ -917,6 +1000,10 @@ public class BattleFragment extends Fragment {
     }
 
     public void addToLog(Spannable logMessage) {
+        String message = logMessage.toString();
+        if (message.equals("upkeep") || message.contains("choice|")) {
+            return;
+        }
         BattleFieldData.BattleLog battleLog = BattleFieldData.get(getContext()).getRoomInstance(mRoomId);
         if (battleLog != null && battleLog.isMessageListener()) {
             if (logMessage.length() > 0) {
@@ -987,7 +1074,6 @@ public class BattleFragment extends Fragment {
 
     public int getSpriteNameid(String tag) {
         tag = tag.substring(0, 3);
-        Log.d("hiohkhl", tag);
         switch (tag) {
             case "p1a":
                 return R.id.p1a_pkm;
@@ -1771,7 +1857,6 @@ public class BattleFragment extends Fragment {
     }
 
     public void processSwitch(int id) throws JSONException {
-        Toast.makeText(getContext(), "processSwitch(" + id + ")", Toast.LENGTH_SHORT).show();
         if (isTeamPreview()) {
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
                 ((AutofitTextView) getView().findViewById(R.id.action_label)).setText(getPlayer1Team().get(id).getName()
@@ -1917,7 +2002,7 @@ public class BattleFragment extends Fragment {
 
                 for (int i = 0; i < teamJson.length(); i++) {
                     JSONObject info = teamJson.getJSONObject(i);
-                    final PokemonInfo pkm = BattleMessage.parsePokemonInfo(BattleFragment.this, info);
+                    final PokemonInfo pkm = BattleMessage.get().parsePokemonInfo(BattleFragment.this, info);
                     getPlayer1Team().add(pkm);
                     final int pos = i;
 
@@ -1997,12 +2082,8 @@ public class BattleFragment extends Fragment {
                 ((AutofitTextView) getView().findViewById(R.id.action_label)).setText("What will " + getCurrentActivePokemon().getName() + " do?");
             }
 
-            if (!getCurrentActivePokemon().getName().contains("-Mega")
-                    && getCurrentActivePokemon().canMegaEvo()) {
-                mMegaEvo = false;
-            } else {
-                mMegaEvo = true;
-            }
+            mMegaEvo = !(!getCurrentActivePokemon().getName().contains("-Mega")
+                    && getCurrentActivePokemon().canMegaEvo());
         }
 
         FrameLayout frameLayout = (FrameLayout) getView().findViewById(R.id.action_interface);
@@ -2334,94 +2415,100 @@ public class BattleFragment extends Fragment {
         try {
             JSONObject currentActive = active.getJSONObject(mCurrentActivePokemon);
             JSONArray moves = currentActive.getJSONArray("moves");
+
+            if (moves.getJSONObject(0).getString("move").equals("Struggle")) {
+                parseMoveCommandAndSend(active, 0, 0);
+                return;
+            }
+
+            for (int i = 0; i < moves.length(); i++) {
+                final JSONObject moveJson = moves.getJSONObject(i);
+                String move = moveJson.getString("move");
+                if (move.contains("Return") || move.contains("Frustration")) {
+                    move = move.replaceAll("[^A-z]", "");
+                }
+                moveNames[i].setText(move);
+                if (moveJson.optString("maxpp", "0").equals("0")) {
+                    //sttruggle has noppinfo
+                    movePps[i].setText("");
+                } else {
+                    String maxPP = "" + (Integer.parseInt(MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("pp"))
+                            * 8 / 5);
+                    movePps[i].setText(moveJson.optString("pp", "0") + "/" + maxPP);
+                }
+
+                String type = MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("type");
+
+                int typeIcon = getMoveIcon(type);
+                moveIcons[i].setImageResource(typeIcon);
+                moveViews[i].setOnClickListener(parseMoveTarget(active, i));
+
+                String ability = getCurrentActivePokemon().getAbilityName(getContext());
+
+                // Account for all different move-type variations
+                if (moveJson.getString("move").contains("Hidden Power")) {
+                    moveViews[i].setBackgroundResource(getMoveBackground(moveJson.getString("move").substring(13)));
+                    moveIcons[i].setImageResource(getMoveIcon(moveJson.getString("move").substring(13)));
+                } else if (moveJson.getString("move").contains("Judgment") && getCurrentActivePokemon().getName()
+                        .contains("Arceus") && getCurrentActivePokemon().getItemName(getContext()).contains("Plate")) {
+                    String arceus = getCurrentActivePokemon().getName().substring(7, getCurrentActivePokemon().getName().length());
+                    moveViews[i].setBackgroundResource(getMoveBackground(arceus));
+                    moveIcons[i].setImageResource(getMoveIcon(arceus.toLowerCase()));
+                } else if (type.equals("Normal") && ability.equals("Aerilate") || ability.equals("Pixilate") || ability.equals("Galvanize") ||
+                        ability.equals("Refrigerate")) {
+                    switch (ability) {
+                        case "Aerilate":
+                            moveViews[i].setBackgroundResource(getMoveBackground("flying"));
+                            moveIcons[i].setImageResource(getMoveIcon("flying"));
+                            break;
+                        case "Pixilate":
+                            moveViews[i].setBackgroundResource(getMoveBackground("fairy"));
+                            moveIcons[i].setImageResource(getMoveIcon("fairy"));
+                            break;
+                        case "Galvanize":
+                            moveViews[i].setBackgroundResource(getMoveBackground("electric"));
+                            moveIcons[i].setImageResource(getMoveIcon("electric"));
+                            break;
+                        case "Refrigerate":
+                            moveViews[i].setBackgroundResource(getMoveBackground("ice"));
+                            moveIcons[i].setImageResource(getMoveIcon("ice"));
+                            break;
+                    }
+                } else if (ability.equals("Normalize")) {
+                    moveViews[i].setBackgroundResource(getMoveBackground("normal"));
+                    moveIcons[i].setImageResource(getMoveIcon("normal"));
+                } else {
+                    moveViews[i].setBackgroundResource(getMoveBackground(type));
+                }
+
+                moveViews[i].setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        try {
+                            MoveInfoDialog.newInstance(moveJson.getString("move"))
+                                    .show(getActivity().getSupportFragmentManager(), BTAG);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return false;
+                    }
+                });
+
+                if (moveJson.optBoolean("disabled", false)) {
+                    moveViews[i].setOnClickListener(null);
+                    moveViews[i].setBackgroundResource(R.drawable.uneditable_frame);
+                }
+            }
+
             boolean trapped = currentActive.optBoolean("trapped", false) ||
                     currentActive.optBoolean("maybeTrapped");
-            if (!trapped || moves.length() != 1) {
-                for (int i = 0; i < moves.length(); i++) {
-                    final JSONObject moveJson = moves.getJSONObject(i);
-                    String move = moveJson.getString("move");
-                    if (move.contains("Return") || move.contains("Frustration")) {
-                        move = move.replaceAll("[^A-z]", "");
-                    }
-                    moveNames[i].setText(move);
-                    if (moveJson.optString("maxpp", "0").equals("0")) {
-                        //sttruggle has noppinfo
-                        movePps[i].setText("");
-                    } else {
-                        String maxPP = "" + (Integer.parseInt(MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("pp"))
-                                * 8 / 5);
-                        movePps[i].setText(moveJson.optString("pp", "0") + "/" + maxPP);
-                    }
-
-                    String type = MoveDex.get(getContext()).getMoveJsonObject(moveJson.getString("id")).getString("type");
-
-                    int typeIcon = getMoveIcon(type);
-                    moveIcons[i].setImageResource(typeIcon);
-                    moveViews[i].setOnClickListener(parseMoveTarget(active, i));
-
-                    String ability = getCurrentActivePokemon().getAbilityName(getContext());
-
-                    // Account for all different move-type variations
-                    if (moveJson.getString("move").contains("Hidden Power")) {
-                        moveViews[i].setBackgroundResource(getMoveBackground(moveJson.getString("move").substring(13)));
-                        moveIcons[i].setImageResource(getMoveIcon(moveJson.getString("move").substring(13)));
-                    } else if (moveJson.getString("move").contains("Judgment") && getCurrentActivePokemon().getName()
-                            .contains("Arceus") && getCurrentActivePokemon().getItemName(getContext()).contains("Plate")) {
-                        String arceus = getCurrentActivePokemon().getName().substring(7, getCurrentActivePokemon().getName().length());
-                        moveViews[i].setBackgroundResource(getMoveBackground(arceus));
-                        moveIcons[i].setImageResource(getMoveIcon(arceus.toLowerCase()));
-                    } else if (type.equals("Normal") && ability.equals("Aerilate") || ability.equals("Pixilate") || ability.equals("Galvanize") ||
-                            ability.equals("Refrigerate")) {
-                        switch (ability) {
-                            case "Aerilate":
-                                moveViews[i].setBackgroundResource(getMoveBackground("flying"));
-                                moveIcons[i].setImageResource(getMoveIcon("flying"));
-                                break;
-                            case "Pixilate":
-                                moveViews[i].setBackgroundResource(getMoveBackground("fairy"));
-                                moveIcons[i].setImageResource(getMoveIcon("fairy"));
-                                break;
-                            case "Galvanize":
-                                moveViews[i].setBackgroundResource(getMoveBackground("electric"));
-                                moveIcons[i].setImageResource(getMoveIcon("electric"));
-                                break;
-                            case "Refrigerate":
-                                moveViews[i].setBackgroundResource(getMoveBackground("ice"));
-                                moveIcons[i].setImageResource(getMoveIcon("ice"));
-                                break;
-                        }
-                    } else if (ability.equals("Normalize")) {
-                        moveViews[i].setBackgroundResource(getMoveBackground("normal"));
-                        moveIcons[i].setImageResource(getMoveIcon("normal"));
-                    } else {
-                        moveViews[i].setBackgroundResource(getMoveBackground(type));
-                    }
-
-                    moveViews[i].setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            try {
-                                MoveInfoDialog.newInstance(moveJson.getString("move"))
-                                        .show(getActivity().getSupportFragmentManager(), BTAG);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            return false;
-                        }
-                    });
-
-                    if (moveJson.optBoolean("disabled", false)) {
-                        moveViews[i].setOnClickListener(null);
-                        moveViews[i].setBackgroundResource(R.drawable.uneditable_frame);
-                    }
-                }
-
-                if (trapped) {
+            if (trapped) {
+                if (getCurrentActivePokemon().getItemName(getContext()) == null || !getCurrentActivePokemon().getItemName(getContext())
+                        .equals("Shed Shell") || Arrays.asList(getCurrentActivePokemon().getTypeIcon()).contains(R.drawable.types_ghost)) {
                     triggerSwitchOptions(false);
                 }
-            } else {
-                parseMoveCommandAndSend(active, 0, 0);
             }
+
         } catch (final JSONException e) {
             new RunWithNet() {
                 @Override
@@ -3021,6 +3108,7 @@ public class BattleFragment extends Fragment {
             builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
+                    BattleFieldData.get(getContext()).leaveRoom(mRoomId);
                     MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab(true);
                 }
             });
@@ -3029,18 +3117,12 @@ public class BattleFragment extends Fragment {
         }
     }
 
-    public void setTeamSize(int teamSize) {
-        mTeamSize = teamSize;
-        if (teamSize != 0 && getView() != null) {
-            for (int i = teamSize; i < 6; i++) {
-                ((ImageView) getView().findViewById(getIconId("p1", i))).setImageResource(R.drawable.pokeball_none);
-                getView().findViewById(getIconId("p1", i)).setOnClickListener(null);
-            }
-        }
-    }
-
     public int getTeamSize() {
         return mTeamSize;
+    }
+
+    public void setTeamSize(int teamSize) {
+        mTeamSize = teamSize;
     }
 
     private void endAllAnimations() {
@@ -3153,10 +3235,24 @@ public class BattleFragment extends Fragment {
         }
 
         public void forfeitBattle(String roomId) {
-            //Toast.makeText(getContext(), roomId, Toast.LENGTH_SHORT).show();
             if (mRoomId.equals(roomId)) {
                 BattleFragment.this.forfeitBattle();
             }
+        }
+
+        public boolean isBattleOver(String roomId) {
+            if (mRoomId.equals(roomId)) {
+                return mBattleEnd;
+            } else {
+                return false;
+            }
+        }
+
+        public boolean isPlayerIn(String roomId) {
+            if (mRoomId.equals(roomId)) {
+                return getBattling() != 0;
+            }
+            return false;
         }
     }
 }

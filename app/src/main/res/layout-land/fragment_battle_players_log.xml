@@ -122,7 +122,7 @@
                 android:layout_weight="5"
                 android:contentDescription="@string/avatar"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
+                android:scaleType="centerInside"
                 android:src="@drawable/avatar_001" />
 
             <View
@@ -256,7 +256,7 @@
                 android:layout_weight="5"
                 android:contentDescription="@string/avatar"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
+                android:scaleType="centerInside"
                 android:src="@drawable/avatar_001" />
 
             <View

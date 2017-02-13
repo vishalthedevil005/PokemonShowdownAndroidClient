@@ -59,6 +59,21 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
         return fragment;
     }
 
+    public static int getColorStrong(String name) {
+        if (name.length() < 2) {
+            return Color.parseColor(COLOR_STRONG[0]);
+        }
+        int value = (int) name.charAt(1) + (int) name.charAt(name.length() - 1);
+        return Color.parseColor(COLOR_STRONG[value % COLOR_STRONG.length]);
+    }
+
+    /**
+     * Trim everything except for letter and number
+     */
+    public static String sanitizeUsername(String user) {
+        return user.toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mLayoutInflater = inflater;
@@ -355,21 +370,6 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
             }
         }
         userList.add(username);
-    }
-
-    public static int getColorStrong(String name) {
-        if (name.length() < 2) {
-            return Color.parseColor(COLOR_STRONG[0]);
-        }
-        int value = (int) name.charAt(1) + (int) name.charAt(name.length() - 1);
-        return Color.parseColor(COLOR_STRONG[value % COLOR_STRONG.length]);
-    }
-
-    /**
-     * Trim everything except for letter and number
-     */
-    public static String sanitizeUsername(String user) {
-        return user.toLowerCase().replaceAll("[^a-z0-9]", "");
     }
 
     private class UserAdapter extends ArrayAdapter<String> {

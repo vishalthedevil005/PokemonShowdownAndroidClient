@@ -1,17 +1,14 @@
 package com.pokemonshowdown.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -20,17 +17,15 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.text.Html;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pokemonshowdown.DownloadUpdateTask;
 import com.pokemonshowdown.ExportReplayTask;
 import com.pokemonshowdown.R;
+import com.pokemonshowdown.UpdateCheckTask;
 import com.pokemonshowdown.application.BroadcastListener;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
@@ -43,6 +38,7 @@ import com.pokemonshowdown.dialog.UserDialog;
 import com.pokemonshowdown.fragment.BattleFragment;
 import com.pokemonshowdown.fragment.BattleLobbyFragment;
 import com.pokemonshowdown.fragment.CommunityLoungeFragment;
+import com.pokemonshowdown.fragment.CreditsFragment;
 import com.pokemonshowdown.fragment.HomeFragment;
 import com.pokemonshowdown.fragment.MainScreenFragment;
 import com.pokemonshowdown.fragment.PlaceHolderFragment;
@@ -52,10 +48,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by McBeengs on 19/10/2016.
@@ -68,8 +62,8 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     public final static int REQUEST_CODE_BUG_REPORT = 200;
     public final static String BATTLE_FIELD_FRAGMENT_TAG = "Battle Field Drawer 0";
     public final static String DRAWER_POSITION = "Drawer Position";
-    public static String lastRoomIdCreated = "";
     private static final String CHALLENGE_DIALOG_TAG = "CHALLENGE_DIALOG_TAG";
+    public static String lastRoomIdCreated = "";
     private int mPosition;
     private int numOfRooms = 0;
     private DrawerLayout mDrawerLayout;
@@ -78,6 +72,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     private CharSequence mTitle;
     private String[] mLeftDrawerTitles;
     private BroadcastListener mBroadcastListener;
+    private boolean updateMessageShow = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -103,13 +98,19 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 
         if (savedInstanceState == null) {
             mPosition = 0;
+            updateMessageShow = false;
             selectItem(0);
         } else {
             mPosition = savedInstanceState.getInt(DRAWER_POSITION);
+            updateMessageShow = savedInstanceState.getBoolean("update");
             selectItem(mPosition);
         }
 
-        //new UpdateCheckTask((MyApplication) getApplicationContext()).execute();
+        if (!updateMessageShow) {
+            new UpdateCheckTask((MyApplication) getApplicationContext()).execute();
+            updateMessageShow = true;
+        }
+
         MyApplication.getMyApplication().getWebSocketClient();
     }
 
@@ -171,6 +172,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(DRAWER_POSITION, mPosition);
+        outState.putBoolean("update", updateMessageShow);
     }
 
     @Override
@@ -215,9 +217,9 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
             case R.id.team_building:
                 startActivity(new Intent(this, TeamBuilderActivity.class));
                 return true;
-//            case R.id.menu_pokedex:
-//                startActivity(new Intent(this, PokedexActivity.class));
-//                return true;
+            case R.id.menu_pokedex:
+                startActivity(new Intent(this, PokedexActivity.class));
+                return true;
             case R.id.menu_dmg_calc:
                 startActivity(new Intent(this, DmgCalcActivity.class));
                 return true;
@@ -339,9 +341,19 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                if (mDialog != null && mDialog.isShowing()) {
+                                    mDialog.dismiss();
+                                }
                                 mDialog = new AlertDialog.Builder(ContainerActivity.this)
-                                        .setMessage(R.string.searching_battle)
+                                        .setMessage("Searching for other trainers...")
                                         .create();
+                                mDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialogInterface) {
+                                        MyApplication.getMyApplication().sendClientMessage("|/cancelsearch");
+                                    }
+                                });
+                                mDialog.setCancelable(true);
                                 mDialog.show();
                             }
                         });
@@ -385,24 +397,24 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
 //                }
                 return;
             case BroadcastSender.EXTRA_WATCH_BATTLE_LIST_READY:
-                WatchBattleFragment.fireBattlesListViewUpdate();
+                WatchBattleFragment.ACCESSOR.fireBattlesListViewUpdate();
                 return;
             case BroadcastSender.EXTRA_NEW_BATTLE_ROOM:
                 String roomId = intent.getExtras().getString(BroadcastSender.EXTRA_ROOMID);
                 lastRoomIdCreated = roomId;
-                numOfRooms++;
 
                 // We need to check what tab the battle is going to occur. A challenge, for instance, will be hold on the
                 // last available tab index (tabCount + 1), but a battle (or spectator, who knows) coming from the lobby screen
                 // will be played on the tab index that requested it (E.g.: Tab 2 of 3, so index = 1), overriding the View prior
-                // to that. Also to avoid ID conflicts, we need override the static id on each new instance.
+                // to that.
 
-                BattleFieldData.get(MyApplication.getMyApplication()).joinRoom(roomId, false);
+                BattleFieldData.get(getContext()).joinRoom(roomId, false);
                 Bundle args = new Bundle();
                 args.putString(BattleFragment.ROOM_ID, roomId);
 
-                if (BattleLobbyFragment.requestingRoomIndex > 0) {
-                    MainScreenFragment.TABS_HOLDER_ACCESSOR.changeTab(BattleFragment.class.getName(), args);
+                if (BattleLobbyFragment.requestingRoomIndex > 0 || WatchBattleFragment.requestingRoomIndex > 0) {
+                    MainScreenFragment.TABS_HOLDER_ACCESSOR.removeTab(true);
+                    MainScreenFragment.TABS_HOLDER_ACCESSOR.addTab(BattleFragment.class.getName(), args);
                 } else {
                     MainScreenFragment.TABS_HOLDER_ACCESSOR.addTab(BattleFragment.class.getName(), args);
                 }
@@ -618,8 +630,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                     fragment = new CommunityLoungeFragment();
                     break;
                 case 3:
-                    //fragment = CreditsFragment.newInstance();
-                    fragment = new PlaceHolderFragment();
+                    fragment = new CreditsFragment();
                     break;
                 default:
                     fragment = new PlaceHolderFragment();

@@ -17,7 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
@@ -285,6 +284,38 @@ public class SearchableActivity extends BaseActivity {
         setListAdapter(mAdapter);
     }
 
+    private void setListAdapter(ArrayAdapter<String> adapter) {
+        mListView.setAdapter(adapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent();
+                switch (mSearchType) {
+                    case REQUEST_CODE_SEARCH_POKEMON:
+                        intent.putExtra(SEARCH, mAdapterList.get(i));
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
+                        break;
+                    case REQUEST_CODE_SEARCH_ABILITY:
+                        intent.putExtra(SEARCH, mAdapterList.get(i));
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
+                        break;
+                    case REQUEST_CODE_SEARCH_ITEM:
+                        intent.putExtra(SEARCH, mAdapterList.get(i));
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
+                        break;
+                    case REQUEST_CODE_SEARCH_MOVES:
+                        intent.putExtra(SEARCH, mAdapterList.get(i));
+                        setResult(Activity.RESULT_OK, intent);
+                        finish();
+                        break;
+                }
+            }
+        });
+    }
+
     private class PokemonAdapter extends ArrayAdapter<String> {
         private Activity mContext;
 
@@ -309,16 +340,16 @@ public class SearchableActivity extends BaseActivity {
             }
 
             //if (convertView == null || convertView.findViewById(R.id.text) != null) {
-                if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_vertical, null);
+            if (mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_vertical, null);
+            } else {
+                String[] abilities = Pokemon.getPokemonAbilities(getApplicationContext(), getItem(position));
+                if (abilities.length > 1) {
+                    convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal, null);
                 } else {
-                    String[] abilities = Pokemon.getPokemonAbilities(getApplicationContext(), getItem(position));
-                    if (abilities.length > 1) {
-                        convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal, null);
-                    } else {
-                        convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal_single, null);
-                    }
+                    convertView = mContext.getLayoutInflater().inflate(R.layout.fragment_pokemon_short_horizontal_single, null);
                 }
+            }
             //}
 
             ImageView icon = (ImageView) convertView.findViewById(R.id.pokemon_icon);
@@ -406,38 +437,6 @@ public class SearchableActivity extends BaseActivity {
             }
             return convertView;
         }
-    }
-
-    private void setListAdapter(ArrayAdapter<String> adapter) {
-        mListView.setAdapter(adapter);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent();
-                switch (mSearchType) {
-                    case REQUEST_CODE_SEARCH_POKEMON:
-                        intent.putExtra(SEARCH, mAdapterList.get(i));
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
-                        break;
-                    case REQUEST_CODE_SEARCH_ABILITY:
-                        intent.putExtra(SEARCH, mAdapterList.get(i));
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
-                        break;
-                    case REQUEST_CODE_SEARCH_ITEM:
-                        intent.putExtra(SEARCH, mAdapterList.get(i));
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
-                        break;
-                    case REQUEST_CODE_SEARCH_MOVES:
-                        intent.putExtra(SEARCH, mAdapterList.get(i));
-                        setResult(Activity.RESULT_OK, intent);
-                        finish();
-                        break;
-                }
-            }
-        });
     }
 
     private class MovesAdapter extends ArrayAdapter<String> {

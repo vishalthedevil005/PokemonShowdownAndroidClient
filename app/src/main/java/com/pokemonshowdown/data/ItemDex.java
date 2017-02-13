@@ -25,6 +25,18 @@ public class ItemDex {
         mItemDexEntries = readFile(appContext);
     }
 
+    public static ItemDex get(Context c) {
+        if (sItemDex == null) {
+            sItemDex = new ItemDex(c.getApplicationContext());
+        }
+        return sItemDex;
+    }
+
+    public static int getItemIcon(Context appContext, String itemName) {
+        return appContext.getResources()
+                .getIdentifier("item_" + MyApplication.toId(itemName), "drawable", appContext.getPackageName());
+    }
+
     private HashMap<String, String> readFile(Context appContext) {
         HashMap<String, String> ItemDexEntries = new HashMap<>();
         String jsonString;
@@ -57,18 +69,6 @@ public class ItemDex {
         }
 
         return ItemDexEntries;
-    }
-
-    public static ItemDex get(Context c) {
-        if (sItemDex == null) {
-            sItemDex = new ItemDex(c.getApplicationContext());
-        }
-        return sItemDex;
-    }
-
-    public static int getItemIcon(Context appContext, String itemName) {
-        return appContext.getResources()
-                .getIdentifier("item_" + MyApplication.toId(itemName), "drawable", appContext.getPackageName());
     }
 
     public HashMap<String, String> getItemDexEntries() {

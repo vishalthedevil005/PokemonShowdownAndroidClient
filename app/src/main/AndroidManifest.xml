@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".activity.PokedexActivity"
+            android:label="Pokédex"
+            android:parentActivityName=".activity.ContainerActivity" />
+        <activity android:name=".activity.ContainerActivity" />
+        <activity
             android:name=".activity.DmgCalcActivity"
             android:label="Damage Calculator"
             android:parentActivityName=".activity.ContainerActivity" />

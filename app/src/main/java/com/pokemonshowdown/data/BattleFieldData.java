@@ -1,6 +1,5 @@
 package com.pokemonshowdown.data;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -24,8 +23,8 @@ import java.util.LinkedList;
 
 public class BattleFieldData {
     private final static String BTAG = BattleFieldData.class.getName();
-    private static BattleFieldData sBattleFieldData;
     public static ArrayList<String> sRooms;
+    private static BattleFieldData sBattleFieldData;
     private ArrayList<FormatType> mFormatTypes;
     private int mCurrentFormat;
     private JSONObject mAvailableBattle;
@@ -51,7 +50,6 @@ public class BattleFieldData {
         }
         return sBattleFieldData;
     }
-
 
 
     public static String getRoomFormat(String roomId) {
@@ -278,15 +276,15 @@ public class BattleFieldData {
             }
         }
 
-        return null;
+//        return null;
 //        new AlertDialog.Builder(c).setTitle("Obsolete formas")
 //                .setMessage("One or more of your teams were found with obsolete formats. Please" +
 //                        " make sure to look for teams with the tier set for \"Obsolete\" and either" +
 //                        " fix them or delete. They will not be able to be selected for battles.")
 //                .setPositiveButton("Ok", null)
 //                .show();
-//        Format format = new Format("Obsolete");
-//        return format;
+        Format format = new Format("Obsolete");
+        return format;
     }
 
     public static class BattleLog {
@@ -428,7 +426,7 @@ public class BattleFieldData {
             return mViewSetterOnHold;
         }
 
-        public static enum SetterType {
+        public enum SetterType {
             BATTLE_START,
             TEXTVIEW_SETTEXT, IMAGEVIEW_SETIMAGERESOURCE,
             VIEW_VISIBLE, VIEW_INVISIBLE, VIEW_GONE
@@ -460,7 +458,7 @@ public class BattleFieldData {
         }
     }
 
-    public static class FormatType implements Serializable{
+    public static class FormatType implements Serializable {
         private String mName;
         private ArrayList<Format> mFormatList;
 
@@ -496,44 +494,12 @@ public class BattleFieldData {
         }
     }
 
-    public static class Format implements Serializable{
+    public static class Format implements Serializable {
         private String mName;
         private boolean teamNeeded;
         private boolean canSearch;
         private boolean canChallenge;
         private boolean canTournament;
-
-        public boolean isCanChallenge() {
-            return canChallenge;
-        }
-
-        public boolean isCanSearch() {
-            return canSearch;
-        }
-
-        public boolean isCanTournament() {
-            return canTournament;
-        }
-
-        public boolean isTeamNeeded() {
-            return teamNeeded;
-        }
-
-        public void setCanChallenge(boolean canChallenge) {
-            this.canChallenge = canChallenge;
-        }
-
-        public void setCanSearch(boolean canSearch) {
-            this.canSearch = canSearch;
-        }
-
-        public void setCanTournament(boolean canTournament) {
-            this.canTournament = canTournament;
-        }
-
-        public void setTeamNeeded(boolean teamNeeded) {
-            this.teamNeeded = teamNeeded;
-        }
 
         public Format(String name) {
             mName = name;
@@ -541,6 +507,38 @@ public class BattleFieldData {
             canSearch = false;
             canChallenge = false;
             canTournament = false;
+        }
+
+        public boolean isCanChallenge() {
+            return canChallenge;
+        }
+
+        public void setCanChallenge(boolean canChallenge) {
+            this.canChallenge = canChallenge;
+        }
+
+        public boolean isCanSearch() {
+            return canSearch;
+        }
+
+        public void setCanSearch(boolean canSearch) {
+            this.canSearch = canSearch;
+        }
+
+        public boolean isCanTournament() {
+            return canTournament;
+        }
+
+        public void setCanTournament(boolean canTournament) {
+            this.canTournament = canTournament;
+        }
+
+        public boolean isTeamNeeded() {
+            return teamNeeded;
+        }
+
+        public void setTeamNeeded(boolean teamNeeded) {
+            this.teamNeeded = teamNeeded;
         }
 
         public String getName() {

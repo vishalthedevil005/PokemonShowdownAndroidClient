@@ -68,19 +68,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_HP"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_hp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_HP"
                     android:textSize="12sp" />
 
@@ -92,19 +94,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Atk"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_Atk"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Atk"
                     android:textSize="12sp" />
 
@@ -116,19 +120,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Def"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_Def"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Def"
                     android:textSize="12sp" />
 
@@ -140,19 +146,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_SpAtk"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_SpAtk"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_SpAtk"
                     android:textSize="12sp" />
 
@@ -164,19 +172,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_SpDef"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_SpDef"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_SpDef"
                     android:textSize="12sp" />
 
@@ -188,19 +198,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Spd"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_Spd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_Spd"
                     android:textSize="12sp" />
 
@@ -212,19 +224,21 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_BST"
                     android:textSize="12sp"
                     android:textStyle="italic" />
 
-                <TextView
+                <me.grantland.widget.AutofitTextView
                     android:id="@+id/pokemon_short_BST"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:lines="1"
                     android:text="@string/stats_BST"
                     android:textSize="12sp" />
 

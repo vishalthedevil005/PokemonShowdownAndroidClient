@@ -1,20 +1,12 @@
 package com.pokemonshowdown.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.pokemonshowdown.R;
-import com.pokemonshowdown.fragment.HomeFragment;
 import com.pokemonshowdown.fragment.MainScreenFragment;
 
 import java.util.ArrayList;
@@ -26,12 +18,12 @@ import java.util.List;
 
 public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
 
+    public static int LAST_TAB = 0;
     private int count = 1;
     private Context context;
     private List<String> fragmentsClasses;
     private List<String> fragmentsIdentifiers;
     private List<Bundle> bundles;
-    public static int LAST_TAB = 0;
 
     public FragmentViewPagerAdapter(Context context, FragmentManager fm) {
         super(fm);
@@ -62,7 +54,6 @@ public class FragmentViewPagerAdapter extends FragmentStatePagerAdapter {
 
     /**
      * @param fragment Class.class.getName()
-     *
      * @return
      */
     public int addFragment(String fragment, Bundle args) {

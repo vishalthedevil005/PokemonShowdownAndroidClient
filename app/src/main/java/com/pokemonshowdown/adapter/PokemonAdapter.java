@@ -5,9 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.drawable.GradientDrawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +15,6 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.activity.PokemonActivity;
-import com.pokemonshowdown.activity.TeamBuilderActivity;
 import com.pokemonshowdown.activity.TeamBuildingActivity;
 import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.MoveDex;
@@ -145,7 +142,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
         } else {
             holder.move4.setText(m4);
         }
-        
+
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

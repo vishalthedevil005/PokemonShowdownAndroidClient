@@ -2,7 +2,6 @@ package com.pokemonshowdown.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -20,8 +19,8 @@ import com.pokemonshowdown.data.Onboarding;
 
 public class HomeFragment extends BaseFragment {
 
-    private static TextView loggedDisplay;
     public static final UsernameLogged USERNAME_LOGGED = new UsernameLogged();
+    private static TextView loggedDisplay;
 
     public static HomeFragment newInstance() {
         return new HomeFragment();

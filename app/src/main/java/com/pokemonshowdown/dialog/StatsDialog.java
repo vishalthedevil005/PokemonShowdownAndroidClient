@@ -43,7 +43,7 @@ public class StatsDialog extends DialogFragment {
     public final static String ARGUMENT_LEVEL = "Level";
     public final static String ARGUMENT_NATURE_MULTIPLIER = "NatureMultiplier";
     public static final int maxEV = 508;
-    private final static List<String> SPINNER_STAGES = Arrays.asList(new String[]{"-6", "-5", "-4", "-3", "-2", "-1", "0", "+1", "+2", "+3", "+4", "+5", "+6"});
+    private final static List<String> SPINNER_STAGES = Arrays.asList("-6", "-5", "-4", "-3", "-2", "-1", "0", "+1", "+2", "+3", "+4", "+5", "+6");
     private String mPokemonName;
     private int[] mStats;
     private int[] mBaseStats;

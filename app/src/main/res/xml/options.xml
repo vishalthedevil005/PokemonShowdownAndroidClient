@@ -1,24 +1,45 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Battles Options"
-        android:key="pref_key_storage_settings">
+        android:key="pref_key_storage_settings"
+        android:title="Battles Options">
 
         <SwitchPreference
+            android:defaultValue="true"
             android:key="pref_key_animated"
             android:summary="Enables animated sprites in-battle. May cause increase in data usage and slowdown."
-            android:title="Animated Sprites"
-            android:defaultValue="true" />
+            android:title="Animated Sprites" />
 
         <SwitchPreference
+            android:defaultValue="true"
+            android:key="pref_key_moves"
+            android:summary="Enables moves animation in-battle. May cause slowdown."
+            android:title="Animated Moves" />
+
+        <SwitchPreference
+            android:defaultValue="true"
             android:key="pref_key_music"
             android:summary="Enables music in-battle. May cause slowdown."
-            android:title="Music"
-            android:defaultValue="true" />
+            android:title="Music" />
 
         <SwitchPreference
+            android:defaultValue="true"
             android:key="pref_key_sfx"
             android:summary="Enables sound effects (cries) in-battle. May cause increase in data usage and slowdown."
-            android:title="SFX"
-            android:defaultValue="true" />
+            android:title="SFX" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="General Options">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="pref_key_ad"
+            android:summary="At the start of every battle, send a message telling that you're in mobile (free publicity lol)."
+            android:title="Advertise" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="pref_key_bugs"
+            android:summary="Help the dev team debug errors that may appear. Add a button to send errors details."
+            android:title="Report Bugs" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -25,6 +25,23 @@ public class AbilityDex {
         mAbilityDexEntries = readFile(appContext);
     }
 
+    public static String getAbilityName(Context appContext, String name) {
+        try {
+            name = MyApplication.toId(name);
+            JSONObject abilityJson = AbilityDex.get(appContext).getAbilityJsonObject(name);
+            return abilityJson.getString("name");
+        } catch (JSONException | NullPointerException e) {
+            return null;
+        }
+    }
+
+    public static AbilityDex get(Context c) {
+        if (sAbilityDex == null) {
+            sAbilityDex = new AbilityDex(c.getApplicationContext());
+        }
+        return sAbilityDex;
+    }
+
     private HashMap<String, String> readFile(Context appContext) {
         HashMap<String, String> AbilityDexEntries = new HashMap<>();
         String jsonString;
@@ -59,16 +76,6 @@ public class AbilityDex {
         return AbilityDexEntries;
     }
 
-    public static String getAbilityName(Context appContext, String name) {
-        try {
-            name = MyApplication.toId(name);
-            JSONObject abilityJson = AbilityDex.get(appContext).getAbilityJsonObject(name);
-            return abilityJson.getString("name");
-        } catch (JSONException | NullPointerException e) {
-            return null;
-        }
-    }
-
     public JSONObject getAbilityJsonObject(String name) {
         try {
             String ability = mAbilityDexEntries.get(MyApplication.toId(name));
@@ -76,13 +83,6 @@ public class AbilityDex {
         } catch (JSONException e) {
             return null;
         }
-    }
-
-    public static AbilityDex get(Context c) {
-        if (sAbilityDex == null) {
-            sAbilityDex = new AbilityDex(c.getApplicationContext());
-        }
-        return sAbilityDex;
     }
 
     public HashMap<String, String> getAbilityDexEntries() {

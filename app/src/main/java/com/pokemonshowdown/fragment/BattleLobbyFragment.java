@@ -1,14 +1,12 @@
 package com.pokemonshowdown.fragment;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +16,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pokemonshowdown.R;
@@ -39,8 +36,8 @@ import java.util.Arrays;
 
 public class BattleLobbyFragment extends BaseFragment {
 
-    private boolean isSearching = false;
     public static int requestingRoomIndex = -1;
+    private boolean isSearching = false;
 
     @Nullable
     @Override
@@ -188,12 +185,12 @@ public class BattleLobbyFragment extends BaseFragment {
                     return;
                 }
 
+                String currentFormatString = formatsSpinner.getSelectedItem().toString();
                 if (format.equals("challenge")) {
                     Toast.makeText(mView.getContext(), R.string.request_sent, Toast.LENGTH_SHORT).show();
                     String toChallenge = userText.getText().toString();
 
                     // todo check if user exists
-                    String currentFormatString = formatsSpinner.getSelectedItem().toString();
                     if (currentFormatString != null) {
                         BattleFieldData.Format currentFormat = BattleFieldData.get(mView.getContext()).getFormat(currentFormatString);
                         if (currentFormat.isRandomFormat()) {
@@ -223,24 +220,34 @@ public class BattleLobbyFragment extends BaseFragment {
                         }
                     }
                 } else {
-                    if (isSearching) {
-                        Toast.makeText(MyApplication.getMyApplication(), "Please wait until all search requests are done.", Toast.LENGTH_SHORT).show();
+                    BattleFieldData.Format currentFormat = BattleFieldData.get(getActivity()).getFormat(currentFormatString);
+                    if (currentFormat.isRandomFormat()) {
+                        // we send /utm only
+                        MyApplication.getMyApplication().sendClientMessage("|/utm");
+                        MyApplication.getMyApplication().sendClientMessage("|/search " + MyApplication.toId(currentFormatString));
+                        requestingRoomIndex = MainScreenFragment.TABS_HOLDER_ACCESSOR.getTabIndex();
                     } else {
-                        findButton.setText("Chicken Out!");
-                        isSearching = true;
-
-                        //the moment we find a battle
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    sleep(10000);
-                                    isSearching = false;
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
+                        //we need to send the team for verification
+                        Object pokemonTeamObject = teamSpinner.getSelectedItem();
+                        // if we have no teams
+                        if (!(pokemonTeamObject instanceof PokemonTeam)) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setTitle(R.string.error_dialog_title);
+                            builder.setIcon(android.R.drawable.ic_dialog_alert);
+                            builder.setMessage(R.string.no_teams);
+                            final AlertDialog alert = builder.create();
+                            getActivity().runOnUiThread(new java.lang.Runnable() {
+                                public void run() {
+                                    alert.show();
                                 }
-                            }
-                        }.start();
+                            });
+                            return;
+                        }
+                        PokemonTeam pokemonTeam = (PokemonTeam) pokemonTeamObject;
+                        String teamVerificationString = pokemonTeam.exportForVerification();
+                        MyApplication.getMyApplication().sendClientMessage("|/utm " + teamVerificationString);
+                        MyApplication.getMyApplication().sendClientMessage("|/search " + MyApplication.toId(currentFormatString));
+                        requestingRoomIndex = MainScreenFragment.TABS_HOLDER_ACCESSOR.getTabIndex();
                     }
                 }
 

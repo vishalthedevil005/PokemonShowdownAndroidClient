@@ -3,7 +3,6 @@ package com.pokemonshowdown.fragment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -17,7 +16,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
@@ -35,11 +33,14 @@ import java.util.Set;
 
 public class WatchBattleFragment extends BaseFragment {
 
-    private static View mView;
-    private static ProgressDialog mWaitingDialog;
-    private static ListView mListView;
-    private static String selectedKey;
-    private static String selectedValue;
+    public static int requestingRoomIndex = -1;
+    public static WatchFragmentAccessor ACCESSOR;
+    private View mView;
+    private ProgressDialog mWaitingDialog;
+    private ListView mListView;
+    private String selectedKey;
+    private String selectedValue;
+    private Button findButton;
 
     public static WatchBattleFragment newInstance() {
         return new WatchBattleFragment();
@@ -48,6 +49,7 @@ public class WatchBattleFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        ACCESSOR = new WatchFragmentAccessor();
         return inflater.inflate(R.layout.fragment_watch_battle_lobby, container, false);
     }
 
@@ -57,7 +59,7 @@ public class WatchBattleFragment extends BaseFragment {
         TextView roomTitle = (TextView) mView.findViewById(R.id.room_title);
         final Spinner formatsSpinner = (Spinner) mView.findViewById(R.id.formats_spinner);
         mListView = (ListView) mView.findViewById(R.id.battles_list_view);
-        final Button findButton = (Button) mView.findViewById(R.id.find_button);
+        findButton = (Button) mView.findViewById(R.id.find_button);
 
         //Populate formats spinner with webservice response
         final ArrayList<String> mFormatList = new ArrayList<>();
@@ -98,27 +100,10 @@ public class WatchBattleFragment extends BaseFragment {
 
             }
         });
-
-        findButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //first need to check if the user is logged in
-                Onboarding onboarding = Onboarding.get(mView.getContext().getApplicationContext());
-                if (!onboarding.isSignedIn()) {
-                    FragmentManager fm = ((FragmentActivity) mView.getContext()).getSupportFragmentManager();
-                    OnboardingDialog fragment = new OnboardingDialog();
-                    fragment.show(fm, OnboardingDialog.OTAG);
-                    return;
-                }
-
-                Toast.makeText(mView.getContext(), "Key: " + selectedKey + " | Value: " + selectedValue, Toast.LENGTH_SHORT).show();
-                //MainScreenFragment.TABS_HOLDER_ACCESSOR.changeTab(BattleFieldFragment.newInstance(inflater));
-            }
-        });
     }
 
-    public static void fireBattlesListViewUpdate() {
-        if (!WatchBattleFragment.dismissWaitingDialog()) {
+    private void battlesListViewUpdate() {
+        if (!dismissWaitingDialog()) {
             return;
         }
 
@@ -139,15 +124,23 @@ public class WatchBattleFragment extends BaseFragment {
             value[count] = battleList.get(iterator);
             count++;
         }
-//        new AlertDialog.Builder(mView.getContext())
-//                .setItems(value, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        BattleFieldData.get(mView.getContext()).joinRoom(key[which], true);
-//                        dialog.dismiss();
-//                    }
-//                })
-//                .show();
+
+        findButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //first need to check if the user is logged in
+                Onboarding onboarding = Onboarding.get(mView.getContext().getApplicationContext());
+                if (!onboarding.isSignedIn()) {
+                    FragmentManager fm = ((FragmentActivity) mView.getContext()).getSupportFragmentManager();
+                    OnboardingDialog fragment = new OnboardingDialog();
+                    fragment.show(fm, OnboardingDialog.OTAG);
+                    return;
+                }
+
+                BattleFieldData.get(mView.getContext()).joinRoom(selectedKey, true);
+                requestingRoomIndex = MainScreenFragment.TABS_HOLDER_ACCESSOR.getTabIndex();
+            }
+        });
 
         mListView.setAdapter(new ArrayAdapter<String>(mListView.getContext(), R.layout.fragment_simple_list_row, value));
         mListView.setItemChecked(0, true);
@@ -161,7 +154,7 @@ public class WatchBattleFragment extends BaseFragment {
         });
     }
 
-    public static boolean dismissWaitingDialog() {
+    private boolean dismissWaitingDialog() {
         if (mWaitingDialog.isShowing()) {
             ((Activity) mView.getContext()).runOnUiThread(new Runnable() {
                 @Override
@@ -172,6 +165,17 @@ public class WatchBattleFragment extends BaseFragment {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public class WatchFragmentAccessor {
+
+        public void fireBattlesListViewUpdate() {
+            battlesListViewUpdate();
+        }
+
+        public void fireDismissWaitingDialog() {
+            dismissWaitingDialog();
         }
     }
 }

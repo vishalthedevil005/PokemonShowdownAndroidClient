@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -50,10 +49,10 @@ public class TeamBuilderActivity extends BaseActivity implements View.OnClickLis
     private final static int CLIPBOARD = 0;
     private final static int PASTEBIN = 1;
     private final static int QR = 2;
+    public static PokemonTeamAccessor ACCESSOR;
     private List<PokemonTeam> mPokemonTeamList;
     private RecyclerView mRecyclerTeams;
     private UpdateRecyclerView UPDATE;
-    public static PokemonTeamAccessor ACCESSOR;
     private FloatingActionMenu searchMenu;
 
     @Override
@@ -273,6 +272,10 @@ public class TeamBuilderActivity extends BaseActivity implements View.OnClickLis
         return i;
     }
 
+    private enum PastebinTaskId {
+        IMPORT
+    }
+
     private class UpdateRecyclerView {
 
         public void setupView() {
@@ -293,10 +296,6 @@ public class TeamBuilderActivity extends BaseActivity implements View.OnClickLis
         public void saveOrUpdatePokemonTeam(PokemonTeam team) {
             saveOrUpdateTeam(team);
         }
-    }
-
-    private enum PastebinTaskId {
-        IMPORT
     }
 
     private class PastebinTask extends AsyncTask<String, Void, String> {

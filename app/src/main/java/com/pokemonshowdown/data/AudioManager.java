@@ -2,14 +2,9 @@ package com.pokemonshowdown.data;
 
 import android.content.Context;
 import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.SystemClock;
-import android.widget.Toast;
 
 import com.pokemonshowdown.R;
-import com.pokemonshowdown.application.MyApplication;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -36,9 +31,29 @@ public class AudioManager {
                 try {
                     String pokemon = name;
                     if (pokemon.contains("arceus")) {
-                        pokemon = pokemon.substring(0, pokemon.indexOf("-"));
+                        pokemon = "arceus";
                     } else if (pokemon.contains("porygon")) {
                         pokemon = pokemon.replace("-", "");
+                    } else if (pokemon.contains("mimikyu")) {
+                        pokemon = "mimikyu";
+                    } else if (pokemon.contains("giratina")) {
+                        pokemon = "giratina";
+                    } else if (pokemon.contains("deoxys")) {
+                        pokemon = "deoxys";
+                    } else if (pokemon.contains("greninja")) {
+                        pokemon = "greninja";
+                    } else if (pokemon.contains("aegislash")) {
+                        pokemon = "aegislash";
+                    } else if (pokemon.contains("silvally")) {
+                        pokemon = "silvally";
+                    } else if (pokemon.contains("gourgeist")) {
+                        pokemon = "gourgeist";
+                    } else if (pokemon.contains("pumpkaboo")) {
+                        pokemon = "pumpkaboo";
+                    } else if (pokemon.contains("magearna")) {
+                        pokemon = "magearna";
+                    } else if (pokemon.contains("vivillon")) {
+                        pokemon = "vivillon";
                     }
 
                     MediaPlayer mp = new MediaPlayer();

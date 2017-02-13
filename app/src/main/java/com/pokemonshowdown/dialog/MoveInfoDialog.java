@@ -3,31 +3,18 @@ package com.pokemonshowdown.dialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
-import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.MoveDex;
-import com.pokemonshowdown.data.Pokemon;
-import com.pokemonshowdown.data.PokemonInfo;
-import com.pokemonshowdown.data.RunWithNet;
-import com.pokemonshowdown.fragment.BattleFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Set;
-
-import me.grantland.widget.AutofitTextView;
 
 public class MoveInfoDialog extends DialogFragment {
     public final static String PTAG = MoveInfoDialog.class.getName();
@@ -76,7 +63,8 @@ public class MoveInfoDialog extends DialogFragment {
             ((TextView) view.findViewById(R.id.move_name)).setText(moveJson.getString("name"));
             ((ImageView) view.findViewById(R.id.type)).setImageResource(getMoveIcon(moveJson.getString("type")));
             ((TextView) view.findViewById(R.id.base_power)).setText(moveJson.getString("basePower"));
-            ((TextView) view.findViewById(R.id.accuracy)).setText(moveJson.getString("accuracy") + "%");
+            ((TextView) view.findViewById(R.id.accuracy)).setText(moveJson.getString("accuracy").equals("true") ? "-"
+                    : moveJson.getString("accuracy") + "%");
 
             if (moveJson.getString("category").equals("Physical")) {
                 ((ImageView) view.findViewById(R.id.category)).setImageResource(R.drawable.category_physical);

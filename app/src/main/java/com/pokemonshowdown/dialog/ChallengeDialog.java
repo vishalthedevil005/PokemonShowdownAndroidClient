@@ -41,14 +41,8 @@ public class ChallengeDialog extends DialogFragment {
     private PokemonTeamSpinnerAdapter mPokemonTeamListArrayAdapter;
     private boolean challengeAccepted;
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
+    public ChallengeDialog() {
 
-        if (!challengeAccepted && mChallenged) {
-            //dialog has been cancelled, we reject
-            MyApplication.getMyApplication().sendClientMessage("|/reject " + mChallengerName);
-        }
     }
 
     public static ChallengeDialog newInstance(String challenger, String format) {
@@ -61,10 +55,15 @@ public class ChallengeDialog extends DialogFragment {
         return fragment;
     }
 
-    public ChallengeDialog() {
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
 
+        if (!challengeAccepted && mChallenged) {
+            //dialog has been cancelled, we reject
+            MyApplication.getMyApplication().sendClientMessage("|/reject " + mChallengerName);
+        }
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

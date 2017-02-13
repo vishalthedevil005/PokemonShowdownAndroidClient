@@ -4,7 +4,8 @@
     android:id="@+id/team_preview_fragment"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_margin="2dp">
 
     <TextView
         android:id="@+id/team_nickname"

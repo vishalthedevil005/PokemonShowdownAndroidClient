@@ -1,20 +1,15 @@
 package com.pokemonshowdown.data;
 
 import android.content.Context;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.pokemonshowdown.application.MyApplication;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 public class PokemonInfo implements Serializable {
     public final static String STATUS_BURN = "brn";
@@ -217,7 +212,7 @@ public class PokemonInfo implements Serializable {
 
     public boolean canMegaEvo() {
         String[] allPossibleMegas = new String[]{"Venusaur", "Charizard", "Blastoise", "Alakazam", "Gengar", "Kangaskhan",
-                "Pinsir", "Gyarados", "Mewtwo", "Ampharos", "Scizor", "Heracross", "Houndoom", "Tyranitar", "Blaziken", "Gardevoir",
+                "Pinsir", "Gyarados", "Aerodactyl", "Mewtwo", "Ampharos", "Scizor", "Heracross", "Houndoom", "Tyranitar", "Blaziken", "Gardevoir",
                 "Mawile", "Aggron", "Medicham", "Manectric", "Banette", "Absol", "Garchomp", "Lucario", "Abomasnow", "Beedrill",
                 "Pidgeot", "Slowbro", "Steelix", "Sceptile", "Swampert", "Sableye", "Sharpedo", "Camerupt", "Altaria", "Glalie",
                 "Salamence", "Latias", "Latios", "Metagross", "Lopunny", "Gallade", "Audino", "Diancie"};

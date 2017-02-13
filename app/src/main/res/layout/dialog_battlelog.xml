@@ -7,20 +7,7 @@
     android:minWidth="2000dp"
     android:minHeight="2000dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="4dp"
-        android:text="@string/battlelog" />
-
     <!-- Divider here -->
-
-    <EditText
-        android:id="@+id/battle_chat_box"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textNoSuggestions" />
 
     <ScrollView
         android:id="@+id/battlelog_scrollview"
@@ -36,5 +23,12 @@
             android:padding="4dp" />
 
     </ScrollView>
+
+    <EditText
+        android:id="@+id/battle_chat_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Type here..."
+        android:inputType="textNoSuggestions" />
 
 </LinearLayout>

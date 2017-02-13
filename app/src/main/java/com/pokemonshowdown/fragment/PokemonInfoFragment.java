@@ -3,27 +3,21 @@ package com.pokemonshowdown.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pokemonshowdown.R;
-import com.pokemonshowdown.activity.ContainerActivity;
-import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.ItemDex;
 import com.pokemonshowdown.data.MoveDex;
 import com.pokemonshowdown.data.Pokemon;
 import com.pokemonshowdown.data.PokemonInfo;
 import com.pokemonshowdown.data.RunWithNet;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -132,6 +126,12 @@ public class PokemonInfoFragment extends DialogFragment {
 
         TextView pokemonAbility = (TextView) view.findViewById(R.id.ability);
         pokemonAbility.setText(mPokemonInfo.getAbilityName(getActivity()));
+
+        TextView hp = (TextView) view.findViewById(R.id.hp);
+        hp.setText(Integer.toString(mPokemonInfo.getHp()) + "%");
+
+        ProgressBar hpBar = (ProgressBar) view.findViewById(R.id.bar_hp);
+        hpBar.setProgress(mPokemonInfo.getHp());
 
 //        TextView nature = (TextView) view.findViewById(R.id.nature);
 //        if (mPokemonInfo.getNature() != null) {
@@ -252,7 +252,6 @@ public class PokemonInfoFragment extends DialogFragment {
                 moveNames[i].setText(moveJson.getString("name"));
                 if (moveJson.optString("pp", "0").equals("0")) {
                     //sttruggle has noppinfo
-                    Toast.makeText(getContext(), "here", Toast.LENGTH_SHORT).show();
                 } else {
                     String maxPP = "" + (Integer.parseInt(moveJson.getString("pp"))
                             * 8 / 5);
@@ -299,18 +298,6 @@ public class PokemonInfoFragment extends DialogFragment {
                 } else {
                     moveViews[i].setBackgroundResource(getMoveBackground(type));
                 }
-
-                moveViews[i].setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        try {
-                            Toast.makeText(getContext(), "long clicked on move " + moveJson.getString("move"), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        return false;
-                    }
-                });
 
                 if (moveJson.optBoolean("disabled", false)) {
                     moveViews[i].setOnClickListener(null);

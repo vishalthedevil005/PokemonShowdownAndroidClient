@@ -30,9 +30,11 @@
                 <me.grantland.widget.AutofitTextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:gravity="center_vertical"
                     android:maxLines="1"
                     android:text="Android Client"
-                    android:textSize="30dip" />
+                    android:textSize="30dip"
+                    android:textStyle="bold|italic" />
             </LinearLayout>
 
             <me.grantland.widget.AutofitTextView
@@ -72,7 +74,7 @@
                         android:layout_height="60dp"
                         android:layout_marginLeft="5dp"
                         android:layout_toRightOf="@id/battles_display"
-                        android:src="@drawable/smallicons_meloetta" />
+                        android:src="@drawable/smallicons_meloettapirouette" />
 
 
                     <TextView
@@ -101,6 +103,7 @@
                         android:id="@+id/meloetta_icon"
                         android:layout_width="wrap_content"
                         android:layout_height="60dp"
+                        android:scaleX="-1"
                         android:src="@drawable/smallicons_meloetta" />
 
                     <TextView
