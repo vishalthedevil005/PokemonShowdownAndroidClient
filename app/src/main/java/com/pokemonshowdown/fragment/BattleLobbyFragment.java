@@ -19,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.pokemonshowdown.R;
+import com.pokemonshowdown.activity.ContainerActivity;
 import com.pokemonshowdown.adapter.PokemonTeamSpinnerAdapter;
 import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.BattleFieldData;
@@ -182,6 +183,12 @@ public class BattleLobbyFragment extends BaseFragment {
                     FragmentManager fm = ((FragmentActivity) mView.getContext()).getSupportFragmentManager();
                     OnboardingDialog fragment = new OnboardingDialog();
                     fragment.show(fm, OnboardingDialog.OTAG);
+                    return;
+                }
+
+                if (!ContainerActivity.lastRoomIdCreated.isEmpty()) {
+                    new AlertDialog.Builder(getContext()).setMessage("Unfortunately, the app currently supports only one battle" +
+                            " per time.").setPositiveButton("Ok", null).show();
                     return;
                 }
 

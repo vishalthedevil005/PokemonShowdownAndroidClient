@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.pokemonshowdown.ObjectSerializer;
+import com.pokemonshowdown.activity.ContainerActivity;
 import com.pokemonshowdown.application.BroadcastSender;
 import com.pokemonshowdown.application.MyApplication;
 
@@ -265,6 +266,7 @@ public class BattleFieldData {
         getAnimationDataHashMap().remove(roomId);
         getViewDataHashMap().remove(roomId);
         MyApplication.getMyApplication().sendClientMessage("|/leave " + roomId);
+        ContainerActivity.lastRoomIdCreated = "";
     }
 
     public Format getFormatUsingId(String formatNameId) {

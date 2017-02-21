@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,6 +96,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.ViewHold
             m1 = m1.toLowerCase().replace("-", "").trim();
             JSONObject m1Json = MoveDex.get(mContext).getMoveJsonObject(m1);
             try {
+                Log.d("gukgbjh", m1Json.toString());
                 m1 = m1Json.getString("name");
                 holder.move1.setText(m1);
             } catch (JSONException e) {
