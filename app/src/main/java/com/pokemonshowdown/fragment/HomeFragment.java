@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,20 @@ import android.widget.TextView;
 import com.pokemonshowdown.R;
 import com.pokemonshowdown.application.MyApplication;
 import com.pokemonshowdown.data.Onboarding;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by McBeengs on 22/10/2016.
@@ -81,6 +96,18 @@ public class HomeFragment extends BaseFragment {
 
         final CardView news1 = (CardView) mView.findViewById(R.id.news_1);
         final CardView news2 = (CardView) mView.findViewById(R.id.news_2);
+
+//        HttpClient client = new DefaultHttpClient();
+//        HttpGet httpGet = new HttpGet("https://pokemonshowdown.com/news/embed.php");
+//        try {
+//            HttpResponse response = client.execute(httpGet);
+//            Log.i("HTTP Response",response.toString());
+//        } catch (ClientProtocolException e) {
+//            Log.e("ClientProtocolException","Caught here");
+//        } catch (IOException e) {
+//            Log.e("IOException","Caught here");
+//        }
+
         final TextView hideNews = (TextView) mView.findViewById(R.id.hide_show_news);
         hideNews.setOnClickListener(new View.OnClickListener() {
             @Override

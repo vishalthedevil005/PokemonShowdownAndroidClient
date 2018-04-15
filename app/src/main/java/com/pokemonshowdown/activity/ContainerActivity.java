@@ -50,6 +50,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by McBeengs on 19/10/2016.
@@ -364,7 +365,14 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                     }
                     BattleFieldData.sRooms.clear();
 
-                    JSONObject gamesObject = updateSearchJSon.getJSONObject("games");
+                    JSONObject gamesObject = new JSONObject();
+                    //Log.i("updateSearchJSON->games",updateSearchJSon.get("games").toString());
+                    if(updateSearchJSon.get("games").toString() == "null"){
+                        //No games for user
+                    }else{
+                        gamesObject = updateSearchJSon.getJSONObject("games");
+                    }
+
                     if (gamesObject.length() != 0) {
                         Iterator<String> iterator = gamesObject.keys();
                         while (iterator.hasNext()) {
@@ -600,7 +608,8 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
             if (roomData != null && roomData.isMessageListener()) {
                 roomData.addServerMessageOnHold(message);
             } else {
-                CommunityLoungeFragment fragment = (CommunityLoungeFragment) getSupportFragmentManager().findFragmentByTag("Battle Field Drawer 1");
+                CommunityLoungeFragment fragment = (CommunityLoungeFragment) getSupportFragmentManager().findFragmentByTag("1");
+                //Log.i("ServerMessageContainer",message);
                 if (fragment != null) {
                     fragment.processServerMessage(roomId, message);
                 }
@@ -638,6 +647,7 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
+        Log.i("fragtag",String.valueOf(position));
         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment,
                 String.valueOf(position)).commitAllowingStateLoss();
     }

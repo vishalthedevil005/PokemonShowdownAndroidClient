@@ -172,6 +172,9 @@ public class MyApplication extends Application {
 
     public void processGlobalMessage(String message) {
         int channel;
+        if(message.isEmpty()) {
+            return;
+        }
         if (message.charAt(0) != '|') {
             channel = 1;
         } else {

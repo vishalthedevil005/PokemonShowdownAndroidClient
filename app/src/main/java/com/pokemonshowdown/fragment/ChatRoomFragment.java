@@ -205,6 +205,7 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
             case "title":
                 break;
             case "users":
+                //Log.i("MessageDetails",messageDetails);
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -295,6 +296,9 @@ public class ChatRoomFragment extends android.support.v4.app.Fragment {
                 break;
             case "raw":
                 appendUserMessage("YOUR BELOVED SERVER", Html.fromHtml(messageDetails).toString());
+                break;
+            case "uhtml":
+                appendUserMessage(command,Html.fromHtml(messageDetails).toString());
                 break;
             default:
                 Log.d(CTAG, message);
