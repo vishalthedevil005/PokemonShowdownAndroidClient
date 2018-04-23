@@ -28,6 +28,7 @@ public class BattleFieldData {
     private static BattleFieldData sBattleFieldData;
     private ArrayList<FormatType> mFormatTypes;
     private int mCurrentFormat;
+    private int mCurrentFormatType;
     private JSONObject mAvailableBattle;
     private ArrayList<String> mRoomList;
     private HashMap<String, BattleLog> mRoomDataHashMap;
@@ -135,6 +136,17 @@ public class BattleFieldData {
         return format;
     }
 
+    public FormatType getFormatTypeForFormat(String formatName){
+        for (FormatType formatType : mFormatTypes) {
+            for (Format format : formatType.getFormatList()) {
+                if (format.getName().equals(formatName)) {
+                    return formatType;
+                }
+            }
+        }
+        return null;
+    }
+
     public Format getFormat(String formatName) {
         for (FormatType formatType : mFormatTypes) {
             for (Format format : formatType.getFormatList()) {
@@ -181,7 +193,7 @@ public class BattleFieldData {
     }
 
     public String getCurrentFormatName() {
-        int currentFormat = getCurrentFormat();
+        /*int currentFormat = getCurrentFormat();
         int count = 0;
         do {
             int mask = mFormatTypes.get(count).getSearchableFormatList().size();
@@ -191,7 +203,11 @@ public class BattleFieldData {
             count++;
             currentFormat -= mask;
         } while (currentFormat >= 0);
-        return null;
+        return null;*/
+        int currentFormat = getCurrentFormat();
+        int currentFormatType = getCurrentFormatType();
+        //return mFormatTypes.get(currentFormatType).getFormatList().get(currentFormat).getName();
+        return mFormatTypes.get(currentFormatType).getSearchableFormatList().get(currentFormat);
     }
 
     public int getCurrentFormat() {
@@ -200,6 +216,14 @@ public class BattleFieldData {
 
     public void setCurrentFormat(int currentFormat) {
         mCurrentFormat = currentFormat;
+    }
+
+    public int getCurrentFormatType(){
+        return mCurrentFormatType;
+    }
+
+    public void setCurrentFormatType(int currentFormatType){
+        mCurrentFormatType = currentFormatType;
     }
 
     public void saveRoomInstance(String roomId, CharSequence chatBox, boolean messageListener) {

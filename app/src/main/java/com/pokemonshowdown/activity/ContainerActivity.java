@@ -366,7 +366,6 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                     BattleFieldData.sRooms.clear();
 
                     JSONObject gamesObject = new JSONObject();
-                    //Log.i("updateSearchJSON->games",updateSearchJSon.get("games").toString());
                     if(updateSearchJSon.get("games").toString() == "null"){
                         //No games for user
                     }else{
@@ -609,7 +608,6 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
                 roomData.addServerMessageOnHold(message);
             } else {
                 CommunityLoungeFragment fragment = (CommunityLoungeFragment) getSupportFragmentManager().findFragmentByTag("1");
-                //Log.i("ServerMessageContainer",message);
                 if (fragment != null) {
                     fragment.processServerMessage(roomId, message);
                 }
@@ -647,7 +645,6 @@ public class ContainerActivity extends BaseActivity implements NavigationView.On
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        Log.i("fragtag",String.valueOf(position));
         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment,
                 String.valueOf(position)).commitAllowingStateLoss();
     }

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.text.Spannable;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,7 +84,9 @@ public class BattleLogDialog extends DialogFragment {
 
             ArrayList<Spannable> pendingMessages = battleLog.getServerMessageOnHold();
             for (Spannable message : pendingMessages) {
-                appendToLog(message);
+                if(!message.toString().startsWith("teamsize|p1|") && !message.toString().startsWith("teamsize|p2|")){
+                    appendToLog(message);
+                }
             }
 
             battleLog.setMessageListener(false);

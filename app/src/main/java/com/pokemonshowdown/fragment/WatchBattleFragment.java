@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,7 +80,15 @@ public class WatchBattleFragment extends BaseFragment {
         formatsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                MyApplication.getMyApplication().sendClientMessage("|/cmd roomlist");
+
+                MyApplication.getMyApplication().sendClientMessage("|/cmd roomlist " + MyApplication.toId(mFormatList.get(position)));
+
+                //Setting current format type
+                BattleFieldData.get(view.getContext()).setCurrentFormatType(BattleFieldData.get(view.getContext()).getFormatTypes().indexOf(BattleFieldData.get(view.getContext()).getFormatTypeForFormat(mFormatList.get(position))));
+
+                //Setting current format
+                int currentFormat = BattleFieldData.get(view.getContext()).getFormatTypeForFormat(mFormatList.get(position)).getFormatList().indexOf(BattleFieldData.get(view.getContext()).getFormat(mFormatList.get(position)));
+                BattleFieldData.get(view.getContext()).setCurrentFormat(currentFormat);
 
                 //Alert dialog that hides the loading
                 mWaitingDialog = new ProgressDialog(mView.getContext());

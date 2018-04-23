@@ -1,9 +1,11 @@
 package com.pokemonshowdown.fragment;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -27,6 +29,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 
@@ -34,11 +37,13 @@ public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
     public final static String CTAG = CommunityLoungeFragment.class.getName();
     private CommunityLoungePagerAdapter mCommunityLoungePagerAdapter;
     private ViewPager mViewPager;
+    private TabLayout mTabLayout;
 
     private ArrayList<String> mRoomList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mRoomList = CommunityLoungeData.get(getActivity()).getRoomList();
@@ -56,13 +61,42 @@ public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
         mCommunityLoungePagerAdapter = new CommunityLoungePagerAdapter(getChildFragmentManager());
         mViewPager = (ViewPager) v.findViewById(R.id.community_pager);
         mViewPager.setAdapter(mCommunityLoungePagerAdapter);
+
+        mTabLayout = (TabLayout) v.findViewById(R.id.community_pager_tab_layout);
+        for(String room : CommunityLoungeData.get(getActivity().getApplicationContext()).getRoomList()){
+            mTabLayout.addTab(mTabLayout.newTab().setText(room));
+        }
+
+        mViewPager.setOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mTabLayout));
+        mTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                mViewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
         return v;
+    }
+
+    @Override
+    public boolean getAllowEnterTransitionOverlap() {
+        return super.getAllowEnterTransitionOverlap();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        CommunityLoungeData.get(getActivity()).leaveAllRooms();
+        //CommunityLoungeData.get(getActivity()).leaveAllRooms();
     }
 
     @Override
@@ -149,6 +183,7 @@ public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
         ChatRoomFragment fragment = (ChatRoomFragment) getChildFragmentManager().findFragmentByTag("android:switcher:" + mViewPager.getId() + ":" + position);
         if (fragment != null) {
             getChildFragmentManager().beginTransaction().remove(fragment).commit();
+            mTabLayout.removeTab(mTabLayout.getTabAt(position));
         }
         CommunityLoungeData.get(getActivity()).leaveRoom(roomId);
         mRoomList.remove(position);
@@ -187,6 +222,7 @@ public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
             mViewPager.setCurrentItem(mRoomList.indexOf(roomId));
         } else {
             CommunityLoungeData.get(getActivity().getApplicationContext()).joinRoom(roomId);
+            mTabLayout.addTab(mTabLayout.newTab().setText(room));
             mCommunityLoungePagerAdapter.notifyDataSetChanged();
         }
     }

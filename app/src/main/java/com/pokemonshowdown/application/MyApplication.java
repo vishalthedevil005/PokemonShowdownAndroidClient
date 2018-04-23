@@ -333,7 +333,8 @@ public class MyApplication extends Application {
 
     public void processRoomMessage(String roomId, String message) {
         int channel;
-        if (roomId.startsWith("battle")) {
+        if (roomId.startsWith("battle-")) {
+            //"battle-gen7randombattle-733714880" sample battle text
             channel = 0;
         } else {
             channel = 1;
