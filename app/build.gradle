@@ -7,8 +7,8 @@ android {
         applicationId "com.pokemonshowdown.app"
         minSdkVersion 17
         targetSdkVersion 24
-        versionCode 2
-        versionName "2.0"
+        versionCode 30
+        versionName '30.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         useLibrary 'org.apache.http.legacy'
     }
@@ -17,6 +17,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    productFlavors {
     }
 }
 

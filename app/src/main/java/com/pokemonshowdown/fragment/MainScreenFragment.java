@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -191,8 +192,11 @@ public class MainScreenFragment extends Fragment implements View.OnClickListener
         int pageIndex = mAdapter.addFragment(newFragmentClass, args);
         mAdapter.notifyDataSetChanged();
         // You might want to make "newPage" the currently displayed page:
-        mViewPager.setCurrentItem(pageIndex, true);
-
+        if(pageIndex > 2){
+            mViewPager.setCurrentItem(pageIndex, true);
+        }else{
+            mViewPager.setCurrentItem(pageIndex, false);
+        }
         mTabLayout.setViewPager(mViewPager);
         mTabLayout.invalidate();
     }

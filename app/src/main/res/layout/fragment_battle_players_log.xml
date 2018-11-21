@@ -160,12 +160,12 @@
 
                         <me.grantland.widget.AutofitTextView
                             android:id="@+id/username"
+                            android:singleLine="true"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             android:layout_margin="2dp"
                             android:layout_weight="1"
                             android:gravity="center_horizontal"
-                            android:lines="1"
                             android:padding="2dp"
                             android:textStyle="bold" />
 
@@ -317,12 +317,12 @@
 
                         <me.grantland.widget.AutofitTextView
                             android:id="@+id/username_o"
+                            android:singleLine="true"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             android:layout_margin="2dp"
                             android:layout_weight="1"
                             android:gravity="center_horizontal"
-                            android:lines="1"
                             android:padding="2dp"
                             android:textStyle="bold" />
 

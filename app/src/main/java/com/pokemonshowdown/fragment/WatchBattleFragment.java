@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,12 +38,15 @@ public class WatchBattleFragment extends BaseFragment {
 
     public static int requestingRoomIndex = -1;
     public static WatchFragmentAccessor ACCESSOR;
-    private View mView;
+    private static View mView;
     private ProgressDialog mWaitingDialog;
     private ListView mListView;
     private String selectedKey;
     private String selectedValue;
     private Button findButton;
+    private static int mPosition;
+    private boolean mChecked;
+    private String mEloFilter = "";
 
     public static WatchBattleFragment newInstance() {
         return new WatchBattleFragment();
@@ -61,6 +66,7 @@ public class WatchBattleFragment extends BaseFragment {
         final Spinner formatsSpinner = (Spinner) mView.findViewById(R.id.formats_spinner);
         mListView = (ListView) mView.findViewById(R.id.battles_list_view);
         findButton = (Button) mView.findViewById(R.id.find_button);
+        final CheckBox eloCheckBox = (CheckBox) mView.findViewById(R.id.elo_checkbox);
 
         //Populate formats spinner with webservice response
         final ArrayList<String> mFormatList = new ArrayList<>();
@@ -80,15 +86,15 @@ public class WatchBattleFragment extends BaseFragment {
         formatsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                MyApplication.getMyApplication().sendClientMessage("|/cmd roomlist " + MyApplication.toId(mFormatList.get(position)));
+                mPosition = position;
+                MyApplication.getMyApplication().sendClientMessage("|/cmd roomlist " + MyApplication.toId(mFormatList.get(position)) + mEloFilter);
 
                 //Setting current format type
-                BattleFieldData.get(view.getContext()).setCurrentFormatType(BattleFieldData.get(view.getContext()).getFormatTypes().indexOf(BattleFieldData.get(view.getContext()).getFormatTypeForFormat(mFormatList.get(position))));
+                BattleFieldData.get(mView.getContext()).setCurrentFormatType(BattleFieldData.get(mView.getContext()).getFormatTypes().indexOf(BattleFieldData.get(mView.getContext()).getFormatTypeForFormat(mFormatList.get(position))));
 
                 //Setting current format
-                int currentFormat = BattleFieldData.get(view.getContext()).getFormatTypeForFormat(mFormatList.get(position)).getFormatList().indexOf(BattleFieldData.get(view.getContext()).getFormat(mFormatList.get(position)));
-                BattleFieldData.get(view.getContext()).setCurrentFormat(currentFormat);
+                int currentFormat = BattleFieldData.get(mView.getContext()).getFormatTypeForFormat(mFormatList.get(position)).getFormatList().indexOf(BattleFieldData.get(mView.getContext()).getFormat(mFormatList.get(position)));
+                BattleFieldData.get(mView.getContext()).setCurrentFormat(currentFormat);
 
                 //Alert dialog that hides the loading
                 mWaitingDialog = new ProgressDialog(mView.getContext());
@@ -107,6 +113,36 @@ public class WatchBattleFragment extends BaseFragment {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
+            }
+        });
+
+        eloCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if(eloCheckBox.isPressed()){
+                    //Refresh battle list for elo filter change
+                    if(b){
+                        //1300 elo filter
+                        mEloFilter = ", 1300";
+                    }else{
+                        mEloFilter = "";
+                    }
+
+                    MyApplication.getMyApplication().sendClientMessage("|/cmd roomlist " + MyApplication.toId(mFormatList.get(mPosition)) + mEloFilter);
+
+                    //Alert dialog that hides the loading
+                    mWaitingDialog = new ProgressDialog(mView.getContext());
+                    mWaitingDialog.setMessage(mView.getResources().getString(R.string.download_matches_inprogress));
+                    mWaitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    mWaitingDialog.setCancelable(true);
+
+                    ((Activity) mView.getContext()).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mWaitingDialog.show();
+                        }
+                    });
+                }
             }
         });
     }
@@ -187,4 +223,6 @@ public class WatchBattleFragment extends BaseFragment {
             dismissWaitingDialog();
         }
     }
+
+
 }
