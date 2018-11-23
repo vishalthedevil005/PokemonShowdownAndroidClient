@@ -189,7 +189,6 @@ public class CommunityLoungeFragment extends android.support.v4.app.Fragment {
         mRoomList.remove(position);
         mCommunityLoungePagerAdapter.notifyDataSetChanged();
         mViewPager.setAdapter(mCommunityLoungePagerAdapter);
-//        actionBar.removeTab(tab);
     }
 
     private void generateRoomList(JSONArray rooms) {
